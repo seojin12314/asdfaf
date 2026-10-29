@@ -28,6 +28,24 @@ Avoid: photorealism, 3D render look, extra fingers, text of any kind, gradient o
 | 리포트 장 머리 칩 | 팝인 | `face.png` |
 | 공유 카드 | 캔버스 합성 | `card.png` |
 | 카드 모서리·파비콘 | 정적 | `emblem.png` |
+| 소개·리딩 배경 | 멀리(천천히 확대) + 중간(입자 상승 루프) + 가까이(마우스·기울기 패럴랙스) 3겹 | `bg_intro_far.png`, `bg_intro_mid.png`, `bg_intro_near.png` (+선택 `bg_intro.webm`) |
+| 결과 헤더·리포트 표지 배경 | 가로 띠, 어두운 그라데이션 덮개 | `bg_header.png` |
+| 공유 카드 배경 | 캔버스 합성 | `bg_card.png` |
+
+## 2-1. 장면 합성 규칙 (배경 + 캐릭터)
+
+앱은 장면을 **아래부터** 이렇게 쌓는다. 각 층은 파일이 없으면 자동으로 빠지고 CSS 글로우가 대신한다.
+
+| 층 | 파일 | 움직임(앱이 처리) |
+|---|---|---|
+| 1 멀리 | `bg_intro_far.png` 불투명 | 20초 주기로 1.00→1.06 느린 확대·축소 |
+| 2 중간 | `bg_intro_mid.png` 투명 입자·안개 | 9초 주기로 위로 떠오르며 페이드, 반복 |
+| 3 후광 | CSS | 캐릭터 강조색 펄스 |
+| 4 가까이 | `bg_intro_near.png` 투명 전경 소품 | 기기 기울기·마우스에 따라 ±12px 패럴랙스 |
+| 5 캐릭터 | `full.png` 또는 `idle.webm` | 리빌, 숨쉬기, 부유 |
+| 6 빛 스윕 | CSS | 등장 시 1회 |
+
+배경 세 장은 **같은 카메라, 같은 장소**에서 깊이만 나눈 것이어야 한다. 멀리 장을 먼저 확정하고, 그 이미지를 첨부해 중간·가까이 장을 "같은 장면의 분리 레이어"로 생성한다. 캐릭터가 서는 중앙 하단 1/3은 세 장 모두 비워 둔다.
 
 
 ---
@@ -115,11 +133,51 @@ Same character as the attached reference sheet. Half-body illustration of a godd
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: hair embers drift upward slowly, the fingertip flame flickers, she breathes gently, a faint smirk settles. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 밤의 붉은 신전 누각. 처마에 붉은 등롱이 줄지어 걸리고, 바닥은 검은 돌, 공중에 불씨가 떠오른다. 뒤로 어두운 산 능선.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #ff6f5e. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: dark crimson haze with slow-rising ember particles and a soft warm glow at the bottom center, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: the interior of a night-time Korean pavilion shrine seen from inside, dark lacquered wooden pillars framing the left and right edges, rows of small crimson paper lanterns hanging from the eaves high up, a black stone floor reflecting faint red light, a distant dark mountain ridge through the open back, deep crimson and charcoal palette with coral #ff6f5e accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: drifting ember sparks and thin coral-red smoke wisps rising slowly, scattered across the frame, denser near the bottom. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: a single red silk thread stretched loosely across the lower left corner and a few out-of-focus lantern tassels at the top edge. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide night-time pavilion eave with crimson lanterns receding into darkness, embers drifting, very dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: embers rise slowly and fade, lantern flames flicker, smoke wisps drift right, red thread sways slightly. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -208,11 +266,51 @@ Same character as the attached reference sheet. Half-body illustration of a Kore
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: the fan sways slowly, the coin spins on his fingertip, his beard moves with a slow breath, eyes crinkle. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 안개 낀 산중 암자 마루. 늙은 소나무 가지에 엽전 꿰미가 걸려 있고, 멀리 산봉우리가 안개 위로 떠 있다. 황토빛 등불 하나.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #e2b74f. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: misty mountain haze in deep navy with floating gold coin glints and a warm glow low in the frame, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: a misty mountain hermitage at dusk seen from its wooden porch, a gnarled old pine tree on the right with strings of old brass coins hanging from a branch, layered mountain peaks floating above a sea of fog in the back, a single warm ochre oil lamp glow on the left, deep navy and slate palette with antique gold #e2b74f accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: slow-moving horizontal fog bands and a few floating gold coin glints, translucent. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: out-of-focus pine needles at the top left corner and a corner of a woven straw mat at the bottom. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide misty mountain range at dusk with one pine branch and hanging coins entering from the right, dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: fog drifts slowly left, coins sway and glint, the lamp flame breathes, pine needles tremble. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -301,11 +399,51 @@ Same character as the attached reference sheet. Half-body illustration of a Kore
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: the moon lantern glows in a slow pulse, she nods slightly, the blanket edge moves, eyes blink softly. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 달빛 드는 한옥 안방 툇마루. 창호지 문으로 보랏빛 달빛이 들어오고, 반짇고리와 찻잔, 작은 등불이 놓여 있다.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #b9a3ff. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: deep indigo night with soft violet moonlight from the upper left and drifting fireflies, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: a cozy traditional Korean room at night seen from the floor, a paper-screen door on the left glowing with soft violet moonlight, a low wooden table with a tea cup and a sewing basket, a folded quilt in the corner, a small lantern, warm dark wood tones with lavender #b9a3ff moonlight accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: soft drifting dust motes in the moonbeam and a few slow fireflies, translucent. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: a corner of a hand-knitted blanket draped at the bottom right and the edge of the paper screen frame on the left. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide moonlit paper-screen wall with a low table and lantern on the right, dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: moonlight shifts slowly, dust motes drift, the lantern flame breathes, fireflies blink. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -394,11 +532,51 @@ Same character as the attached reference sheet. Half-body illustration of a Kore
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: bounces on tiptoes, the star above the head bobs, the lotus lantern pulses pink, braids sway. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 연등이 떠 있는 밤의 연못가. 수면에 분홍 연꽃과 연등이 비치고, 반딧불과 꽃잎이 날린다.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #ff9ab5. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: soft rose-pink twilight with floating lotus petals and small sparkles, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: a night-time lotus pond seen from the shore, dozens of small pink paper lanterns floating on still water and reflected, large lotus leaves and a few pink lotus blossoms in the foreground water, a stone step at the bottom, deep teal-navy water with pink #ff9ab5 lantern accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: floating pink petals and small sparkles drifting across the frame, translucent. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: one large lotus leaf edge entering from the bottom left and a hanging lantern string at the top right, out of focus. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide lotus pond at night with floating lanterns receding into the distance, dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: lanterns bob gently, reflections ripple, petals drift down, sparkles blink. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -487,11 +665,51 @@ Same character as the attached reference sheet. Half-body illustration of a Kore
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: she looks down at the tablet then back up to the viewer, the pen taps once, glasses catch a glint. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 새벽 고층 오피스 유리창 앞. 차가운 푸른 도시 야경, 유리에 희미한 격자 반사, 책상 위 스탠드 하나.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #5fb0ff. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: cool slate-blue gradient with faint thin grid lines and a soft light beam from the top-left, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: a high-rise office at dawn seen from inside, floor-to-ceiling glass on the back wall showing a cool blue city skyline with scattered lights, a faint grid reflection on the glass, a minimal desk with a single steel lamp on the right, slate and steel-blue palette with #5fb0ff accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: thin horizontal light streaks and slowly moving faint grid lines, translucent. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: the out-of-focus edge of a glass partition on the left and the corner of the desk at the bottom right. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide dawn city skyline through office glass with a thin light beam from the upper left, dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: city lights twinkle, a light beam sweeps slowly across the glass, grid lines drift, lamp glow steady. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -581,11 +799,51 @@ Same character as the attached reference sheet. Half-body illustration of a Kore
 Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: he turns a page of the almanac, adjusts his glasses, nods and smiles, the dial glints. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.
 ```
 
+### 배경 세계관
 
-**배경 플레이트 (선택)** · 크기 1024×1536 · 쓰이는 곳: 캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)
+- 장소: 명리 서재. 남색 벽에 금색 별자리 선이 그려져 있고, 고서가 꽂힌 서가, 책상 위 패철과 붓, 따뜻한 스탠드 불빛.
+- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 #d8b45f. 사람·얼굴·글자 금지.
+
+
+**bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)** · 크기 1024×1536 · 쓰이는 곳: 소개·리딩 배경 1층
 
 ```
-Atmospheric background plate with no characters: deep navy with faint gold constellation lines and a warm lamp glow from the lower right, no figures. Very low contrast so a character can be placed on top, darker toward the top, Korean webtoon-style character illustration, clean cel shading with two-tone shadows, key light from the top-left at 45 degrees, a thin rim light in the character's accent color along the right silhouette, clean 3px outlines, slightly desaturated mid-tones with one saturated accent color, subtle paper grain, no text, no logo.
+Background plate, layer FAR: a scholar's study at night, a deep navy wall painted with fine gold constellation lines and a large circular star chart, wooden shelves of old books with plain spines on the right, a desk with a brass geomantic dial and brushes, a warm lamp glow from the lower right, navy and walnut palette with antique gold #d8b45f accents. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_mid.png 배경 · 중간 (투명 입자층)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 2층(위로 떠오르는 루프)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER MID only: slowly rotating faint gold constellation lines and tiny star glints, translucent. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro_near.png 배경 · 가까이 (투명 전경)** · 크기 1024×1536 (투명) · 쓰이는 곳: 소개·리딩 배경 4층(패럴랙스)
+
+```
+Same scene as the attached FAR background, SEPARATED LAYER NEAR only: the out-of-focus corner of an open almanac at the bottom left and a hanging scroll edge at the top right. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, transparent background, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_header.png 결과 헤더·리포트 표지 배경 (가로)** · 크기 1536×1024 → 가운데 3:1 크롭 · 쓰이는 곳: 결과 화면 헤더 · 리포트 표지 띠
+
+```
+Wide background plate: a wide navy wall with gold constellation lines and a shelf of old books on the right, dark lower half. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_card.png 공유 카드 배경** · 크기 1024×1536 → 4:5 크롭 → 1080×1350 · 쓰이는 곳: 공유 카드 캔버스 배경
+
+```
+Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark. Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage.
+```
+
+
+**bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)** · 크기 1024×1536, 8s 루프 · 쓰이는 곳: 소개 화면에서 far+mid 대신 재생(있으면)
+
+```
+Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: constellation lines rotate imperceptibly, stars glint, lamp light breathes, a page corner lifts. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.
 ```
 
 
@@ -600,6 +858,16 @@ Atmospheric background plate with no characters: deep navy with faint gold const
 Four square tiles arranged two by two, each tile a dark navy #121829 rounded square with a thin teal #7fd1c7 border, each showing one large bold serif letter: E, N, F, P in teal, slight perspective tilt as if the tiles are floating, soft teal glow beneath, transparent background, no other text.
 ```
 
+## 작업 순서 요약 (캐릭터 1명 기준)
+
+1. S0 시트 → 확정
+2. full / face 4종 / emblem / card (시트 첨부)
+3. bg_intro_far → 확정
+4. bg_intro_mid / bg_intro_near / bg_card (far 첨부)
+5. bg_header
+6. (선택) idle.webm, bg_intro.webm
+7. 전부 `mvp/saju/assets/characters/<id>/` 에 저장 → 앱 새로고침
+
 ## 검수 체크리스트
 
 - [ ] 시트와 각 파일의 얼굴·머리·의상이 같은 사람으로 보이는가 (다르면 레퍼런스를 다시 첨부하고 재생성)
@@ -609,4 +877,7 @@ Four square tiles arranged two by two, each tile a dark navy #121829 rounded squ
 - [ ] 강조색이 의상·소품·눈 중 두 곳 이상에 들어갔는가
 - [ ] card.png 왼쪽 2/3가 비어 있는가
 - [ ] `master`는 본인 동의서 없이는 실제 얼굴을 닮게 만들지 않았는가
+- [ ] 배경 3겹(far·mid·near)이 같은 카메라·같은 장소인가, 중앙 하단이 비어 있는가
+- [ ] mid·near 층이 진짜 투명인가(바닥·벽이 섞여 들어오지 않았는가)
+- [ ] bg_header 아래 절반이 충분히 어두워 글자가 읽히는가
 

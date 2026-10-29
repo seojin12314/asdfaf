@@ -95,6 +95,44 @@ CHARS = [
   bg="deep navy with faint gold constellation lines and a warm lamp glow from the lower right, no figures"),
 ]
 
+BG_STYLE = ("Korean webtoon background painting, soft painterly brushwork with clean edges, cinematic night lighting, overall dark and low-contrast "
+            "so that a character placed in the center-bottom stays readable, strongest light source in the upper left, gentle vignette, "
+            "muted palette with one accent color, subtle paper grain, no characters, no people, no animals with faces, no text, no letters, no logo, no watermark.")
+BG_NEG = "Avoid: photorealism, 3D render look, bright daylight, busy details in the center, any figure or silhouette of a person, text or signage."
+
+BGS = {
+ "flame": dict(place_ko="밤의 붉은 신전 누각. 처마에 붉은 등롱이 줄지어 걸리고, 바닥은 검은 돌, 공중에 불씨가 떠오른다. 뒤로 어두운 산 능선.",
+   far="the interior of a night-time Korean pavilion shrine seen from inside, dark lacquered wooden pillars framing the left and right edges, rows of small crimson paper lanterns hanging from the eaves high up, a black stone floor reflecting faint red light, a distant dark mountain ridge through the open back, deep crimson and charcoal palette with coral #ff6f5e accents",
+   mid="drifting ember sparks and thin coral-red smoke wisps rising slowly, scattered across the frame, denser near the bottom", near="a single red silk thread stretched loosely across the lower left corner and a few out-of-focus lantern tassels at the top edge", 
+   header="a wide night-time pavilion eave with crimson lanterns receding into darkness, embers drifting, very dark lower half",
+   loop="embers rise slowly and fade, lantern flames flicker, smoke wisps drift right, red thread sways slightly"),
+ "sage": dict(place_ko="안개 낀 산중 암자 마루. 늙은 소나무 가지에 엽전 꿰미가 걸려 있고, 멀리 산봉우리가 안개 위로 떠 있다. 황토빛 등불 하나.",
+   far="a misty mountain hermitage at dusk seen from its wooden porch, a gnarled old pine tree on the right with strings of old brass coins hanging from a branch, layered mountain peaks floating above a sea of fog in the back, a single warm ochre oil lamp glow on the left, deep navy and slate palette with antique gold #e2b74f accents",
+   mid="slow-moving horizontal fog bands and a few floating gold coin glints, translucent", near="out-of-focus pine needles at the top left corner and a corner of a woven straw mat at the bottom",
+   header="a wide misty mountain range at dusk with one pine branch and hanging coins entering from the right, dark lower half",
+   loop="fog drifts slowly left, coins sway and glint, the lamp flame breathes, pine needles tremble"),
+ "granny": dict(place_ko="달빛 드는 한옥 안방 툇마루. 창호지 문으로 보랏빛 달빛이 들어오고, 반짇고리와 찻잔, 작은 등불이 놓여 있다.",
+   far="a cozy traditional Korean room at night seen from the floor, a paper-screen door on the left glowing with soft violet moonlight, a low wooden table with a tea cup and a sewing basket, a folded quilt in the corner, a small lantern, warm dark wood tones with lavender #b9a3ff moonlight accents",
+   mid="soft drifting dust motes in the moonbeam and a few slow fireflies, translucent", near="a corner of a hand-knitted blanket draped at the bottom right and the edge of the paper screen frame on the left",
+   header="a wide moonlit paper-screen wall with a low table and lantern on the right, dark lower half",
+   loop="moonlight shifts slowly, dust motes drift, the lantern flame breathes, fireflies blink"),
+ "child": dict(place_ko="연등이 떠 있는 밤의 연못가. 수면에 분홍 연꽃과 연등이 비치고, 반딧불과 꽃잎이 날린다.",
+   far="a night-time lotus pond seen from the shore, dozens of small pink paper lanterns floating on still water and reflected, large lotus leaves and a few pink lotus blossoms in the foreground water, a stone step at the bottom, deep teal-navy water with pink #ff9ab5 lantern accents",
+   mid="floating pink petals and small sparkles drifting across the frame, translucent", near="one large lotus leaf edge entering from the bottom left and a hanging lantern string at the top right, out of focus",
+   header="a wide lotus pond at night with floating lanterns receding into the distance, dark lower half",
+   loop="lanterns bob gently, reflections ripple, petals drift down, sparkles blink"),
+ "hunter": dict(place_ko="새벽 고층 오피스 유리창 앞. 차가운 푸른 도시 야경, 유리에 희미한 격자 반사, 책상 위 스탠드 하나.",
+   far="a high-rise office at dawn seen from inside, floor-to-ceiling glass on the back wall showing a cool blue city skyline with scattered lights, a faint grid reflection on the glass, a minimal desk with a single steel lamp on the right, slate and steel-blue palette with #5fb0ff accents",
+   mid="thin horizontal light streaks and slowly moving faint grid lines, translucent", near="the out-of-focus edge of a glass partition on the left and the corner of the desk at the bottom right",
+   header="a wide dawn city skyline through office glass with a thin light beam from the upper left, dark lower half",
+   loop="city lights twinkle, a light beam sweeps slowly across the glass, grid lines drift, lamp glow steady"),
+ "master": dict(place_ko="명리 서재. 남색 벽에 금색 별자리 선이 그려져 있고, 고서가 꽂힌 서가, 책상 위 패철과 붓, 따뜻한 스탠드 불빛.",
+   far="a scholar's study at night, a deep navy wall painted with fine gold constellation lines and a large circular star chart, wooden shelves of old books with plain spines on the right, a desk with a brass geomantic dial and brushes, a warm lamp glow from the lower right, navy and walnut palette with antique gold #d8b45f accents",
+   mid="slowly rotating faint gold constellation lines and tiny star glints, translucent", near="the out-of-focus corner of an open almanac at the bottom left and a hanging scroll edge at the top right",
+   header="a wide navy wall with gold constellation lines and a shelf of old books on the right, dark lower half",
+   loop="constellation lines rotate imperceptibly, stars glint, lamp light breathes, a page corner lifts"),
+}
+
 FACE_SHOT = ("bust shot from the chest up, the face occupying about 55 percent of the frame height, head centered, "
              "three-quarter view facing slightly left, looking at the viewer, identical framing to the other face images of this character")
 
@@ -110,7 +148,9 @@ def gen():
     out.append("## 1. 공통 스타일 블록 (모든 프롬프트에 이미 포함됨)\n")
     out.append(f"```\n{STYLE}\n{NEG}\n```\n")
     out.append("## 2. 장면 ↔ 파일 매핑\n")
-    out.append("| 앱 장면 | 연출 | 쓰는 파일 |\n|---|---|---|\n| 홈 카드 | 부유, 순차 등장 | `full.png` |\n| 캐릭터 소개 | 아래→위 리빌, 빛 스윕, 후광 펄스 (+선택 `idle.webm`) | `full.png`, 배경은 CSS(선택: 배경 플레이트) |\n| 리딩 | 어둡던 캐릭터가 밝아지는 wake | `full.png` |\n| 결과 초상 | 숨쉬기, 말할 때 바운스, 문장별 표정 교체 | `face.png`, `face_smile.png`, `face_serious.png`, `face_talk.png` |\n| 리포트 장 머리 칩 | 팝인 | `face.png` |\n| 공유 카드 | 캔버스 합성 | `card.png` |\n| 카드 모서리·파비콘 | 정적 | `emblem.png` |\n")
+    out.append("| 앱 장면 | 연출 | 쓰는 파일 |\n|---|---|---|\n| 홈 카드 | 부유, 순차 등장 | `full.png` |\n| 캐릭터 소개 | 아래→위 리빌, 빛 스윕, 후광 펄스 (+선택 `idle.webm`) | `full.png`, 배경은 CSS(선택: 배경 플레이트) |\n| 리딩 | 어둡던 캐릭터가 밝아지는 wake | `full.png` |\n| 결과 초상 | 숨쉬기, 말할 때 바운스, 문장별 표정 교체 | `face.png`, `face_smile.png`, `face_serious.png`, `face_talk.png` |\n| 리포트 장 머리 칩 | 팝인 | `face.png` |\n| 공유 카드 | 캔버스 합성 | `card.png` |\n| 카드 모서리·파비콘 | 정적 | `emblem.png` |\n| 소개·리딩 배경 | 멀리(천천히 확대) + 중간(입자 상승 루프) + 가까이(마우스·기울기 패럴랙스) 3겹 | `bg_intro_far.png`, `bg_intro_mid.png`, `bg_intro_near.png` (+선택 `bg_intro.webm`) |\n| 결과 헤더·리포트 표지 배경 | 가로 띠, 어두운 그라데이션 덮개 | `bg_header.png` |\n| 공유 카드 배경 | 캔버스 합성 | `bg_card.png` |\n")
+    out.append("## 2-1. 장면 합성 규칙 (배경 + 캐릭터)\n")
+    out.append("앱은 장면을 **아래부터** 이렇게 쌓는다. 각 층은 파일이 없으면 자동으로 빠지고 CSS 글로우가 대신한다.\n\n| 층 | 파일 | 움직임(앱이 처리) |\n|---|---|---|\n| 1 멀리 | `bg_intro_far.png` 불투명 | 20초 주기로 1.00→1.06 느린 확대·축소 |\n| 2 중간 | `bg_intro_mid.png` 투명 입자·안개 | 9초 주기로 위로 떠오르며 페이드, 반복 |\n| 3 후광 | CSS | 캐릭터 강조색 펄스 |\n| 4 가까이 | `bg_intro_near.png` 투명 전경 소품 | 기기 기울기·마우스에 따라 ±12px 패럴랙스 |\n| 5 캐릭터 | `full.png` 또는 `idle.webm` | 리빌, 숨쉬기, 부유 |\n| 6 빛 스윕 | CSS | 등장 시 1회 |\n\n배경 세 장은 **같은 카메라, 같은 장소**에서 깊이만 나눈 것이어야 한다. 멀리 장을 먼저 확정하고, 그 이미지를 첨부해 중간·가까이 장을 \"같은 장면의 분리 레이어\"로 생성한다. 캐릭터가 서는 중앙 하단 1/3은 세 장 모두 비워 둔다.\n")
     for c in CHARS:
         A = c["anchor"]; ref = "Same character as the attached reference sheet. "
         out.append(f"\n---\n\n## {c['name']} (`{c['id']}`) · {c['role']} · 강조색 {c['accent']}\n")
@@ -128,11 +168,20 @@ def gen():
         out.append(block("emblem.png 엠블럼", f"Flat vector emblem icon: {c['emblem']}. Accent color {c['accent']} with a dark navy #0b0e18 or off-white #f2ecdc as the second tone. Thick clean shapes readable at 32 pixels. Transparent background, no text, no gradient, no 3D, no face.", "1024×1024 → 512", "카드 모서리 · 공유 카드 · 파비콘 대체"))
         out.append(block("card.png 공유 카드용 반신", f"{ref}Half-body illustration of {A}. Composition: {c['pose_card']}. The left two thirds of the frame must stay completely empty (text will be placed there later). {STYLE} {NEG}", "1024×1536 → 4:5 크롭 → 1080×1350", "공유 카드 캔버스 합성"))
         out.append(block("idle.webm 대기 영상 (선택, Sora/Runway/Kling용)", f"Animate the attached full-body illustration as a seamless 4-second loop at 24 fps, camera locked, transparent or solid #00FF00 background for keying. Motion: {c['idle']}. Movement amplitude very small, no camera move, no new elements, loop start and end frames identical. Keep the exact illustration style, no 3D conversion.", "1024×1536, 4s 루프", "캐릭터 소개 화면(있으면 full.png 대신 재생)"))
-        out.append(block("배경 플레이트 (선택)", f"Atmospheric background plate with no characters: {c['bg']}. Very low contrast so a character can be placed on top, darker toward the top, {STYLE.split('eye-level')[0]}no text, no logo.", "1024×1536", "캐릭터 소개 화면 뒤 배경(지금은 CSS 글로우가 대신함)"))
+        b = BGS[c["id"]]
+        out.append(f"### 배경 세계관\n\n- 장소: {b['place_ko']}\n- 규칙: 캐릭터가 서는 **중앙 하단 1/3은 비워 둘 것**. 배경의 강조색은 캐릭터와 같은 {c['accent']}. 사람·얼굴·글자 금지.\n")
+        out.append(block("bg_intro_far.png 배경 · 멀리 (불투명, 먼저 확정)", f"Background plate, layer FAR: {b['far']}. Composition for a 2:3 portrait frame, horizon slightly above center, the center-bottom third left simple and dark for a character to stand on. {BG_STYLE} {BG_NEG}", "1024×1536", "소개·리딩 배경 1층"))
+        out.append(block("bg_intro_mid.png 배경 · 중간 (투명 입자층)", f"Same scene as the attached FAR background, SEPARATED LAYER MID only: {b['mid']}. Render ONLY these floating elements on a fully transparent background, no ground, no walls, no sky, same camera and lighting as the reference, elements concentrated away from the center-bottom third. {BG_STYLE.replace('no characters,', 'transparent background, no characters,')} {BG_NEG}", "1024×1536 (투명)", "소개·리딩 배경 2층(위로 떠오르는 루프)"))
+        out.append(block("bg_intro_near.png 배경 · 가까이 (투명 전경)", f"Same scene as the attached FAR background, SEPARATED LAYER NEAR only: {b['near']}. Render ONLY these foreground elements on a fully transparent background, slightly out of focus, touching only the frame edges, the center completely empty. {BG_STYLE.replace('no characters,', 'transparent background, no characters,')} {BG_NEG}", "1024×1536 (투명)", "소개·리딩 배경 4층(패럴랙스)"))
+        out.append(block("bg_header.png 결과 헤더·리포트 표지 배경 (가로)", f"Wide background plate: {b['header']}. Composition for a 3:1 banner crop from the vertical middle of a 3:2 frame, the lower half very dark so text placed over it stays readable. {BG_STYLE} {BG_NEG}", "1536×1024 → 가운데 3:1 크롭", "결과 화면 헤더 · 리포트 표지 띠"))
+        out.append(block("bg_card.png 공유 카드 배경", f"Background plate for a social card: same world as the attached FAR background, reframed for a 4:5 portrait, the left two thirds nearly empty and dark (text goes there), the scene's key props gathered on the right third behind where a half-body character will stand. {BG_STYLE} {BG_NEG}", "1024×1536 → 4:5 크롭 → 1080×1350", "공유 카드 캔버스 배경"))
+        out.append(block("bg_intro.webm 배경 루프 영상 (선택, Sora/Runway/Kling용)", f"Animate the attached FAR background as a seamless 8-second loop at 24 fps, camera locked. Motion: {b['loop']}. Keep the center-bottom third calm and dark. No new objects, no people, loop start and end identical, keep the painted illustration style.", "1024×1536, 8s 루프", "소개 화면에서 far+mid 대신 재생(있으면)"))
     out.append("\n---\n\n## MBTI 사주 상품 비주얼\n")
     out.append(block("mbti_tiles.png", "Four square tiles arranged two by two, each tile a dark navy #121829 rounded square with a thin teal #7fd1c7 border, each showing one large bold serif letter: E, N, F, P in teal, slight perspective tilt as if the tiles are floating, soft teal glow beneath, transparent background, no other text.", "1024×1024", "홈의 MBTI 사주 카드(지금은 CSS 타일이 대신함)"))
+    out.append("## 작업 순서 요약 (캐릭터 1명 기준)\n")
+    out.append("1. S0 시트 → 확정\n2. full / face 4종 / emblem / card (시트 첨부)\n3. bg_intro_far → 확정\n4. bg_intro_mid / bg_intro_near / bg_card (far 첨부)\n5. bg_header\n6. (선택) idle.webm, bg_intro.webm\n7. 전부 `mvp/saju/assets/characters/<id>/` 에 저장 → 앱 새로고침\n")
     out.append("## 검수 체크리스트\n")
-    out.append("- [ ] 시트와 각 파일의 얼굴·머리·의상이 같은 사람으로 보이는가 (다르면 레퍼런스를 다시 첨부하고 재생성)\n- [ ] face 4종을 겹쳐 봤을 때 눈 위치가 같은가\n- [ ] 전신이 왼쪽을 향한 3/4인가 (말풍선이 오른쪽에 붙음)\n- [ ] 배경이 진짜 투명인가 (체커보드 확인), 이미지에 글자가 없는가\n- [ ] 강조색이 의상·소품·눈 중 두 곳 이상에 들어갔는가\n- [ ] card.png 왼쪽 2/3가 비어 있는가\n- [ ] `master`는 본인 동의서 없이는 실제 얼굴을 닮게 만들지 않았는가\n")
+    out.append("- [ ] 시트와 각 파일의 얼굴·머리·의상이 같은 사람으로 보이는가 (다르면 레퍼런스를 다시 첨부하고 재생성)\n- [ ] face 4종을 겹쳐 봤을 때 눈 위치가 같은가\n- [ ] 전신이 왼쪽을 향한 3/4인가 (말풍선이 오른쪽에 붙음)\n- [ ] 배경이 진짜 투명인가 (체커보드 확인), 이미지에 글자가 없는가\n- [ ] 강조색이 의상·소품·눈 중 두 곳 이상에 들어갔는가\n- [ ] card.png 왼쪽 2/3가 비어 있는가\n- [ ] `master`는 본인 동의서 없이는 실제 얼굴을 닮게 만들지 않았는가\n- [ ] 배경 3겹(far·mid·near)이 같은 카메라·같은 장소인가, 중앙 하단이 비어 있는가\n- [ ] mid·near 층이 진짜 투명인가(바닥·벽이 섞여 들어오지 않았는가)\n- [ ] bg_header 아래 절반이 충분히 어두워 글자가 읽히는가\n")
     return "\n".join(out)
 
 if __name__ == "__main__":

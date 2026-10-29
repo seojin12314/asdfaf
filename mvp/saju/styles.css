@@ -283,3 +283,22 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 @keyframes talk { from { transform: translateY(0); } to { transform: translateY(-2px); } }
 @keyframes popIn { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* ───── 배경 레이어(배경 + 캐릭터 합성) ───── */
+.bg-stage { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.bg-stage .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.bg-stage .far { animation: bgZoom 20s ease-in-out infinite alternate; }
+.bg-stage .mid { animation: bgRise 9s linear infinite; opacity: .9; }
+.bg-stage .mid.dup { animation-delay: -4.5s; }
+.bg-stage .near { transform: scale(1.04); transition: transform .4s ease-out; opacity: .95; }
+.pintro-art .art, .pintro-art .halo { position: relative; z-index: 1; }
+.pintro-art .art { height: 100%; }
+.reading { position: relative; border-radius: 22px; overflow: hidden; }
+.reading-stage { position: absolute; inset: 0; z-index: 0; }
+.reading-stage .bg-stage::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(11,14,24,.35), rgba(11,14,24,.85)); }
+.reading > *:not(.reading-stage) { position: relative; z-index: 1; }
+.sheet-head, .rtop { position: relative; overflow: hidden; }
+.sheet-head .head-bg, .rtop .head-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; opacity: .55; z-index: 0; mask-image: linear-gradient(rgba(0,0,0,.9), rgba(0,0,0,.25)); -webkit-mask-image: linear-gradient(rgba(0,0,0,.9), rgba(0,0,0,.25)); }
+.sheet-head > *:not(.head-bg), .rtop > *:not(.head-bg) { position: relative; z-index: 1; }
+@keyframes bgZoom { from { transform: scale(1); } to { transform: scale(1.06); } }
+@keyframes bgRise { 0% { transform: translateY(6%); opacity: 0; } 15% { opacity: .9; } 85% { opacity: .9; } 100% { transform: translateY(-6%); opacity: 0; } }

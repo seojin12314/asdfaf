@@ -16,6 +16,22 @@
   const probeCache = {};
   function probe(url) { if (!probeCache[url]) probeCache[url] = new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = url; }); return probeCache[url]; }
   function artHTML(p, kind, cls) { return `<span class="art ${cls || ''}" data-kind="${kind}"><img src="${ART}${p.id}/${kind}.png" alt="" onerror="this.closest('.art').classList.add('noart')"><span class="emblem">${p.emblem}</span></span>`; }
+  function bgLayersHTML(p) {
+    const f = k => `${ART}${p.id}/${k}.png`;
+    return `<div class="bg-stage" aria-hidden="true">
+      <img class="bg far" src="${f('bg_intro_far')}" alt="" onerror="this.remove()">
+      <img class="bg mid" src="${f('bg_intro_mid')}" alt="" onerror="this.remove()">
+      <img class="bg mid dup" src="${f('bg_intro_mid')}" alt="" onerror="this.remove()">
+      <img class="bg near" src="${f('bg_intro_near')}" alt="" onerror="this.remove()">
+    </div>`;
+  }
+  function bindParallax(root) {
+    const near = root && root.querySelector('.bg.near'); if (!near || reduced) return;
+    const move = (dx, dy) => { near.style.transform = `translate(${(dx * 12).toFixed(1)}px, ${(dy * 12).toFixed(1)}px) scale(1.04)`; };
+    root.addEventListener('pointermove', e => { const r = root.getBoundingClientRect(); move((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); });
+    root.addEventListener('pointerleave', () => move(0, 0));
+    if (window.DeviceOrientationEvent) addEventListener('deviceorientation', e => { if (e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
+  }
   async function setFace(name) {
     const p = state.persona; const art = $('#portrait .art'); if (!p || !art || art.classList.contains('noart')) return;
     const url = ART + p.id + '/' + (name === 'neutral' ? 'face.png' : `face_${name}.png`);
@@ -68,7 +84,7 @@
     const p = state.persona;
     $('#pintro').innerHTML = `
       <div class="pintro-hero">
-        <div class="pintro-art"><div class="halo"></div>${artHTML(p, 'full')}</div>
+        <div class="pintro-art" id="pintro-art">${bgLayersHTML(p)}<div class="halo"></div>${artHTML(p, 'full')}</div>
         <div class="pintro-body">
           <div class="eyebrow">${p.role}${p.org ? ' · ' + p.org : ''}</div>
           <h2>${p.name}</h2>
@@ -81,7 +97,7 @@
           <div class="actions"><button type="button" class="btn primary block" id="btn-persona-next">${p.name}에게 보이기</button><button type="button" class="btn ghost block" data-back="home">← 다른 캐릭터 보기</button></div>
         </div>
       </div>`;
-    bindNav();
+    bindNav(); bindParallax($('#pintro-art'));
   }
   function renderMbtiIntro() {
     $('#pintro').innerHTML = `
@@ -139,6 +155,7 @@
     const phases = ['만세력으로 년·월·일·시주를 세우는 중', '오행과 십신의 균형을 재는 중', state.mode === 'mbti' ? '네 축의 기울기를 계산하는 중' : '대운과 세운, 열두 달을 겹치는 중', `${who} 해석을 고르는 중`];
     $('#phases').innerHTML = phases.map(p => `<div>${p}</div>`).join('');
     $('#summon-art').innerHTML = state.mode === 'mbti' ? `<div class="big-letters">${state.input.mbti.split('').map(c => `<span>${c}</span>`).join('')}</div>` : artHTML(state.persona, 'full');
+    const stage = $('#reading-stage'); stage.innerHTML = state.mode === 'mbti' ? '' : bgLayersHTML(state.persona);
     const items = $$('#phases div'); let i = 0;
     const step = () => { items.forEach((el, k) => { el.classList.toggle('on', k === i); el.classList.toggle('done', k < i); }); $('#phase').textContent = phases[i]; i++; if (i < phases.length) setTimeout(step, reduced ? 10 : 750); else setTimeout(done, reduced ? 10 : 800); };
     step();
@@ -179,7 +196,7 @@
     if (state.mode === 'mbti') return renderMbtiResult();
     const p = state.persona, rd = state.reading, cls = P.classNames[r.day.stem];
     $('#result-eyebrow').textContent = '캐릭터 시트'; $('#mbti-card').hidden = true; $('#lines-card').hidden = false; $('#btn-cross').hidden = false; $('#btn-again').textContent = '다른 캐릭터로 같은 명식 보기';
-    $('#sheet-head').innerHTML = `<div class="portrait" id="portrait">${artHTML(p, 'face')}</div><div><div class="who">${p.name} · ${state.input.name || '당신'}의 명식</div><div class="cls">${cls}</div><div class="sub">${r.day.stemKo}${r.dayMaster.elementKo}(${r.day.stem}) 일간 · ${r.dayMaster.polarity}${S.ELEM_KO[r.dayMaster.element]} · ${P.elementWords[r.dayMaster.element]}</div></div><div class="bubble" id="bubble"></div>`;
+    $('#sheet-head').innerHTML = `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()"><div class="portrait" id="portrait">${artHTML(p, 'face')}</div><div><div class="who">${p.name} · ${state.input.name || '당신'}의 명식</div><div class="cls">${cls}</div><div class="sub">${r.day.stemKo}${r.dayMaster.elementKo}(${r.day.stem}) 일간 · ${r.dayMaster.polarity}${S.ELEM_KO[r.dayMaster.element]} · ${P.elementWords[r.dayMaster.element]}</div></div><div class="bubble" id="bubble"></div>`;
     const lines = $('#lines'); lines.innerHTML = '';
     const title = P.fill(p.report.title, { seunNext: r.seun[1].year });
     $('#teaser-title').textContent = title; $('#teaser-meta').textContent = `${p.name}의 ${p.tier === 'expert' ? '전문가 종합' : '고민 특화'} 풀이 · 17장 · 모바일 15화면 이상`;
@@ -222,6 +239,7 @@
     const nn = i => String(i + 1).padStart(2, '0');
     $('#report').innerHTML = `
       <div class="rtop">
+        ${p ? `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()">` : ''}
         <div class="row"><span class="chip accent">${state.mode === 'mbti' ? 'MBTI 사주' : p.name}</span><span class="chip">총 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면 · ${total}장</span>${p && p.consentNote ? '<span class="chip dev">본인 감수 전 템플릿</span>' : ''}</div>
         <h3 class="rtitle">${rep.title}</h3>
         <p class="muted">${state.input.name || '당신'} · ${birthString()} · ${state.result.pillars.map(x => x.ko).join(' ')}</p>
@@ -242,6 +260,7 @@
     const r = state.result, p = state.persona, rd = state.reading; const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
     const cs = getComputedStyle(document.documentElement); const accent = cs.getPropertyValue('--p-accent').trim(), accent2 = cs.getPropertyValue('--p-accent2').trim();
     const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, accent2); g.addColorStop(.55, '#0b0e18'); g.addColorStop(1, '#0b0e18'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const bgImg = state.shareBg; if (bgImg) { x.globalAlpha = .55; x.drawImage(bgImg, 0, 0, W, H); x.globalAlpha = 1; const g2 = x.createLinearGradient(0, 0, 0, H); g2.addColorStop(0, 'rgba(11,14,24,.2)'); g2.addColorStop(.5, 'rgba(11,14,24,.75)'); g2.addColorStop(1, 'rgba(11,14,24,.95)'); x.fillStyle = g2; x.fillRect(0, 0, W, H); }
     x.globalAlpha = .12; for (let i = 0; i < 90; i++) { x.fillStyle = accent; x.beginPath(); x.arc(Math.random() * W, Math.random() * H, Math.random() * 3 + 1, 0, 7); x.fill(); } x.globalAlpha = 1;
     const disp = `'Gowun Batang', 'Noto Serif KR', serif`, body = `'IBM Plex Sans KR', 'Noto Sans KR', sans-serif`;
     x.textAlign = 'center'; x.fillStyle = 'rgba(242,236,220,.75)'; x.font = `500 30px ${body}`; x.fillText(state.mode === 'mbti' ? `MBTI 사주 · ${state.input.name || '당신'}의 명식` : `${p.name}이(가) 읽은 ${state.input.name || '당신'}의 명식`, W / 2, 110);
@@ -279,7 +298,7 @@
     $('#btn-fill-sample').addEventListener('click', fillSample);
     $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `${rep.sections.length}장 심층 리포트 1회`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `약 ${rep.chars.toLocaleString()}자 · 모바일 ${rep.screens}화면`; $('#m-pay').hidden = false; });
     $('#btn-pay-confirm').addEventListener('click', () => { $('#m-pay').hidden = true; renderReport(); });
-    $('#btn-share').addEventListener('click', shareCard);
+    $('#btn-share').addEventListener('click', () => { state.shareBg = null; if (state.mode !== 'mbti' && state.persona) { const im = new Image(); im.onload = () => { state.shareBg = im; shareCard(); }; im.onerror = () => shareCard(); im.src = `${ART}${state.persona.id}/bg_card.png`; } else shareCard(); });
     $$('[data-close]').forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.close).hidden = true; }));
     $('#btn-cross').addEventListener('click', () => { setMode('mbti'); if (state.input.mbti) { compute(state.input); show('reading'); runReading(() => { show('result'); renderResult(); }); } else { renderMbtiIntro(); prepForm(); show('form'); } });
     $('#btn-again').addEventListener('click', () => { if (state.mode === 'mbti') { state.mode = 'persona'; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; } show('home'); });
