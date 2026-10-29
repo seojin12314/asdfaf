@@ -72,7 +72,7 @@
           ${p.consentNote ? `<span class="consent">${p.consentNote}</span>` : ''}
         </div>
       </button>`; }).join('');
-    $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { state.mode = 'persona'; setPersona(b.dataset.id); renderPersonaIntro(); show('persona'); }));
+    $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { state.mode = 'persona'; setPersona(b.dataset.id); if (window.SajuVN) { window.SajuVN.start(b.dataset.id); return; } renderPersonaIntro(); show('persona'); }));
     // MBTI 상품 글자 플립
     const types = ['ENFP', 'INTJ', 'ISFJ', 'ESTP', 'INFJ', 'ENTJ', 'ISTP', 'ESFJ'];
     let ti = 0; const spans = $$('#mbti-letters span');
@@ -304,5 +304,7 @@
     $('#btn-again').addEventListener('click', () => { if (state.mode === 'mbti') { state.mode = 'persona'; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; } show('home'); });
     $('#btn-restart').addEventListener('click', () => { state.mode = 'persona'; state.persona = null; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; show('home'); });
   }
+  // 미연시 연출 레이어(vn.js)가 쓰는 공개 API
+  window.SajuApp = { state, setPersona, setMode, compute, show, renderResult, renderPersonaIntro, pillarsHTML, radarSVG, statsHTML, artHTML, won };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
