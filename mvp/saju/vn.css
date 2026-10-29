@@ -79,6 +79,11 @@
 .vn-months .legend { grid-column: 1 / -1; display: flex; gap: 12px; font-size: 11px; color: var(--ink-3); animation: none; background: none; border: 0; padding: 2px 0 0; text-align: left; }
 .vn-months .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; } .vn-months .legend .f i { background: var(--accent); } .vn-months .legend .c i { background: var(--e-fire); }
 
+.vn-letters { display: flex; gap: 10px; justify-content: space-around; flex-wrap: wrap; }
+.vn-letters div { text-align: center; min-width: 90px; }
+.vn-letters small { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: .06em; margin-bottom: 4px; }
+.vn-letters b { font-family: var(--font-display); font-size: 26px; letter-spacing: .1em; color: var(--accent); text-shadow: 0 0 16px var(--glow); animation: vnGlyphIn .7s cubic-bezier(.2,.8,.2,1) both; }
+.vn-panel .axes { gap: 8px; } .vn-panel .axis .meta { font-size: 11.5px; }
 /* 소환 링 */
 .vn-rings { position: absolute; left: 50%; bottom: 10%; width: 60%; aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; }
 .vn-rings span { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--accent); opacity: 0; animation: ripple 2.2s ease-out infinite; }

@@ -318,6 +318,50 @@
       },
       ending: { lines: [{ t: '시트에 전부 정리해 뒀어요. 심층에서는 열일곱 장으로 원국 해부부터 격·용신·조후, 대운·세운·열두 달, 배우자·직업·실행 계획까지 다 풀어 드립니다. 궁금한 점은 언제든 다시 물어보세요.', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '제 시트를 펼쳐 주세요', again: '다른 캐릭터에게도 보일게요' },
     },
+
+    // ─────────────────────────── MBTI 상담사 · 검사·명식·추구 세 글자 (친절한 과외 선생님 톤) ───────────────────────────
+    mbti: {
+      persona: { id: 'mbti', name: '상담사', role: 'MBTI 사주 · 성향 상담', tier: 'character', palette: { accent: '#66d6c5', accent2: '#1f4f52', glow: 'rgba(102,214,197,.35)' }, emblem: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="16" y="16" width="30" height="30" rx="9" fill="currentColor"/><rect x="54" y="16" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="16" y="54" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="54" y="54" width="30" height="30" rx="9" fill="currentColor"/></svg>' },
+      mbti: true, entrance: 'master', particles: 'moon',
+      intro: [
+        { t: '어서 오세요. 편한 자리에 앉으세요. 오늘은 제가 과외 선생님처럼 옆에 앉아서 같이 볼게요.', face: 'smile' },
+        { t: 'MBTI 상담을 맡고 있어요. 보통은 검사 결과 하나만 보는데, 저는 세 글자를 나란히 놓아요. 내가 아는 나, 타고난 나, 되고 싶은 나.', face: 'neutral' },
+        { t: '타고난 나는 사주 명식에서 꺼내요. 어려운 말은 제가 다 풀어서 설명할 테니 걱정 마세요. 시작해 볼까요?', face: 'smile', sprite: 'nod' },
+      ],
+      concern: {
+        prompt: '오늘은 어떤 게 제일 궁금하세요?',
+        options: [
+          { value: 'gap', label: '검사 결과랑 실제 내가 다른 것 같아요', reply: [{ t: '좋은 출발이에요. 그 다름이 어디서 오는지가 오늘의 숙제예요. 환경이 만든 모습인지, 타고난 결인지 같이 가려 볼게요.', face: 'smile' }] },
+          { value: 'goal', label: '되고 싶은 유형이 있어요', reply: [{ t: '네, 그게 제일 좋은 질문이에요. 되고 싶은 유형이 타고난 결과 같은지, 거스르는지에 따라 가는 길이 완전히 달라지거든요.', face: 'smile' }] },
+          { value: 'who', label: '타고난 성향이 뭔지 알고 싶어요', reply: [{ t: '그럼 명식부터 볼게요. 검사는 지금의 자기 보고고, 명식은 태어난 시각의 구조라서 서로 다른 얘기를 해 줘요.', face: 'neutral' }] },
+        ],
+      },
+      ask: {
+        lead: [{ t: '먼저 명식을 세워야 해요. 태어난 날과 시각을 알려 주세요. 그다음에 검사 결과를 받을게요.', face: 'neutral' }],
+        name: '제가 뭐라고 부르면 좋을까요?', gender: '성별을 알려 주세요. 큰 흐름의 방향을 계산할 때 써요.', date: '태어난 날이에요. 양력으로요.', time: '태어난 시각은요? 모르시면 "몰라요"를 눌러 주세요. 시각 없이도 성향은 볼 수 있어요.',
+        reuse: { prompt: '아까 세운 명식이 있네요. 그대로 쓸까요, 다시 받을까요?', keep: '그대로요', fresh: '다시 입력할게요' },
+        mbti: '평소 검사에서 나오는 MBTI를 골라 주세요. 가장 자주 나온 결과면 돼요.',
+        goal: { prompt: '되고 싶은, 혹은 끌리는 유형이 있나요? 없어도 괜찮아요.', yes: '있어요', no: '없어요', pick: '그 유형을 골라 주세요.', got: '좋아요. 세 글자가 다 모였어요.', skip: '괜찮아요. 그럼 검사와 명식 두 글자로 볼게요. 결과 화면에서 나중에 추가할 수도 있어요.' },
+        done: [{ t: '{name} 님, 고마워요. 이제 명식에서 타고난 성향을 꺼내 볼게요.', face: 'smile', fx: 'glow' }],
+      },
+      summon: [{ t: '태어난 해, 달, 날, 시각. 네 기둥을 세우고, 거기서 다섯 가지 기운의 비율을 읽어요.' }],
+      beats(c) {
+        const est = c.est, cmp = c.cmp, adv = c.adv; const AX = { EI: '에너지의 방향', SN: '정보를 받는 방식', TF: '결정하는 방식', JP: '세상을 대하는 자세' };
+        const b = [
+          { t: '명식이 섰어요. 여기서 다섯 가지 기운의 비율을 보고 네 축으로 옮겨요. 사주와 MBTI 사이에 증명된 대응은 없지만, 자기 인식과 기질을 나란히 놓는 데는 충분해요.', face: 'neutral', visual: { type: 'pillars' } },
+          { t: `명식이 가리키는 성향은 ${est.letters}예요. 검사로 아는 ${cmp.test}${adv ? `, 되고 싶은 ${adv.goal}` : ''}과 나란히 놓을게요. ${cmp.matches === 4 ? '검사와 네 축이 다 같네요. 환경이 기질을 잘 쓰고 있다는 뜻이에요.' : `검사와는 ${cmp.matches}축이 같고 ${4 - cmp.matches}축이 달라요. 다른 축이 평소 이유 없이 피곤한 자리일 가능성이 커요.`}`, face: cmp.matches >= 3 ? 'smile' : 'neutral', fx: 'flash', visual: { type: 'letters', items: [{ label: '내가 아는 나 · 검사', v: cmp.test }, { label: '타고난 나 · 명식', v: est.letters }].concat(adv ? [{ label: '되고 싶은 나 · 추구', v: adv.goal }] : []) } },
+        ];
+        est.axes.forEach((a, i) => {
+          const x = cmp.axes[i];
+          b.push({ t: `${a.left}/${a.right}, ${AX[a.id]}이에요. 명식은 ${a.letter} ${a.letterPct}%${a.letterPct < 56 ? '라 경계에 있어요' : a.letterPct >= 75 ? '로 뚜렷해요' : '예요'}. ${x.text}`, face: x.match ? 'smile' : 'serious', visual: { type: 'axis', a, test: x.test, goal: adv ? adv.goal[i] : null } });
+          if (adv) { const y = adv.axes[i]; b.push({ t: `되고 싶은 ${y.goal} 쪽은요, 한마디로 "${y.verdict}"이에요. ${y.text}`, face: y.kind === 'keep' || y.kind === 'return' ? 'smile' : 'serious', fx: y.kind === 'against' && y.chartPct >= 75 ? 'dim' : null }); }
+        });
+        if (adv) b.push({ t: adv.summary, face: 'smile', fx: 'glow', visual: { type: 'letters', items: [{ label: '되고 싶은 나', v: adv.goal }, { label: '사주가 권하는 흐름', v: adv.rec }] } });
+        b.push({ t: '여기까지가 무료 상담이에요. 기억할 건 하나예요. 검사와 명식 중 무엇이 맞느냐가 아니라, 어느 상황에서 어느 쪽 내가 나오는지예요.', face: 'smile', visual: null });
+        return b;
+      },
+      ending: { lines: [{ t: '결과 화면에 네 축을 전부 정리해 뒀어요. 심층에서는 축마다 왜 그렇게 기울었는지, 되고 싶은 쪽으로 가려면 명식의 어떤 기운을 쓰면 되는지, 4주 실험까지 드려요.', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '결과 화면 보여 주세요', again: '다른 캐릭터에게 가 볼게요' },
+    },
   };
 
   root.SajuVNScripts = { SCRIPTS, spouseInfo, monthsInfo, compat };

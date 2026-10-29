@@ -17,7 +17,7 @@
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="shell">
   <header class="topbar">
-    <div class="brand">사주도감 <span class="tag">MVP 콘티</span></div>
+    <div class="brand">사주도감 <span class="tag">MVP 콘티</span><button type="button" class="plain-toggle" id="btn-plain" title="전문 용어를 쉬운 말로 바꿔 보여 줍니다">쉬운 말</button></div>
     <ol class="steps" id="steps" aria-label="진행 단계"></ol>
   </header>
 
@@ -36,7 +36,7 @@
           <div class="letters" id="mbti-letters" aria-hidden="true"><span>E</span><span>N</span><span>F</span><span>P</span></div>
           <div class="pbody">
             <h3>MBTI 사주</h3>
-            <p>평소 검사에서 나오는 MBTI와 명식이 가리키는 성향을 네 축으로 비교합니다. 자기 인식과 기질의 간격을 봅니다.</p>
+            <p>내가 아는 나(검사), 타고난 나(명식), 되고 싶은 나(추구) 세 글자를 네 축으로 맞댑니다. 명식 기준으로 어느 흐름이 더 나은지 풀어 줍니다.</p>
             <div class="pprice">무료 축별 비교 · 심층 ₩9,900</div>
           </div>
         </button>
@@ -76,6 +76,10 @@
           <label class="toggle"><input type="checkbox" id="solar" name="solar" checked><span>진태양시 보정 −30분 (서울 기준. 표준시 자오선 135°E와 실제 경도 차이)</span></label>
           <div class="field" id="mbti-field" hidden><span class="muted" id="mbti-field-label">평소 검사에서 나오는 MBTI</span>
             <div class="mbti-pick" id="mbti-pick"></div>
+          </div>
+          <div class="field" id="goal-field" hidden><span class="muted">되고 싶은·추구하는 MBTI (선택)</span>
+            <div class="mbti-pick" id="goal-pick"></div>
+            <p class="note" style="margin:0">넣으면 검사·명식·추구 세 글자를 축별로 맞대고, 명식 기준으로 어느 흐름이 더 나은지 풀어 줍니다.</p>
           </div>
           <p class="note">MVP 한계: 음력 입력·서머타임(1948~51, 55~60, 87~88) 미반영. 절기 시각은 천문 근사식(오차 약 15분).</p>
           <p class="note" id="form-error" hidden></p>
@@ -166,6 +170,7 @@
 <script src="personas.js"></script>
 <script src="mbti.js"></script>
 <script src="report.js"></script>
+<script src="plain.js"></script>
 <script src="app.js"></script>
 <script src="vn-scripts.js"></script>
 <script src="vn.js"></script>

@@ -116,8 +116,8 @@
   function buildSections(result, est, cmp, ctx) {
     const name = (ctx && ctx.name) || '당신';
     const para = (...ps) => ps.filter(Boolean).map(p => `<p>${p}</p>`).join('');
-    const head = [], tail = [];
-    head.push({ id: 'm-summary', title: '한눈에 보는 요약', html: `<ul class="keylist"><li><b>명식 추정 성향</b> ${est.letters}</li>${cmp ? `<li><b>평소 검사 결과</b> ${cmp.test}</li><li><b>일치</b> 4축 중 ${cmp.matches}축</li>` : ''}${est.axes.map(a => `<li><b>${a.left}/${a.right}</b> 명식 ${a.letter} ${a.letterPct}%${a.letterPct < 56 ? ' (경계)' : a.letterPct >= 75 ? ' (뚜렷)' : ''}${cmp ? ` · 검사 ${cmp.axes.find(x => x.id === a.id).test}` : ''}</li>`).join('')}</ul>` + para(cmp ? cmp.summary : '검사 MBTI가 없어 명식 추정만 설명합니다. 결과 화면에서 검사 결과를 넣으면 축별 비교가 붙습니다.', '<span class="muted">사주와 MBTI 사이에 검증된 대응은 없습니다. 아래 축별 설명은 오행·십신 비율을 네 축에 매핑한 공개 규칙에 근거하며, 자기 인식과 기질을 나란히 놓고 보는 도구입니다.</span>') });
+    const head = [], tail = []; const adv = ctx && ctx.adv;
+    head.push({ id: 'm-summary', title: '한눈에 보는 요약', html: `<ul class="keylist"><li><b>명식 추정 성향</b> ${est.letters}</li>${cmp ? `<li><b>평소 검사 결과</b> ${cmp.test}</li><li><b>일치</b> 4축 중 ${cmp.matches}축</li>` : ''}${adv ? `<li><b>추구하는 MBTI</b> ${adv.goal} · <b>사주가 권하는 흐름</b> ${adv.rec}</li>` : ''}${est.axes.map(a => `<li><b>${a.left}/${a.right}</b> 명식 ${a.letter} ${a.letterPct}%${a.letterPct < 56 ? ' (경계)' : a.letterPct >= 75 ? ' (뚜렷)' : ''}${cmp ? ` · 검사 ${cmp.axes.find(x => x.id === a.id).test}` : ''}</li>`).join('')}</ul>` + para(cmp ? cmp.summary : '검사 MBTI가 없어 명식 추정만 설명합니다. 결과 화면에서 검사 결과를 넣으면 축별 비교가 붙습니다.', '<span class="muted">사주와 MBTI 사이에 검증된 대응은 없습니다. 아래 축별 설명은 오행·십신 비율을 네 축에 매핑한 공개 규칙에 근거하며, 자기 인식과 기질을 나란히 놓고 보는 도구입니다.</span>') });
     est.axes.forEach((a, i) => {
       const c = cmp ? cmp.axes[i] : null;
       head.push({ id: 'm-' + a.id, title: `${a.left}/${a.right} · ${AXIS_KO[a.id]}: 명식은 ${a.letter} ${a.letterPct}%`, html: para(
@@ -127,10 +127,49 @@
         c && !c.match ? `<b>확인 실험.</b> ${EXPERIMENT[a.id]}` : '',
         c && !c.match ? `반대쪽 글자(${c.test})의 명식 설명도 읽어 두십시오. ${AXIS_DEEP[c.test].split('.').slice(0, 2).join('.')}.` : '') });
     });
+    if (adv) head.push({ id: 'm-goal', title: `추구 ${adv.goal} vs 명식 ${adv.chart}: 사주가 권하는 흐름은 ${adv.rec}`, html: para(`<b>${adv.summary}</b>`, '세 글자를 나란히 놓습니다. 검사는 지금 내가 아는 나, 명식은 타고난 결, 추구는 되고 싶은 나입니다. 추구가 명식과 같은 축은 돌아가면 되고, 다른 축은 바꾸기보다 빌려 쓰는 쪽이 오래갑니다.') + `<ul class="keylist">${adv.axes.map(x => `<li><b>${x.left}/${x.right}</b> 검사 ${x.test || '-'} · 명식 ${x.chart} ${x.chartPct}% · 추구 ${x.goal} → <b>${x.verdict}</b><br>${x.text}</li>`).join('')}</ul>` });
     const mism = cmp ? cmp.axes.filter(x => !x.match) : [];
     tail.push({ id: 'm-plan', title: '환경 vs 기질: 4주 실험 계획', html: para(mism.length ? `검사와 명식이 다른 축은 ${mism.map(x => `${x.id[0]}/${x.id[1]}(검사 ${x.test}, 명식 ${x.chart})`).join(', ')}입니다. 이 축들이 평소 이유 없이 피곤한 지점일 가능성이 큽니다. 4주 동안 한 축씩 실험합니다.` : '검사와 명식이 네 축 모두 같은 방향입니다. 실험 대신 유지 계획을 둡니다. 지금 환경이 기질을 잘 쓰고 있으니, 환경이 바뀔 때 어느 축이 먼저 흔들리는지만 지켜보십시오.') + (mism.length ? `<ol class="ifthen">${mism.slice(0, 4).map((x, k) => `<li><b>${k + 1}주차 ${x.id[0]}/${x.id[1]}</b> ${EXPERIMENT[x.id]}</li>`).join('')}</ol>` : `<ol class="ifthen">${est.axes.map((a, k) => `<li><b>${k + 1}주차 ${a.left}/${a.right}</b> ${a.letter} 쪽 강점을 쓴 날과 못 쓴 날의 피로도를 비교합니다.</li>`).join('')}</ol>`) + para('실험의 목적은 검사와 명식 중 무엇이 옳은지 가리는 것이 아닙니다. 어느 상황에서 어느 쪽 내가 나오는지를 아는 것입니다. 그것을 알면 환경을 고를 때 기준이 생깁니다.') });
     tail.push({ id: 'm-closing', title: '맺음말', html: para(`${name}의 명식 성향 ${est.letters}${cmp ? `과 검사 ${cmp.test}` : ''}을 함께 보았습니다. 두 체계는 출발점이 다릅니다. 하나는 지금의 자기 보고, 하나는 태어난 시각의 구조입니다. 둘이 같으면 환경이 기질을 잘 쓰고 있다는 뜻이고, 다르면 그 간격이 곧 당신이 에너지를 쓰는 자리입니다.`, '<span class="muted">명식 → 성향 추정 규칙은 mbti.js에 공개되어 있으며, 운영에서는 이용자 입력 분포로 가중치를 보정할 수 있습니다. 그 경우에도 대응 관계의 증명이 아니라 분포 조정이라는 점을 유지합니다.</span>') });
     return { head, tail };
+  }
+
+  // 어느 글자 쪽으로 움직이려면 명식의 어떤 기운을 쓰는지(추구 MBTI 조언용)
+  const MOVE = {
+    E: { use: '식상(표현)·비겁(동료)·화(火)', how: '말하고 만들어 밖으로 내보내는 루틴을 하루 하나 둡니다. 사람을 만나는 양이 아니라 출력의 양이 외향을 만듭니다.', luck: '식상 운이나 화 기운이 드는 달에 눈에 띄게 쉬워집니다' },
+    I: { use: '인성(수용·회복)·수(水)·금(金)', how: '입력과 정리의 시간을 달력에 먼저 적습니다. 혼자 회복하는 시간을 벌이 아니라 충전으로 취급합니다.', luck: '인성 운이나 수·금 기운이 드는 달에 자연스럽게 깊어집니다' },
+    S: { use: '재성(현실)·관성(절차)·토(土)·금(金)', how: '목표를 숫자와 날짜로 바꾸고, 이번 달에 손에 잡히는 결과 하나를 정합니다.', luck: '재성·관성 운에 실행력이 붙습니다' },
+    N: { use: '식상(발상)·인성(사고)·수(水)·목(木)', how: '주 1회 큰 그림만 보는 시간을 두고, "왜"와 "다음"을 묻는 질문으로 시작합니다.', luck: '식상·인성 운에 연결과 발상이 열립니다' },
+    T: { use: '관성(기준)·재성(계산)·금(金)·수(水)', how: '결정 전에 기준 세 개를 먼저 적고, 감정은 결정 뒤에 따로 처리합니다.', luck: '관성 운에 기준이 서고 결정이 빨라집니다' },
+    F: { use: '식상(공감)·인성·화(火)·목(木)', how: '결정 전에 관련된 사람의 온도를 한 번 묻습니다. 감정을 약점이 아니라 데이터로 씁니다.', luck: '식상 운이나 화·목 기운이 드는 달에 관계의 감각이 살아납니다' },
+    J: { use: '관성(구조)·인성·토(土)', how: '루틴 하나와 마감 하나만 고정합니다. 전부 계획하지 말고 뼈대만 세웁니다.', luck: '관성 운에 구조가 자연스럽게 잡힙니다' },
+    P: { use: '식상(즉흥)·비겁(자율)·화(火)·목(木)', how: '계획에 비워 둔 칸을 넣고, 마감만 외부에 걸어 둡니다. 선택지를 하나 더 남기는 연습을 합니다.', luck: '식상·비겁 운에 유연함이 커집니다' },
+  };
+  /** 검사 MBTI(test)·명식 MBTI(est)·추구 MBTI(goal)를 축별로 맞대고, 명식 기준으로 "어느 흐름이 더 낫다"를 판정한다. */
+  function advise(est, test, goal) {
+    const t = parse(test), g = parse(goal); if (!g) return null;
+    const axes = est.axes.map((a, i) => {
+      const chart = a.letter, tt = t ? t[i] : null, gg = g[i], strong = a.letterPct >= 75, border = a.letterPct < 56;
+      const name = l => `${l}(${l === a.left ? a.leftKo : a.rightKo})`;
+      let kind, verdict, text;
+      if (gg === chart && (!tt || tt === chart)) { kind = 'keep'; verdict = '유지'; text = `추구하는 ${name(gg)}은 명식의 결과 같습니다${tt ? '. 검사도 같은 방향이라' : '.'} 바꿀 것이 없고, 과열만 조심하면 됩니다. ${MOVE[gg].use}이 이 방향의 밑천입니다.`; }
+      else if (gg === chart && tt !== chart) { kind = 'return'; verdict = '회복'; text = `지금은 ${name(tt)}로 살고 있지만, 추구하는 ${name(gg)}이 오히려 명식의 결입니다. 환경이 만든 모습을 벗으면 되는 축이라 가장 쉽게 돌아옵니다. ${MOVE[gg].how} ${MOVE[gg].luck}.`; }
+      else if (gg !== chart && tt === chart) {
+        kind = 'against'; verdict = strong ? '역행 주의' : border ? '가능' : '비용 있음';
+        text = strong ? `명식은 ${name(chart)} 쪽으로 뚜렷합니다(${a.letterPct}%). 추구하는 ${name(gg)}으로 바꾸기보다 ${name(chart)}의 강점을 그대로 쓰면서 ${name(gg)}의 기능만 빌리는 쪽이 사주에서는 더 낫습니다. 빌릴 때는 ${MOVE[gg].use}을 쓰고, ${MOVE[gg].luck}.`
+          : border ? `명식은 ${name(chart)}과 ${name(gg)} 사이 경계(${a.letterPct}%)라 추구하는 쪽으로 움직이기 쉬운 축입니다. ${MOVE[gg].how} ${MOVE[gg].luck}.`
+            : `명식은 ${name(chart)} 쪽입니다(${a.letterPct}%). ${name(gg)}으로 갈 수는 있지만 에너지가 듭니다. ${MOVE[gg].how} 사주에서는 ${name(chart)} 흐름을 기본으로 두고 필요할 때만 ${name(gg)}을 꺼내는 편이 오래갑니다.`;
+      }
+      else { kind = 'drift'; verdict = strong ? '소모 지점' : '점검'; text = `검사도 추구도 ${name(gg)}인데 명식은 ${name(chart)}입니다(${a.letterPct}%). 이미 그렇게 살고 있지만 타고난 결과 반대라, 이유 없이 피곤한 자리가 여기일 가능성이 큽니다. 사주에서는 ${name(chart)} 흐름을 회복하는 시간을 따로 두는 편이 낫습니다. ${MOVE[chart].how} 그래야 ${name(gg)}로 쓰는 에너지가 오래갑니다.`; }
+      const rec = gg === chart ? gg : (border ? gg : chart);
+      return { id: a.id, left: a.left, right: a.right, chart, chartPct: a.letterPct, test: tt, goal: gg, kind, verdict, text, rec };
+    });
+    const rec = axes.map(x => x.rec).join('');
+    const same = axes.filter(x => x.goal === x.chart).length;
+    const hard = axes.filter(x => (x.kind === 'against' && x.chartPct >= 56) || x.kind === 'drift').length;
+    const summary = same === 4 ? `추구하는 ${g}은 네 축 모두 명식의 결과 같습니다. 방향은 맞고, 남은 건 속도와 과열 관리입니다.`
+      : `추구하는 ${g} 중 ${same}축은 명식의 결과 같아 자연스럽고, ${4 - same}축은 결을 거스릅니다${hard ? ` (그중 ${hard}축은 비용이 큽니다)` : ''}. 사주가 권하는 흐름은 ${rec}입니다. 거스르는 축은 바꾸기보다 빌려 쓰는 쪽이 오래갑니다.`;
+    return { goal: g, test: t, chart: est.letters, rec, axes, same, hard, summary };
   }
 
   function compare(test, est) {
@@ -140,5 +179,5 @@
     return { test: t, chart: est.letters, axes, matches, summary: SUMMARY[matches] };
   }
 
-  return { AXES, RULES, RULE_NOTES, TEXTS, SUMMARY, AXIS_DEEP, EXPERIMENT, AXIS_KO, estimate, parse, compare, buildSections };
+  return { AXES, RULES, RULE_NOTES, TEXTS, SUMMARY, AXIS_DEEP, EXPERIMENT, AXIS_KO, MOVE, estimate, parse, compare, advise, buildSections };
 });

@@ -6,13 +6,16 @@
  */
 (function (root) {
   'use strict';
-  const S = root.Saju, P = root.SajuPersonas;
+  const S = root.Saju, P = root.SajuPersonas, M = root.SajuMBTI;
+  const PL = () => root.SajuPlain;
+  const plain = (t, seen) => (PL() ? PL().text(t, seen) : t);
   const ART = 'assets/characters/';
   const reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = (sel, el) => (el || document).querySelector(sel);
   const sleep = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  const voice = { manifest: null, audio: null, muted: false }; try { voice.muted = localStorage.getItem('saju-voice') === 'off'; } catch (e) { /* ignore */ }
   const st = { open: false, persona: null, script: null, auto: false, typing: false, skipType: false, tapResolve: null, faces: {}, fx: null, autoTimer: null, closing: false, mood: 'neutral' };
   const el = {};
 
@@ -38,7 +41,7 @@
         </div>
         <div class="vn-top">
           <div class="vn-name" id="vn-name"><b>${esc(p.name)}</b><small>${esc(p.role)}${p.org ? ' · ' + esc(p.org) : ''}</small></div>
-          <div class="vn-ctl"><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
+          <div class="vn-ctl"><button type="button" id="vn-voice" title="목소리 켜기/끄기">${voice.muted ? '소리 꺼짐' : '소리'}</button><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
         </div>
         <div class="vn-choices" id="vn-choices" hidden></div>
         <div class="vn-box" id="vn-box">
@@ -47,12 +50,14 @@
           <div class="vn-input" id="vn-input" hidden></div>
         </div>
       </div>`;
-    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
+    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input', 'voice'].forEach(k => { el[k] = $('#vn-' + k); });
     el.root = root;
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
     el.auto.addEventListener('click', e => { e.stopPropagation(); st.auto = !st.auto; el.auto.classList.toggle('on', st.auto); if (st.auto && st.tapResolve && !st.typing) tap(); });
     el.exit.addEventListener('click', e => { e.stopPropagation(); finish('home'); });
+    el.voice.addEventListener('click', e => { e.stopPropagation(); voice.muted = !voice.muted; el.voice.textContent = voice.muted ? '소리 꺼짐' : '소리'; el.voice.classList.toggle('on', !voice.muted); if (voice.muted) stopVoice(); try { localStorage.setItem('saju-voice', voice.muted ? 'off' : 'on'); } catch (err) { /* ignore */ } });
+    el.voice.classList.toggle('on', !voice.muted);
     bindParallax();
     document.addEventListener('keydown', onKey);
   }
@@ -64,6 +69,12 @@
     el.stage.addEventListener('pointerleave', () => move(0, 0));
     if (root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
   }
+
+  // ───── 목소리(일레븐랩스로 미리 생성한 고정 대사 mp3) ─────
+  async function loadVoices() { if (voice.manifest) return; try { const r = await fetch('assets/voice/manifest.json', { cache: 'no-cache' }); voice.manifest = r.ok ? await r.json() : {}; } catch (e) { voice.manifest = {}; } }
+  function voiceFile(text) { const m = voice.manifest && st.persona && voice.manifest[st.persona.id]; return m && m[text] ? `assets/voice/${st.persona.id}/${m[text]}` : null; }
+  function stopVoice() { if (voice.audio) { try { voice.audio.pause(); } catch (e) { /* ignore */ } voice.audio = null; } }
+  function playVoice(text) { stopVoice(); const f = voiceFile(text); if (!f || voice.muted) return null; const a = new Audio(f); a.preload = 'auto'; voice.audio = a; a.play().catch(() => {}); return a; }
 
   // ───── 표정·분위기·효과 ─────
   function probe(url) { return new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = url; }); }
@@ -119,15 +130,22 @@
   }
 
   // ───── 대사·입력 ─────
-  function tap() { if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; r(); } }
-  function waitTap(text) { return new Promise(res => { st.tapResolve = res; el.next.classList.add('on'); if (st.auto) st.autoTimer = setTimeout(() => { if (st.tapResolve === res) tap(); }, 900 + Math.min(2600, (text || '').length * 38)); }).then(() => { el.next.classList.remove('on'); clearTimeout(st.autoTimer); }); }
-  function type(text) {
+  function tap() { if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; stopVoice(); r(); } }
+  function waitTap(text) {
     return new Promise(res => {
+      st.tapResolve = res; el.next.classList.add('on');
+      const go = () => { if (st.tapResolve === res) tap(); };
+      if (st.auto) { const a = voice.audio; if (a && !a.ended && !a.paused) { a.addEventListener('ended', () => { st.autoTimer = setTimeout(go, 500); }, { once: true }); st.autoTimer = setTimeout(go, 20000); } else st.autoTimer = setTimeout(go, 900 + Math.min(2600, (text || '').length * 38)); }
+    }).then(() => { el.next.classList.remove('on'); clearTimeout(st.autoTimer); });
+  }
+  function type(text, audio) {
+    return new Promise(res => {
+      const t0 = performance.now();
       el.text.innerHTML = '<span></span><i class="caret"></i>'; const span = el.text.firstChild; let i = 0, tick = 0; st.typing = true; st.skipType = false; el.port.classList.add('talking');
       const base = st.mood; const chars = Array.from(text);
       const finishT = () => { span.textContent = text; const c = el.text.querySelector('.caret'); if (c) c.remove(); el.port.classList.remove('talking'); setFace(base); st.typing = false; res(); };
       if (reduced) return finishT();
-      const step = () => { if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; const d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (i < chars.length) setTimeout(step, d); else finishT(); };
+      const step = () => { if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; let d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (audio && isFinite(audio.duration) && audio.duration > 0 && !audio.paused) { const remain = audio.duration * 1000 - (performance.now() - t0) - 120; d = Math.max(14, Math.min(120, remain / Math.max(1, chars.length - i))); } if (i < chars.length) setTimeout(step, d); else finishT(); };
       step();
     });
   }
@@ -135,12 +153,14 @@
     o = o || {}; if (!st.open) return;
     setMood(o.face || 'neutral'); if (o.fx) fx(o.fx); if (o.sprite) spriteAnim(o.sprite);
     el.who.textContent = st.persona.name; el.box.classList.remove('input-mode'); el.input.hidden = true;
-    await type(text); if (!st.open) return; await waitTap(text);
+    const a = playVoice(text);
+    await type(plain(text, new Set()), a); if (!st.open) return; await waitTap(text);
   }
   async function choose(prompt, options) {
     if (!st.open) return null;
     setMood('neutral'); el.box.classList.remove('input-mode'); el.input.hidden = true;
-    await type(prompt); if (!st.open) return null;
+    const a = playVoice(prompt);
+    await type(plain(prompt, new Set()), a); if (!st.open) return null;
     return new Promise(res => {
       el.choices.innerHTML = options.map((o, i) => `<button type="button" data-i="${i}">${esc(o.label)}</button>`).join(''); el.choices.hidden = false;
       el.choices.querySelectorAll('button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const o = options[+b.dataset.i]; el.choices.hidden = true; el.choices.innerHTML = ''; res(o.value); }));
@@ -149,8 +169,10 @@
   async function ask(kind, prompt, o) {
     o = o || {}; if (!st.open) return null;
     setMood('neutral'); el.box.classList.add('input-mode'); el.input.hidden = true;
-    await type(prompt); if (!st.open) return null;
-    const html = kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
+    const a = playVoice(prompt);
+    await type(plain(prompt, new Set()), a); if (!st.open) return null;
+    const html = kind === 'mbti' ? `<div class="mbti-pick">${M.AXES.map(x => `<div class="seg mini"><label><input type="radio" name="vn-m_${x.id}" value="${x.left}"><span>${x.left} <small>${x.leftKo}</small></span></label><label><input type="radio" name="vn-m_${x.id}" value="${x.right}"><span>${x.right} <small>${x.rightKo}</small></span></label></div>`).join('')}</div><div class="rowb"><span class="hint">네 축을 모두 골라 주세요</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거예요')}</button></div><div class="err" id="vn-err" hidden></div>`
+      : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
       : kind === 'gender' ? `<div class="seg"><label><input type="radio" name="vn-g" value="F" checked><span>여성</span></label><label><input type="radio" name="vn-g" value="M"><span>남성</span></label></div><div class="rowb"><span></span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '맞아')}</button></div>`
       : kind === 'date' ? `<input type="date" id="vn-f" min="1900-01-01" max="2030-12-31"><div class="rowb"><span class="hint">양력</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><div class="err" id="vn-err" hidden></div>`
       : `<input type="time" id="vn-f"><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
@@ -161,6 +183,7 @@
       const err = m => { const e = $('#vn-err', el.input); if (e) { e.textContent = m; e.hidden = false; } };
       $('#vn-ok', el.input).addEventListener('click', e => {
         e.stopPropagation();
+        if (kind === 'mbti') { const l = M.AXES.map(x => { const r = el.input.querySelector(`input[name="vn-m_${x.id}"]:checked`); return r ? r.value : ''; }).join(''); if (l.length !== 4) return err('네 축을 모두 골라 주세요.'); return done(l); }
         if (kind === 'text') return done(f.value.trim());
         if (kind === 'gender') return done(el.input.querySelector('input[name="vn-g"]:checked').value);
         if (kind === 'date') { if (!f.value) return err('날짜를 골라 줘.'); const [y, m, d] = f.value.split('-').map(Number); return done({ year: y, month: m, day: d }); }
@@ -180,7 +203,9 @@
     if (v.type === 'pillars') return swap(`<div class="eyebrow">사주 원국</div>${A.pillarsHTML(r, true)}`);
     if (v.type === 'radar') return swap(`<div class="eyebrow">오행 분포</div>${A.radarSVG(r)}`);
     if (v.type === 'stats') { const d = swap(`<div class="eyebrow">십신 스탯</div>${A.statsHTML(r)}`); setTimeout(() => d && d.querySelectorAll('.bar i').forEach(i => i.style.width = i.dataset.w + '%'), 80); return d; }
-    if (v.type === 'glyph') return swap(`<div class="vn-glyph"><div class="big ${String(v.big).length > 2 ? 'sm' : ''}">${esc(v.big)}</div><div class="t"><b>${esc(v.title)}</b><span>${esc(v.sub || '')}</span></div></div>`);
+    if (v.type === 'glyph') return swap(`<div class="vn-glyph"><div class="big ${String(v.big).length > 2 ? 'sm' : ''}">${esc(v.big)}</div><div class="t"><b>${esc(plain(v.title, new Set()))}</b><span>${esc(plain(v.sub || '', new Set()))}</span></div></div>`);
+    if (v.type === 'letters') return swap(`<div class="vn-letters">${v.items.map(it => `<div><small>${esc(it.label)}</small><b>${esc(it.v)}</b></div>`).join('')}</div>`);
+    if (v.type === 'axis') { const a = v.a, w = Math.abs(a.pct - 50), fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`; return swap(`<div class="eyebrow">${a.left}/${a.right} · 명식 ${a.letter} ${a.letterPct}%</div><div class="axes"><div class="axis"><div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}<small>${a.leftKo}</small></div><div class="track"><div class="fill" style="${fill}"></div>${v.test ? `<div class="test" style="left:${v.test === a.left ? '5%' : '95%'}">${v.test}</div>` : ''}${v.goal ? `<div class="goal" style="left:${v.goal === a.left ? '18%' : '82%'}">★</div>` : ''}</div><div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}<small>${a.rightKo}</small></div><div class="meta"><span>명식 <b>${a.letter}</b> ${a.letterPct}%</span>${v.test ? `<span class="${v.test === a.letter ? 'ok' : 'ng'}">검사 ${v.test}</span>` : ''}${v.goal ? `<span class="${v.goal === a.letter ? 'ok' : 'ng'}">추구 ${v.goal}</span>` : ''}</div></div></div>`); }
     if (v.type === 'pair') return swap(`<div class="eyebrow">${esc(v.title)}</div><div class="vn-glyph"><div class="pair"><div class="big sm">${esc(v.a.big)}</div><span class="vs">VS</span><div class="big sm">${esc(v.b.big)}</div></div><div class="t"><b>${esc(v.a.label)} · ${esc(v.b.label)}</b><span>${esc(v.sub || '')}</span></div></div>`);
     if (v.type === 'months') return swap(`<div class="eyebrow">${esc(v.title)}</div><div class="vn-months">${v.months.map((m, i) => `<div class="${v.focus.has(m.idx) ? 'focus' : ''} ${v.caution.has(m.idx) ? 'caution' : ''}" style="animation-delay:${i * 45}ms"><b>${esc(m.pillar.branch)}</b>${esc(m.pillar.branchKo)}월</div>`).join('')}<div class="legend"><span class="f"><i></i>들어오는 달</span><span class="c"><i></i>충·주의</span></div></div>`);
   }
@@ -197,7 +222,7 @@
     el.rings.hidden = true; el.sprite.classList.remove('wake');
   }
   function finish(mode) {
-    if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer);
+    if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer); stopVoice();
     document.removeEventListener('keydown', onKey);
     const A = root.SajuApp;
     if (mode === 'sheet') { A.show('result'); A.renderResult(); } else { A.state.mode = 'persona'; A.show('home'); }
@@ -206,12 +231,12 @@
   }
 
   async function run(id) {
-    const A = root.SajuApp, SC = root.SajuVNScripts; const p = P.personas[id], sc = SC && SC.SCRIPTS[id];
+    const A = root.SajuApp, SC = root.SajuVNScripts; const sc = SC && SC.SCRIPTS[id]; const p = P.personas[id] || (sc && sc.persona);
     if (!p || !sc || !A) return false;
     if (st.open) finish('home');
     st.open = true; st.closing = false; st.persona = p; st.script = sc; st.auto = false;
-    A.setPersona(id); A.state.mode = 'persona';
-    build(p); await preloadFaces(p);
+    if (sc.mbti) { A.setMode('mbti'); } else { A.setPersona(id); A.state.mode = 'persona'; }
+    build(p); await Promise.all([preloadFaces(p), loadVoices()]);
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--p-accent').trim() || p.palette.accent;
     st.fx = particles(el.fx, sc.particles, accent);
     await sleep(250);
@@ -233,6 +258,14 @@
       input = { name, year: d.year, month: d.month, day: d.day, hour: t ? t.hour : 12, minute: t ? t.minute : 0, hourUnknown: !t, gender, solarCorrectionMin: -30, mbti: prev && prev.mbti ? prev.mbti : null };
     }
     const name = input.name || '당신';
+    if (sc.mbti) {
+      if (!input.mbti) { input.mbti = await ask('mbti', sc.ask.mbti); if (!st.open) return; }
+      if (!input.goal) {
+        const g = await choose(sc.ask.goal.prompt, [{ label: sc.ask.goal.yes, value: 'y' }, { label: sc.ask.goal.no, value: 'n' }]); if (!st.open) return;
+        if (g === 'y') { input.goal = await ask('mbti', sc.ask.goal.pick); if (!st.open) return; await say(sc.ask.goal.got, { face: 'smile', fx: 'glow' }); } else { input.goal = null; await say(sc.ask.goal.skip, { face: 'neutral' }); }
+        if (!st.open) return;
+      }
+    }
     let pr = null;
     if (sc.ask.partner && (sc.partnerFor || []).includes(concern)) {
       const y = await choose(sc.ask.partner.prompt, [{ label: sc.ask.partner.yes, value: 'y' }, { label: sc.ask.partner.no, value: 'n' }]); if (!st.open) return;
@@ -250,6 +283,7 @@
     const r = A.state.result;
     await summon(sc.summon); if (!st.open) return;
     const c = { name, r, p, pr, concern, dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
+    if (sc.mbti) { c.est = M.estimate(r); c.cmp = M.compare(input.mbti, c.est); c.adv = M.advise(c.est, input.mbti, input.goal); A.state.est = c.est; A.state.cmp = c.cmp; A.state.adv = c.adv; }
     const beats = sc.beats(c);
     for (const b of beats) { if ('visual' in b) visual(b.visual, c); await say(P.fill(b.t, c), b); if (!st.open) return; }
     visual(null, c);
