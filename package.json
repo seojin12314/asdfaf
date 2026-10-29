@@ -1,0 +1,9 @@
+{
+  "name": "saju-dogam",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node mvp/saju/test/saju.test.js",
+    "serve": "python -m http.server 3195 --directory mvp/saju --bind 127.0.0.1"
+  }
+}
