@@ -1,0 +1,100 @@
+// node mvp/saju/test/saju.test.js
+const assert = require('assert');
+const Saju = require('../saju.js');
+
+let n = 0;
+function t(name, fn) { fn(); n++; console.log('ok -', name); }
+
+t('JDN 2000-01-01 = 2451545', () => assert.strictEqual(Saju.jdn(2000, 1, 1), 2451545));
+t('일주 2000-01-01 = 戊午', () => assert.strictEqual(Saju.pillarFromIndex60((Saju.jdn(2000, 1, 1) + 49) % 60).hanja, '戊午'));
+t('일주 1900-01-01 = 甲戌', () => assert.strictEqual(Saju.pillarFromIndex60((Saju.jdn(1900, 1, 1) + 49) % 60).hanja, '甲戌'));
+t('년주 2026 = 丙午, 1984 = 甲子', () => { assert.strictEqual(Saju.yearPillarOf(2026).hanja, '丙午'); assert.strictEqual(Saju.yearPillarOf(1984).hanja, '甲子'); });
+t('오호둔: 甲년 寅월 = 丙寅, 戊년 寅월 = 甲寅', () => { assert.strictEqual(Saju.monthStemIdx(0, 2), 2); assert.strictEqual(Saju.monthStemIdx(4, 2), 0); });
+t('오자둔: 甲일 子시 = 甲, 乙일 丑시 = 丁, 癸일 子시 = 壬', () => { assert.strictEqual(Saju.hourStemIdx(0, 0), 0); assert.strictEqual(Saju.hourStemIdx(1, 1), 3); assert.strictEqual(Saju.hourStemIdx(9, 0), 8); });
+t('시지: 23시·0시 = 子, 1시 = 丑, 12시 = 午', () => { assert.strictEqual(Saju.hourBranchIdx(23), 0); assert.strictEqual(Saju.hourBranchIdx(0), 0); assert.strictEqual(Saju.hourBranchIdx(1), 1); assert.strictEqual(Saju.hourBranchIdx(12), 6); });
+t('월지: 황경 315→寅, 0→卯, 285→丑, 255→子', () => { assert.strictEqual(Saju.monthBranchFromLongitude(315), 2); assert.strictEqual(Saju.monthBranchFromLongitude(0), 3); assert.strictEqual(Saju.monthBranchFromLongitude(285), 1); assert.strictEqual(Saju.monthBranchFromLongitude(255), 0); });
+
+t('황경: 춘분(3/20경) ≈ 0°, 동지(12/21경) ≈ 270°', () => {
+  const lamEq = Saju.sunLongitude(Saju.jdFromMs(Date.UTC(2026, 2, 20, 14, 0)));
+  const lamWs = Saju.sunLongitude(Saju.jdFromMs(Date.UTC(2025, 11, 21, 15, 0)));
+  assert.ok(lamEq < 1 || lamEq > 359, 'equinox ' + lamEq);
+  assert.ok(Math.abs(lamWs - 270) < 1, 'solstice ' + lamWs);
+});
+
+t('입춘(315°)은 2000~2030년 모두 2월 3~5일(KST)', () => {
+  for (let y = 2000; y <= 2030; y++) {
+    const approx = Saju.jdFromMs(Date.UTC(y, 1, 4));
+    const jd = Saju.solarTermJd(315, approx);
+    assert.ok(jd, 'no root ' + y);
+    const kst = new Date(Saju.msFromJd(jd) + 9 * 3600000);
+    assert.strictEqual(kst.getUTCMonth(), 1, 'month ' + y);
+    assert.ok(kst.getUTCDate() >= 3 && kst.getUTCDate() <= 5, 'day ' + y + ' ' + kst.toISOString());
+  }
+});
+
+t('2026-01-15 는 입춘 전 → 년주 乙巳, 월주 己丑', () => {
+  const r = Saju.compute({ year: 2026, month: 1, day: 15, hour: 10, minute: 0, gender: 'M' });
+  assert.strictEqual(r.year.hanja, '乙巳');
+  assert.strictEqual(r.month.hanja, '己丑');
+});
+t('2026-02-10 는 입춘 후 → 년주 丙午, 월주 庚寅', () => {
+  const r = Saju.compute({ year: 2026, month: 2, day: 10, hour: 10, minute: 0, gender: 'F' });
+  assert.strictEqual(r.year.hanja, '丙午');
+  assert.strictEqual(r.month.hanja, '庚寅');
+});
+t('1984-03-01 → 甲子년 丙寅월', () => {
+  const r = Saju.compute({ year: 1984, month: 3, day: 1, hour: 12, minute: 0, gender: 'M' });
+  assert.strictEqual(r.year.hanja, '甲子'); assert.strictEqual(r.month.hanja, '丙寅');
+});
+t('2000-01-01 10:00 → 일주 戊午, 시주 丁巳(사시)', () => {
+  const r = Saju.compute({ year: 2000, month: 1, day: 1, hour: 10, minute: 0, gender: 'M', solarCorrectionMin: 0 });
+  assert.strictEqual(r.day.hanja, '戊午');
+  assert.strictEqual(r.hour.hanja, '丁巳');
+});
+t('2000-01-01 23:40 (보정 −30 → 23:10) → 야자시, 일주 己未, 시주 甲子', () => {
+  const r = Saju.compute({ year: 2000, month: 1, day: 1, hour: 23, minute: 40, gender: 'M' });
+  assert.strictEqual(r.corrected.hour, 23);
+  assert.strictEqual(r.day.hanja, '己未');
+  assert.strictEqual(r.hour.hanja, '甲子');
+});
+t('2000-01-01 00:10 (보정 −30 → 전날 23:40) → 일주 戊午(1/1), 시주 壬子', () => {
+  const r = Saju.compute({ year: 2000, month: 1, day: 1, hour: 0, minute: 10, gender: 'M' });
+  assert.strictEqual(r.corrected.d, 31);
+  assert.strictEqual(r.day.hanja, '戊午');
+  assert.strictEqual(r.hour.hanja, '壬子');
+});
+t('시간 모름 → 3주, 오행 합 6', () => {
+  const r = Saju.compute({ year: 1990, month: 6, day: 15, hourUnknown: true, gender: 'F' });
+  assert.strictEqual(r.pillars.length, 3); assert.strictEqual(r.hour, null);
+  assert.strictEqual(Object.values(r.elements).reduce((a, b) => a + b, 0), 6);
+});
+t('십신: 甲 기준 — 甲비견 乙겁재 丙식신 丁상관 戊편재 己정재 庚편관 辛정관 壬편인 癸정인', () => {
+  const exp = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
+  exp.forEach((e, i) => assert.strictEqual(Saju.tenGod(0, i).name, e));
+});
+t('십신 개수 = 7 (4주 중 일간 제외)', () => {
+  const r = Saju.compute({ year: 1995, month: 8, day: 20, hour: 15, minute: 0, gender: 'M' });
+  assert.strictEqual(r.tenGods.length, 7);
+  assert.strictEqual(Object.values(r.groups).reduce((a, b) => a + b, 0), 7);
+});
+t('대운: 양남 순행, 음남 역행, 대운수 1~10, 현재 대운 존재', () => {
+  const a = Saju.compute({ year: 1984, month: 6, day: 10, hour: 9, minute: 0, gender: 'M', now: '2026-10-29' }); // 甲子년 남 → 순행
+  assert.strictEqual(a.daeun.forward, true);
+  assert.ok(a.daeun.startAge >= 1 && a.daeun.startAge <= 10);
+  assert.ok(a.daeun.current, 'current daeun');
+  assert.strictEqual(a.daeun.list[0].index60, (a.month.index60 + 1) % 60);
+  const b = Saju.compute({ year: 1985, month: 6, day: 10, hour: 9, minute: 0, gender: 'M', now: '2026-10-29' }); // 乙丑년 남 → 역행
+  assert.strictEqual(b.daeun.forward, false);
+  assert.strictEqual(b.daeun.list[0].index60, (b.month.index60 + 59) % 60);
+});
+t('세운 2026 丙午, 2027 丁未', () => {
+  const r = Saju.compute({ year: 1990, month: 1, day: 1, hour: 1, minute: 0, gender: 'F', now: '2026-10-29' });
+  assert.strictEqual(r.seun[0].hanja, '丙午'); assert.strictEqual(r.seun[1].hanja, '丁未');
+});
+t('절입: prev < 출생 < next, 간격 28~33일', () => {
+  const r = Saju.compute({ year: 1991, month: 11, day: 3, hour: 6, minute: 0, gender: 'F' });
+  const p = Date.parse(r.terms.prev), nx = Date.parse(r.terms.next), b = Date.UTC(1991, 10, 2, 21, 0);
+  assert.ok(p < b && b < nx, 'order');
+  const gap = (nx - p) / 86400000; assert.ok(gap > 28 && gap < 33, 'gap ' + gap);
+});
+console.log(`\n${n} tests passed`);
