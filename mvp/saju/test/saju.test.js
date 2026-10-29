@@ -126,3 +126,41 @@ t2('estimate: 다양한 명식에서 네 글자 모두 유효', () => {
   }
 });
 console.log(`${n2} mbti tests passed`);
+
+// ── 장문 풀이 & 캐릭터 레이어
+global.self = global; require('../personas.js'); const PP = global.SajuPersonas;
+const RR = require('../report.js');
+let n3 = 0; function t3(name, fn) { fn(); n3++; console.log('ok -', name); }
+t3('캐릭터 6인: lead 12개 이상, special 완비, 전문가 1인', () => {
+  const ids = Object.keys(PP.personas); assert.strictEqual(ids.length, 6);
+  ids.forEach(id => { const p = PP.personas[id]; assert.ok(Object.keys(p.lead).length >= 12, id + ' lead'); ['byElem', 'byStrong', 'byWeak'].forEach(k => assert.strictEqual(Object.keys(p.special[k]).length, 5, id + ' ' + k)); assert.ok(p.report.price > 0); });
+  assert.strictEqual(PP.personas.master.tier, 'expert'); assert.strictEqual(PP.personas.master.report.price, 39900); assert.ok(PP.personas.master.consentNote);
+});
+t3('월운: 2027(丁未)년 寅월 = 壬寅, 丑월 = 癸丑, 절입일 존재', () => {
+  const ms = RR.monthPillarsOfYear(2027); assert.strictEqual(ms[0].hanja, '壬寅'); assert.strictEqual(ms[11].hanja, '癸丑'); assert.ok(ms.every(m => m.startKST));
+  assert.strictEqual(ms[0].startKST.getUTCMonth(), 1); // 2월
+});
+t3('신강신약 간이 판정: 라벨 3종 중 하나, 근거 3개', () => {
+  const r = Saju.compute({ year: 1991, month: 11, day: 3, hour: 6, minute: 20, gender: 'F' }); const st = RR.strengthJudge(r);
+  assert.ok(['신강', '중화', '신약'].includes(st.label)); assert.strictEqual(st.why.length, 3); assert.ok(st.season);
+});
+t3('풀이 분량: 6캐릭터 × 6명식 모두 15화면(6,750자) 이상, 17장', () => {
+  let min = 1e9;
+  Object.keys(PP.personas).forEach(pid => [[1991, 11, 3, 6, 'F'], [1984, 6, 10, 9, 'M'], [2001, 2, 2, 23, 'F'], [1975, 12, 25, 14, 'M'], [1996, 8, 8, 8, 'M'], [2010, 3, 15, 0, 'F']].forEach(([y, m, d, h, g]) => {
+    const r = Saju.compute({ year: y, month: m, day: d, hour: h, minute: 20, gender: g, now: '2026-10-29' });
+    const rep = RR.build(r, PP.personas[pid], { name: '샘플', className: PP.classNames[r.day.stem], now: '2026-10-29' });
+    assert.strictEqual(rep.sections.length, 17, pid + ' sections'); assert.ok(rep.sections.some(s => s.id === 'special') && rep.sections.some(s => s.id === 'months'));
+    min = Math.min(min, rep.chars);
+  }));
+  assert.ok(min >= 6750, 'min chars ' + min); console.log('   최소 분량', min, '자 ≈', Math.round(min / 450), '화면');
+});
+t3('시간 모름(3주)에서도 풀이 생성', () => {
+  const r = Saju.compute({ year: 1988, month: 5, day: 5, hourUnknown: true, gender: 'M', now: '2026-10-29' });
+  const rep = RR.build(r, PP.personas.sage, { name: '샘플', now: '2026-10-29' }); assert.ok(rep.chars > 5000);
+});
+t3('MBTI 사주 심층: head 5장 + tail 2장, 불일치 축 실험 포함', () => {
+  const r = Saju.compute({ year: 1991, month: 11, day: 3, hour: 6, minute: 20, gender: 'F', now: '2026-10-29' });
+  const est = MBTI.estimate(r), cmp = MBTI.compare('INFJ', est); const mb = MBTI.buildSections(r, est, cmp, { name: '지민' });
+  assert.strictEqual(mb.head.length, 5); assert.strictEqual(mb.tail.length, 2); assert.ok(mb.tail[0].html.includes('1주차'));
+});
+console.log(`${n3} report tests passed`);
