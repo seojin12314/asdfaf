@@ -98,3 +98,31 @@ t('절입: prev < 출생 < next, 간격 28~33일', () => {
   const gap = (nx - p) / 86400000; assert.ok(gap > 28 && gap < 33, 'gap ' + gap);
 });
 console.log(`\n${n} tests passed`);
+
+// ── MBTI 교차 분석
+const MBTI = require('../mbti.js');
+let n2 = 0; function t2(name, fn) { fn(); n2++; console.log('ok -', name); }
+t2('명식 MBTI: 샘플(1991-11-03 06:20 F, 식상 4/7) → ENFP, F 강함', () => {
+  const r = Saju.compute({ year: 1991, month: 11, day: 3, hour: 6, minute: 20, gender: 'F', now: '2026-10-29' });
+  const est = MBTI.estimate(r);
+  assert.strictEqual(est.letters, 'ENFP');
+  const tf = est.axes.find(a => a.id === 'TF'); assert.ok(tf.letterPct >= 70, 'F strength ' + tf.letterPct);
+  est.axes.forEach(a => { assert.ok(a.pct >= 0 && a.pct <= 100); assert.ok(a.factors.length >= 1); });
+});
+t2('parse: 소문자·잡문자 허용, 잘못된 조합 거부', () => {
+  assert.strictEqual(MBTI.parse('enfp'), 'ENFP'); assert.strictEqual(MBTI.parse('I-N-T-J'), 'INTJ');
+  assert.strictEqual(MBTI.parse('ABCD'), null); assert.strictEqual(MBTI.parse('EN'), null); assert.strictEqual(MBTI.parse('NEFP'), null);
+});
+t2('compare: INFJ vs ENFP → 2축 일치, 축별 문장 존재', () => {
+  const r = Saju.compute({ year: 1991, month: 11, day: 3, hour: 6, minute: 20, gender: 'F', now: '2026-10-29' });
+  const c = MBTI.compare('INFJ', MBTI.estimate(r));
+  assert.strictEqual(c.matches, 2); assert.strictEqual(c.axes[0].match, false); assert.strictEqual(c.axes[1].match, true);
+  c.axes.forEach(x => assert.ok(x.text && x.text.length > 20)); assert.ok(c.summary);
+});
+t2('estimate: 다양한 명식에서 네 글자 모두 유효', () => {
+  for (let y = 1960; y <= 2010; y += 7) for (const h of [2, 9, 15, 22]) {
+    const est = MBTI.estimate(Saju.compute({ year: y, month: (y % 12) + 1, day: (y % 27) + 1, hour: h, minute: 0, gender: y % 2 ? 'M' : 'F' }));
+    assert.ok(MBTI.parse(est.letters), est.letters);
+  }
+});
+console.log(`${n2} mbti tests passed`);

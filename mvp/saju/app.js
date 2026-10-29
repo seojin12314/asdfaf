@@ -6,7 +6,7 @@
   const $$ = (sel, el) => Array.from((el || document).querySelectorAll(sel));
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const STEPS = ['intro', 'concern', 'persona', 'form', 'reading', 'result'];
-  const state = { concern: null, persona: null, input: null, result: null, reading: null, unlocked: false };
+  const state = { concern: null, persona: null, input: null, result: null, reading: null, unlocked: false, mbti: null };
 
   // ───── 화면 전환 ─────
   function show(id) {
@@ -85,10 +85,25 @@
     const hourUnknown = f.hourUnknown.checked;
     let hour = 12, minute = 0;
     if (!hourUnknown) { if (!f.time.value) { f.time.focus(); return null; } [hour, minute] = f.time.value.split(':').map(Number); }
-    return { name: f.name.value.trim(), year: y, month: m, day: d, hour, minute, hourUnknown, gender: f.gender.value, solarCorrectionMin: f.solar.checked ? -30 : 0 };
+    return { name: f.name.value.trim(), year: y, month: m, day: d, hour, minute, hourUnknown, gender: f.gender.value, solarCorrectionMin: f.solar.checked ? -30 : 0, mbti: readMBTI(f, 'mbti') };
+  }
+  // ───── MBTI 선택 UI(폼·결과 카드 공용) ─────
+  const M = () => window.SajuMBTI;
+  function mbtiPickHTML(prefix) {
+    return M().AXES.map(a => `<div class="seg mini">
+      <label><input type="radio" name="${prefix}_${a.id}" value="${a.left}"><span>${a.left} <small>${a.leftKo}</small></span></label>
+      <label><input type="radio" name="${prefix}_${a.id}" value="${a.right}"><span>${a.right} <small>${a.rightKo}</small></span></label></div>`).join('') +
+      `<button type="button" class="btn ghost mbti-clear" data-prefix="${prefix}">선택 지우기</button>`;
+  }
+  function readMBTI(scope, prefix) {
+    const letters = M().AXES.map(a => { const el = scope.querySelector(`input[name="${prefix}_${a.id}"]:checked`); return el ? el.value : ''; }).join('');
+    return letters.length === 4 ? letters : null;
+  }
+  function setMBTI(scope, prefix, letters) {
+    M().AXES.forEach((a, i) => $$(`input[name="${prefix}_${a.id}"]`, scope).forEach(r => { r.checked = !!letters && r.value === letters[i]; }));
   }
   function fillSample() {
-    const f = $('#birth'); f.name.value = '지민'; f.date.value = '1991-11-03'; f.time.value = '06:20'; f.hourUnknown.checked = false; f.time.disabled = false; $$('input[name=gender]', f).forEach(r => r.checked = r.value === 'F'); f.solar.checked = true;
+    const f = $('#birth'); f.name.value = '지민'; f.date.value = '1991-11-03'; f.time.value = '06:20'; f.hourUnknown.checked = false; f.time.disabled = false; $$('input[name=gender]', f).forEach(r => r.checked = r.value === 'F'); f.solar.checked = true; setMBTI(f, 'mbti', 'INFJ');
   }
 
   // ───── 4. 리딩 애니메이션 ─────
@@ -171,6 +186,7 @@
       <dt>가장 약한 기운</dt><dd>${r.weakestGroup} · ${P.groupDesc[r.weakestGroup]}</dd>
       <dt>보정</dt><dd>${r.notes.length ? r.notes.join(' / ') : '없음'}</dd>`;
     $('#gods').innerHTML = `<table class="gods"><thead><tr><th>자리</th><th>글자</th><th>십신</th><th>그룹</th></tr></thead><tbody>${r.tenGods.map(t => `<tr><td>${t.at}</td><td class="el-${S.STEM_ELEM[S.STEMS.indexOf(t.char)] || S.BRANCH_ELEM[S.BRANCHES.indexOf(t.char)]}">${t.char}</td><td>${t.name}</td><td>${t.group}</td></tr>`).join('')}</tbody></table>`;
+    renderMBTI();
     const lines = $('#lines'); lines.innerHTML = '';
     $('#teaser-title').textContent = p.report.title;
     $('#price').innerHTML = `₩${p.report.price.toLocaleString()}<small>1회 · 즉시 발행</small>`;
@@ -184,6 +200,41 @@
       }, reduced ? 0 : 350 * (i + 1)));
     });
     requestAnimationFrame(() => setTimeout(() => $$('#stats .bar i').forEach(i => i.style.width = i.dataset.w + '%'), 60));
+  }
+
+  // ───── 5-2. MBTI 교차 분석 ─────
+  function renderMBTI() {
+    const r = state.result, p = state.persona;
+    const est = M().estimate(r); state.mbti = est;
+    const test = state.input.mbti; const cmp = test ? M().compare(test, est) : null;
+    const letters = (type, other) => type.split('').map((ch, i) => `<span class="${other && other[i] !== ch ? 'miss' : ''}">${ch}</span>`).join('');
+    const axisRow = (a, i) => {
+      const t = test ? test[i] : null; const w = Math.abs(a.pct - 50);
+      const fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`;
+      return `<div class="axis">
+        <div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}<small>${a.leftKo}</small></div>
+        <div class="track"><div class="fill" style="${fill}"></div>${t ? `<div class="test" style="left:${t === a.left ? '5%' : '95%'}" title="검사 ${t}">${t}</div>` : ''}</div>
+        <div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}<small>${a.rightKo}</small></div>
+        <div class="meta"><span>명식 <b>${a.letter}</b> ${a.letterPct}%</span>${t ? `<span class="${t === a.letter ? 'ok' : 'ng'}">검사 ${t} · ${t === a.letter ? '일치' : '불일치'}</span>` : '<span class="muted">검사 미입력</span>'}</div>
+      </div>`;
+    };
+    $('#mbti').innerHTML = `
+      <div class="eyebrow">MBTI × 명식 교차 분석</div>
+      <p class="pintro">${p.mbtiIntro}</p>
+      <div class="mbti-head">
+        <div class="mbti-type">${letters(est.letters, test)}<small>명식 추정 성향</small></div>
+        ${test ? `<div class="mbti-vs">vs</div><div class="mbti-type">${letters(test, est.letters)}<small>평소 검사 결과</small></div><div class="chip accent">4축 중 ${cmp.matches}축 일치</div>` : ''}
+      </div>
+      <div class="axes">${est.axes.map(axisRow).join('')}</div>
+      ${cmp ? `<div class="mbti-lines"><p><b>${cmp.summary}</b></p>${cmp.axes.map(x => `<p><b>${x.test}→${x.chart}</b> ${x.text}</p>`).join('')}</div>`
+            : `<div class="mbti-add"><p class="muted">평소 검사에서 나오는 MBTI를 넣으면 축별로 비교합니다.</p><div class="mbti-pick" id="mbti-inline">${mbtiPickHTML('imbti')}</div><button type="button" class="btn block" id="btn-mbti-compare">비교하기</button></div>`}
+      <details class="why"><summary>추정 근거 보기</summary>
+        <ul>${est.axes.map(a => `<li><b>${a.left}/${a.right}</b> → ${a.letter} ${a.letterPct}%. ${a.factors.map(f => `${f.label}→${f.v > 0 ? a.left : a.right}`).join(', ')}. <span class="muted">${a.note}</span></li>`).join('')}</ul>
+        <p class="muted">사주와 MBTI 사이에 검증된 대응 관계는 없습니다. 위 규칙은 오행·십신 비율을 네 축에 매핑한 공개 휴리스틱(mbti.js)이며, 검사(자기 인식)와 명식(기질)을 나란히 놓고 보는 도구입니다.</p>
+      </details>`;
+    const addBtn = $('#btn-mbti-compare');
+    if (addBtn) addBtn.addEventListener('click', () => { const v = readMBTI($('#mbti-inline'), 'imbti'); if (!v) { addBtn.textContent = '네 축을 모두 선택해 주세요'; return; } state.input.mbti = v; renderMBTI(); if (state.unlocked) renderReport(); });
+    $$('#mbti .mbti-clear').forEach(b => b.addEventListener('click', () => setMBTI($('#mbti'), b.dataset.prefix, null)));
   }
 
   // ───── 6. 심층 리포트(결제 시뮬레이션 뒤) ─────
@@ -206,6 +257,9 @@
       <div class="sec"><h4>4. 약한 자리를 메우는 if-then 3개</h4>
         <p>가장 약한 ${r.weakestGroup}(${P.groupStats[r.weakestGroup]})을 보완하는 if-then 계획:</p>
         <ol class="ifthen">${P.ifThenByWeak[r.weakestGroup].map(s => `<li>${s}</li>`).join('')}</ol></div>
+      ${(() => { const est = state.mbti || M().estimate(r); const t = state.input.mbti; const c = t ? M().compare(t, est) : null; return `<div class="sec"><h4>5. MBTI × 명식: 자기 인식과 기질의 간격</h4>
+        ${c ? `<p>검사 <b>${c.test}</b> · 명식 추정 <b>${c.chart}</b> · 4축 중 ${c.matches}축 일치. ${c.summary}</p>${c.axes.map(x => `<p><b>${x.test}→${x.chart}</b> ${x.text}</p>`).join('')}` : `<p>명식 추정 성향 <b>${est.letters}</b>. 검사 MBTI를 입력하면 축별 비교가 추가됩니다.</p>`}
+        <p class="muted">사주와 MBTI 사이에 검증된 대응은 없습니다. 공개 규칙 기반 추정.</p></div>`; })()}
       <div class="sec"><p class="muted">절입 기준: 이전 ${fmt(r.terms.prev)} · 다음 ${fmt(r.terms.next)} (KST). 황경 ${r.lambda}°. 이 리포트는 참고용 콘텐츠이며 의학·법률·금융 조언이 아닙니다.</p></div>`;
     $('#teaser').hidden = true; $('#report').hidden = false; state.unlocked = true;
     $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
@@ -225,12 +279,14 @@
     x.fillStyle = accent; x.font = `700 300px ${disp}`; x.fillText(r.day.stem, W / 2, 400);
     x.fillStyle = '#f2ecdc'; x.font = `700 72px ${disp}`; x.fillText(P.classNames[r.day.stem], W / 2, 500);
     x.fillStyle = 'rgba(242,236,220,.7)'; x.font = `400 30px ${body}`; x.fillText(`${r.day.stemKo}${r.dayMaster.elementKo} 일간 · ${P.elementWords[r.dayMaster.element]}`, W / 2, 550);
+    const est = state.mbti || M().estimate(r); const tm = state.input.mbti; const cm = tm ? M().compare(tm, est) : null;
+    x.fillStyle = accent; x.font = `600 28px ${body}`; x.fillText(`명식 성향 ${est.letters}` + (cm ? `  ·  검사 ${cm.test}  ·  ${cm.matches}/4 일치` : ''), W / 2, 594);
     const order = [r.hour, r.day, r.month, r.year].filter(Boolean); const bw = 190, gap = 24, total = order.length * bw + (order.length - 1) * gap, x0 = (W - total) / 2;
     const ec = { 木: cs.getPropertyValue('--e-wood').trim(), 火: cs.getPropertyValue('--e-fire').trim(), 土: cs.getPropertyValue('--e-earth').trim(), 金: cs.getPropertyValue('--e-metal').trim(), 水: cs.getPropertyValue('--e-water').trim() };
-    order.forEach((pl, i) => { const bx = x0 + i * (bw + gap), by = 600; x.fillStyle = 'rgba(255,255,255,.06)'; roundRect(x, bx, by, bw, 250, 20); x.fill(); if (pl.name === '일주') { x.strokeStyle = accent; x.lineWidth = 3; roundRect(x, bx, by, bw, 250, 20); x.stroke(); }
+    order.forEach((pl, i) => { const bx = x0 + i * (bw + gap), by = 630; x.fillStyle = 'rgba(255,255,255,.06)'; roundRect(x, bx, by, bw, 250, 20); x.fill(); if (pl.name === '일주') { x.strokeStyle = accent; x.lineWidth = 3; roundRect(x, bx, by, bw, 250, 20); x.stroke(); }
       x.fillStyle = 'rgba(242,236,220,.6)'; x.font = `500 24px ${body}`; x.fillText(pl.name, bx + bw / 2, by + 44);
       x.font = `700 84px ${disp}`; x.fillStyle = ec[pl.stemElem]; x.fillText(pl.stem, bx + bw / 2, by + 130); x.fillStyle = ec[pl.branchElem]; x.fillText(pl.branch, bx + bw / 2, by + 215); });
-    x.fillStyle = '#f2ecdc'; x.font = `400 32px ${disp}`; x.textAlign = 'left'; let y = 920; rd.lines.forEach((t, i) => { x.fillStyle = accent; x.fillText(String(i + 1), 90, y); x.fillStyle = '#f2ecdc'; y = wrap(x, t, 140, y, W - 230, 46) + 46 + 22; });
+    x.fillStyle = '#f2ecdc'; x.font = `400 32px ${disp}`; x.textAlign = 'left'; let y = 940; rd.lines.forEach((t, i) => { x.fillStyle = accent; x.fillText(String(i + 1), 90, y); x.fillStyle = '#f2ecdc'; y = wrap(x, t, 140, y, W - 230, 46) + 46 + 22; });
     x.textAlign = 'center'; x.fillStyle = 'rgba(242,236,220,.5)'; x.font = `500 26px ${body}`; x.fillText('사주도감 · 캐릭터가 읽는 내 명식', W / 2, H - 60);
     const img = $('#share-img'); img.src = c.toDataURL('image/png'); $('#m-share').hidden = false;
   }
@@ -260,6 +316,8 @@
       state.reading = P.generateReading(state.result, state.persona, { name: input.name || '당신' });
       show('reading'); runReading(() => { show('result'); renderResult(); });
     });
+    $('#mbti-pick').innerHTML = mbtiPickHTML('mbti');
+    $$('#mbti-pick .mbti-clear').forEach(b => b.addEventListener('click', () => setMBTI($('#birth'), 'mbti', null)));
     $('#hourUnknown').addEventListener('change', e => { $('#time').disabled = e.target.checked; });
     $('#btn-fill-sample').addEventListener('click', fillSample);
     $('#btn-pay').addEventListener('click', () => { $('#pay-title').textContent = state.persona.report.title; $('#pay-price').textContent = '₩' + state.persona.report.price.toLocaleString(); $('#m-pay').hidden = false; });

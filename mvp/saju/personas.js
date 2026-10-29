@@ -38,7 +38,8 @@
 
   const personas = {
     flame: {
-      id: 'flame', name: '홍염의 여신', role: '연애·재회·궁합', concern: 'love',
+      id: 'flame',
+      mbtiIntro: 'MBTI로 사랑을 설명하냐고? 그래도 봐 줄게. 검사는 네가 보여 주는 얼굴, 명식은 네가 돌아가는 방식이야.', name: '홍염의 여신', role: '연애·재회·궁합', concern: 'love',
       palette: { accent: '#ff6f5e', accent2: '#8e2a22', glow: 'rgba(255,111,94,.38)' },
       emblem: EMBLEMS.flame,
       tagline: '당신의 사랑이 번번이 같은 자리에서 꼬이는 이유.',
@@ -70,7 +71,8 @@
       report: { title: '그 사람 속마음 사주', price: 14900, chapters: ['내 연애 패턴의 뿌리 (원국 해부)', '그 사람과의 궁합 구조 (충·합·형)', '재회와 새 인연의 시점 (대운·세운)', '관계가 꼬이지 않게 하는 if-then 3개'] },
     },
     sage: {
-      id: 'sage', name: '도사님', role: '돈·사업·직업', concern: 'money',
+      id: 'sage',
+      mbtiIntro: '허허, 요즘 것들은 네 글자로 사람을 가르더구나. 좋다. 네가 아는 너와 하늘이 준 너를 나란히 놓아 보자.', name: '도사님', role: '돈·사업·직업', concern: 'money',
       palette: { accent: '#e2b74f', accent2: '#6e4f12', glow: 'rgba(226,183,79,.35)' },
       emblem: EMBLEMS.sage,
       tagline: '돈이 새는 구멍은 늘 같은 자리에 있다.',
@@ -102,7 +104,8 @@
       report: { title: '돈 새는 구멍 분석', price: 14900, chapters: ['재물의 그릇 (원국의 재성·식상 구조)', '돈이 새는 자리 3곳', '대운·세운으로 보는 벌 때와 지킬 때', '동업·독립·투자, 내 명에 맞는 선택'] },
     },
     granny: {
-      id: 'granny', name: '할머니', role: '한 해·가족·인생 흐름', concern: 'year',
+      id: 'granny',
+      mbtiIntro: '아이고, 그 알파벳 네 개 말이지? 할머니는 글자보다 네 명식을 믿는다만, 같이 보면 재밌지.', name: '할머니', role: '한 해·가족·인생 흐름', concern: 'year',
       palette: { accent: '#b9a3ff', accent2: '#4a3a8c', glow: 'rgba(185,163,255,.35)' },
       emblem: EMBLEMS.granny,
       tagline: '올해 네가 힘들었던 건 네 탓이 아니라 계절 탓이야.',
@@ -134,7 +137,8 @@
       report: { title: '2027 정미년 내 위험 구간', price: 19900, chapters: ['내 명식의 계절 (원국과 현재 대운)', '{seunNext}년 세운이 들어오는 자리', '열두 달 흐름표: 조심할 달·밀어붙일 달', '가족·건강·돈, 올해 지킬 것 3가지'] },
     },
     child: {
-      id: 'child', name: '애기동자', role: '자녀·기질', concern: 'child',
+      id: 'child',
+      mbtiIntro: '엠비티아이! 동자도 알아요! 검사에서 나온 거랑 명식에서 나온 거랑 같은지 볼게요!', name: '애기동자', role: '자녀·기질', concern: 'child',
       palette: { accent: '#ff9ab5', accent2: '#8c3a5a', glow: 'rgba(255,154,181,.35)' },
       emblem: EMBLEMS.child,
       tagline: '아이는 고치는 게 아니라 읽는 거예요.',
@@ -166,7 +170,8 @@
       report: { title: '아이 기질 사주', price: 14900, chapters: ['타고난 기질 (일간·오행 균형)', '칭찬형인지 규칙형인지: 키우는 방식', '부모-자녀 궁합 구조', '{seunNext}년 아이가 만나는 기운'] },
     },
     hunter: {
-      id: 'hunter', name: '냉철한 헤드헌터', role: '커리어·이직', concern: 'career',
+      id: 'hunter',
+      mbtiIntro: 'MBTI는 자기 보고식 검사입니다. 명식 추정과 나란히 두면 자기 인식과 기질의 간격이 보입니다. 그 간격이 번아웃 지점입니다.', name: '냉철한 헤드헌터', role: '커리어·이직', concern: 'career',
       palette: { accent: '#5fb0ff', accent2: '#1f4a80', glow: 'rgba(95,176,255,.35)' },
       emblem: EMBLEMS.hunter,
       tagline: '이직은 횟수가 아니라 타이밍입니다.',

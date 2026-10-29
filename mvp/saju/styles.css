@@ -236,3 +236,35 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ───── MBTI 교차 분석 ───── */
+.mbti-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mbti-pick .mbti-clear { grid-column: 1 / -1; justify-self: start; padding: 6px 10px; min-height: 0; font-size: 12px; }
+.seg.mini label { padding: 9px 6px; font-size: 13px; position: relative; }
+.seg.mini small { color: var(--ink-3); font-size: 11px; margin-left: 2px; }
+.pintro { font-family: var(--font-display); color: var(--ink-2); margin: 0 0 12px; }
+.mbti-head { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.mbti-type { font-family: var(--font-display); font-size: 34px; letter-spacing: .1em; line-height: 1; }
+.mbti-type small { display: block; font-family: var(--font-body); font-size: 11px; letter-spacing: .08em; color: var(--ink-3); margin-top: 6px; }
+.mbti-type .miss { color: var(--accent); text-decoration: underline dotted; text-underline-offset: 6px; }
+.mbti-vs { font-size: 12px; letter-spacing: .14em; color: var(--ink-3); }
+.axes { display: grid; gap: 14px; }
+.axis { display: grid; grid-template-columns: 38px 1fr 38px; gap: 10px; align-items: center; }
+.axis .l, .axis .r { font-family: var(--font-display); font-size: 20px; text-align: center; color: var(--ink-3); line-height: 1; }
+.axis .l small, .axis .r small { display: block; font-family: var(--font-body); font-size: 10px; margin-top: 3px; }
+.axis .l.on, .axis .r.on { color: var(--ink); }
+.axis .track { position: relative; height: 10px; background: var(--bg-3); border-radius: 5px; }
+.axis .track::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--line-2); }
+.axis .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 5px; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.axis .test { position: absolute; top: -7px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ink); background: var(--bg-2); color: var(--ink); font-size: 11px; font-weight: 600; display: grid; place-items: center; transform: translateX(-50%); }
+.axis .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: -4px; }
+.axis .meta .ok::before { content: "✓ "; }
+.axis .meta .ng { color: var(--accent); } .axis .meta .ng::before { content: "✕ "; }
+.mbti-lines { display: grid; gap: 8px; margin-top: 14px; }
+.mbti-lines p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.mbti-lines b { color: var(--ink); }
+.mbti-add { display: grid; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+details.why { margin-top: 12px; }
+details.why summary { cursor: pointer; color: var(--ink-3); font-size: 12px; }
+details.why ul { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--ink-2); }
+details.why li { margin: 4px 0; }

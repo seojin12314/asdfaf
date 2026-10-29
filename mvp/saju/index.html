@@ -90,6 +90,9 @@
           </div>
           <label class="toggle"><input type="checkbox" id="hourUnknown" name="hourUnknown"><span>출생 시간을 모릅니다 (시주 생략)</span></label>
           <label class="toggle"><input type="checkbox" id="solar" name="solar" checked><span>진태양시 보정 −30분 (서울 기준. 표준시 자오선 135°E와 실제 경도 차이)</span></label>
+          <div class="field"><span class="muted">평소 검사에서 나오는 MBTI (선택) · 명식 추정 성향과 축별로 비교합니다</span>
+            <div class="mbti-pick" id="mbti-pick"></div>
+          </div>
           <p class="note">MVP 한계: 음력 입력·서머타임(1948~51, 55~60, 87~88) 미반영. 절기 시각은 천문 근사식(오차 약 15분).</p>
           <p class="note" id="form-error" hidden></p>
           <div class="actions">
@@ -119,6 +122,7 @@
           <div class="card"><div class="eyebrow">오행 분포</div><div id="radar"></div></div>
           <div class="card"><div class="eyebrow">십신 스탯</div><div id="stats"></div></div>
         </div>
+        <div class="card" id="mbti"></div>
         <div class="card"><div class="eyebrow">무료 3줄 결과</div><div class="lines" id="lines"></div><p class="muted" style="margin:10px 0 0"><span class="chip dev">MVP: 템플릿 문장 · 운영: 캐릭터 프롬프트 + 구조화 명식 → LLM 생성</span></p></div>
         <div class="card teaser" id="teaser">
           <div class="eyebrow">심층 리포트</div>
@@ -171,6 +175,7 @@
 </footer>
 <script src="saju.js"></script>
 <script src="personas.js"></script>
+<script src="mbti.js"></script>
 <script src="app.js"></script>
 <!--BODY-END-->
 </body>
