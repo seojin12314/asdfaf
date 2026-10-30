@@ -40,7 +40,7 @@
         </div>
         <div class="vn-top">
           <div class="vn-name" id="vn-name"><b>${esc(p.name)}</b><small>${esc(p.role)}${p.org ? ' · ' + esc(p.org) : ''}</small></div>
-          <div class="vn-ctl"><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
+          <div class="vn-ctl"><button type="button" id="vn-back" title="이전 선택으로 돌아가기" disabled>← 이전</button><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
         </div>
         <div class="vn-choices" id="vn-choices" hidden></div>
         <div class="vn-box" id="vn-box">
@@ -49,12 +49,14 @@
           <div class="vn-input" id="vn-input" hidden></div>
         </div>
       </div>`;
-    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
+    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'back', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
     el.root = root;
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
     el.auto.addEventListener('click', e => { e.stopPropagation(); st.auto = !st.auto; el.auto.classList.toggle('on', st.auto); if (st.auto && st.tapResolve && !st.typing) tap(); });
     el.exit.addEventListener('click', e => { e.stopPropagation(); finish('home'); });
+    el.back.addEventListener('click', e => { e.stopPropagation(); goBack(); });
+    syncBack();
     bindParallax();
     document.addEventListener('keydown', onKey);
   }
@@ -135,49 +137,52 @@
       const base = st.mood; const chars = Array.from(text);
       const finishT = () => { span.textContent = text; const c = el.text.querySelector('.caret'); if (c) c.remove(); el.port.classList.remove('talking'); setFace(base); st.typing = false; res(); };
       if (reduced) return finishT();
-      const step = () => { if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; let d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (i < chars.length) setTimeout(step, d); else finishT(); };
+      const g = st.gen; const step = () => { if (g !== st.gen) return; if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; let d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (i < chars.length) setTimeout(step, d); else finishT(); };
       step();
     });
   }
   async function say(text, o) {
-    o = o || {}; if (!st.open) return;
+    o = o || {}; if (!st.open || replaying()) return;
     setMood(o.face || 'neutral'); if (o.fx) fx(o.fx); if (o.sprite) spriteAnim(o.sprite);
     el.who.textContent = st.persona.name; el.box.classList.remove('input-mode'); el.input.hidden = true;
     await type(plain(text, new Set())); if (!st.open) return; await waitTap(text);
   }
   async function choose(prompt, options) {
     if (!st.open) return null;
+    if (replaying()) { const v = st.replay.shift(); if (options.some(o => o.value === v)) { st.record.push(v); syncBack(); return v; } st.replay = null; }
     setMood('neutral'); el.box.classList.remove('input-mode'); el.input.hidden = true;
     await type(plain(prompt, new Set())); if (!st.open) return null;
     return new Promise(res => {
       el.choices.innerHTML = options.map((o, i) => `<button type="button" data-i="${i}">${esc(o.label)}</button>`).join(''); el.choices.hidden = false;
-      el.choices.querySelectorAll('button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const o = options[+b.dataset.i]; el.choices.hidden = true; el.choices.innerHTML = ''; res(o.value); }));
+      el.choices.querySelectorAll('button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const o = options[+b.dataset.i]; el.choices.hidden = true; el.choices.innerHTML = ''; st.record.push(o.value); syncBack(); res(o.value); }));
     });
   }
   async function ask(kind, prompt, o) {
     o = o || {}; if (!st.open) return null;
+    if (replaying()) { const v = st.replay.shift(); st.record.push(v); syncBack(); return v; }
     setMood('neutral'); el.box.classList.add('input-mode'); el.input.hidden = true; el.stage.classList.add('near');
     await type(plain(prompt, new Set())); if (!st.open) return null;
     const html = kind === 'mbti' ? `<div class="mbti-pick">${M.AXES.map(x => `<div class="seg mini"><label><input type="radio" name="vn-m_${x.id}" value="${x.left}"><span>${x.left} <small>${x.leftKo}</small></span></label><label><input type="radio" name="vn-m_${x.id}" value="${x.right}"><span>${x.right} <small>${x.rightKo}</small></span></label></div>`).join('')}</div><div class="rowb"><span class="hint">네 축을 모두 골라 주세요</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거예요')}</button></div><div class="err" id="vn-err" hidden></div>`
       : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
       : kind === 'gender' ? `<div class="seg"><label><input type="radio" name="vn-g" value="F" checked><span>여성</span></label><label><input type="radio" name="vn-g" value="M"><span>남성</span></label></div><div class="rowb"><span></span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '맞아')}</button></div>`
-      : kind === 'date' ? `<input type="date" id="vn-f" min="1900-01-01" max="2030-12-31"><div class="rowb"><span class="hint">양력</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><div class="err" id="vn-err" hidden></div>`
-      : `<input type="time" id="vn-f" aria-label="출생 시각"><label class="hint"><input type="checkbox" id="vn-solar" checked> 출생 시각 −30분 근사 보정</label><p class="hint">지역에 따라 달라요. 보정하지 않으려면 해제하세요. 시주 경계에서는 결과가 달라질 수 있어요.</p><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
+      : kind === 'date' ? `<div class="ymd"><input type="tel" id="vn-y" inputmode="numeric" maxlength="4" placeholder="1991" autocomplete="off"><span>년</span><input type="tel" id="vn-m" inputmode="numeric" maxlength="2" placeholder="07" autocomplete="off"><span>월</span><input type="tel" id="vn-d" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off"><span>일</span></div><div class="rowb"><span class="hint">양력 · 숫자만</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><div class="err" id="vn-err" hidden></div>`
+      : `<div class="ymd"><input type="tel" id="vn-h" inputmode="numeric" maxlength="2" placeholder="17" autocomplete="off"><span>시</span><input type="tel" id="vn-mi" inputmode="numeric" maxlength="2" placeholder="10" autocomplete="off"><span>분</span></div><p class="hint">24시간 기준 · 오후 5시 10분 → 17시 10분</p><label class="hint"><input type="checkbox" id="vn-solar" checked> 출생 시각 −30분 근사 보정(서울 기준)</label><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
     el.input.innerHTML = html; el.input.hidden = false;
-    const f = $('#vn-f', el.input); if (f) setTimeout(() => f.focus(), 50);
+    const f = $('#vn-f', el.input) || el.input.querySelector('.ymd input'); if (f) setTimeout(() => f.focus(), 50);
+    BF().bindYMD(el.input);
     return new Promise(res => {
-      const done = v => { el.input.hidden = true; el.input.innerHTML = ''; el.box.classList.remove('input-mode'); el.stage.classList.remove('near'); res(v); };
+      const done = v => { st.record.push(v); syncBack(); el.input.hidden = true; el.input.innerHTML = ''; el.box.classList.remove('input-mode'); el.stage.classList.remove('near'); res(v); };
       const err = m => { const e = $('#vn-err', el.input); if (e) { e.textContent = m; e.hidden = false; } };
       $('#vn-ok', el.input).addEventListener('click', e => {
         e.stopPropagation();
         if (kind === 'mbti') { const l = M.AXES.map(x => { const r = el.input.querySelector(`input[name="vn-m_${x.id}"]:checked`); return r ? r.value : ''; }).join(''); if (l.length !== 4) return err('네 축을 모두 골라 주세요.'); return done(l); }
         if (kind === 'text') return done(f.value.trim());
         if (kind === 'gender') return done(el.input.querySelector('input[name="vn-g"]:checked').value);
-        if (kind === 'date') { if (!f.value) return err('날짜를 골라 줘.'); if (!f.validity.valid) return err('1900~2030년의 올바른 양력 날짜를 입력해 주세요.'); const [y, m, d] = f.value.split('-').map(Number); return done({ year: y, month: m, day: d }); }
-        if (!f.value || !f.validity.valid) return err('시각을 넣거나 "몰라요"를 눌러 줘.'); const [hh, mm] = f.value.split(':').map(Number); return done({ hour: hh, minute: mm, solarCorrectionMin: $('#vn-solar', el.input).checked ? -30 : 0 });
+        if (kind === 'date') { const v = BF().readYMD(el.input); if (v.error) return err(v.error); return done({ year: v.year, month: v.month, day: v.day }); }
+        const t = BF().readHM(el.input); if (t.error) return err(t.error); return done({ hour: t.hour, minute: t.minute, solarCorrectionMin: $('#vn-solar', el.input).checked ? -30 : 0 });
       });
       const unk = $('#vn-unk', el.input); if (unk) unk.addEventListener('click', e => { e.stopPropagation(); done(null); });
-      if (f) f.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#vn-ok', el.input).click(); } });
+      el.input.querySelectorAll('input').forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#vn-ok', el.input).click(); } }));
     });
   }
 
@@ -198,7 +203,18 @@
   }
 
   // ───── 흐름 ─────
+  function replaying() { return !!(st.replay && st.replay.length); }
+  function syncBack() { if (el.back) el.back.disabled = !(st.record && st.record.length); }
+  /** 마지막 선택을 지우고 같은 캐릭터를 처음부터 빠르게 다시 돌려 그 선택 직전으로 돌아간다. */
+  function goBack() {
+    if (!st.open || !st.record || !st.record.length) return;
+    const id = st.persona.id, opts = Object.assign({}, st.opts || {}, { replay: st.record.slice(0, -1) });
+    finish('silent');
+    run(id, opts).catch(err => { console.error('[vn]', err); finish('home'); });
+  }
+  const BF = () => root.SajuApp.birthFields;
   async function enter(kind) {
+    if (replaying()) { el.sprite.classList.remove('hidden'); el.name.classList.add('on'); return; }
     el.sprite.classList.remove('hidden'); el.sprite.classList.add('enter-' + kind); el.sprite.addEventListener('animationend', () => el.sprite.classList.remove('enter-' + kind), { once: true });
     if (kind === 'flame' || kind === 'hunter') fx('flash'); if (kind === 'master' || kind === 'child') fx('burst');
     await sleep(kind === 'sage' ? 1500 : kind === 'master' ? 1300 : 1000); el.name.classList.add('on'); await sleep(350);
@@ -212,6 +228,7 @@
     if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer);
     document.removeEventListener('keydown', onKey);
     const A = root.SajuApp;
+    if (mode === 'silent') { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.innerHTML = ''; st.closing = false; return; }
     if (mode === 'sheet') { A.show('result'); A.renderResult(); } else { A.state.mode = 'persona'; A.show('home'); }
     el.root.classList.add('closing');
     setTimeout(() => { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.hidden = true; el.root.innerHTML = ''; st.closing = false; }, reduced ? 0 : 450);
@@ -222,11 +239,12 @@
     if (!p || !sc || !A) return false;
     if (st.open) finish('home');
     st.open = true; st.closing = false; st.persona = p; st.script = sc; st.auto = false;
+    st.gen = (st.gen || 0) + 1; st.opts = opts; st.record = []; st.replay = Array.isArray(opts.replay) && opts.replay.length ? opts.replay.slice() : null;
     if (sc.mbti) { A.setMode('mbti'); } else { A.setPersona(id); A.state.mode = 'persona'; }
     build(p); await preloadFaces(p);
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--p-accent').trim() || p.palette.accent;
     st.fx = particles(el.fx, sc.particles, accent);
-    await sleep(250);
+    if (!replaying()) await sleep(250);
     await enter(sc.entrance); if (!st.open) return;
     for (const l of sc.intro) { await say(l.t, l); if (!st.open) return; }
     let concern = opts.concern && sc.concern.options.some(o => o.value === opts.concern) ? opts.concern : null;

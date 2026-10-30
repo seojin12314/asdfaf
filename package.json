@@ -3,7 +3,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "test": "node mvp/saju/test/saju.test.js",
+    "test": "node mvp/saju/test/saju.test.js && node --test mvp/saju/test/qa-regression.test.js",
     "serve": "python tools/serve.py 3195"
   }
 }

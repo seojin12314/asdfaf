@@ -117,6 +117,8 @@
 .vn-input { grid-column: 1 / -1; display: grid; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--line-2); animation: fadeUp .35s ease both; }
 .vn-input input[type="text"], .vn-input input[type="date"], .vn-input input[type="time"] { width: 100%; background: var(--bg-3); border: 1px solid var(--line-2); color: var(--ink); border-radius: 10px; padding: 11px 12px; font: inherit; font-size: 15px; min-height: 44px; }
 .vn-input .seg label { padding: 10px; }
+.vn-input .ymd input { min-height: 44px; font-size: 17px; }
+.vn-ctl button:disabled { opacity: .35; cursor: default; }
 .vn-input .rowb { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
 .vn-input .btn { min-height: 44px; padding: 10px 16px; }
 .vn-input .err { font-size: 12px; color: var(--e-fire); }

@@ -284,9 +284,9 @@
     hunter: {
       entrance: 'hunter', particles: 'grid',
       intro: [
-        { t: '앉으시죠. 시간은 15분입니다.', face: 'neutral', fx: 'flash' },
-        { t: '서지안입니다. 헤드헌터죠. 저는 시장이 당신을 어떻게 평가하는지, 그리고 언제 움직여야 하는지만 봅니다. 연애나 가족 문제는 제 분야가 아닙니다.', face: 'neutral' },
-        { t: '결론부터 말하는 편입니다. 듣기 좋은 말은 기대하지 마십시오. 진행할까요?', face: 'serious', sprite: 'bump' },
+        { t: '앉으십시오. 시간은 15분입니다.', face: 'neutral', fx: 'flash' },
+        { t: '서지안입니다. 헤드헌터입니다. 저는 시장이 당신을 어떻게 평가하는지, 그리고 언제 움직여야 하는지만 봅니다. 연애나 가족 문제는 제 분야가 아닙니다.', face: 'neutral' },
+        { t: '결론부터 말하는 편입니다. 듣기 좋은 말은 기대하지 마십시오. 진행하겠습니까?', face: 'serious', sprite: 'bump' },
       ],
       concern: {
         prompt: '오늘 안건은 무엇입니까?',
@@ -299,7 +299,7 @@
       ask: {
         lead: [{ t: '기본 정보를 받겠습니다. 생년월일시입니다. 이력서보다 정확한 자료입니다.', face: 'neutral' }],
         name: '성함, 또는 부를 이름을 알려 주십시오.', gender: '성별을 선택해 주십시오. 대운의 방향이 달라집니다.', date: '생년월일입니다. 양력 기준입니다.', time: '출생 시각입니다. 모르시면 "모름"으로 두셔도 됩니다. 시주 없이도 유형 분류는 가능합니다.',
-        reuse: { prompt: '이미 입력된 명식이 있습니다. 그대로 진행할까요, 다시 받을까요?', keep: '그대로 진행', fresh: '다시 입력' },
+        reuse: { prompt: '이미 입력된 명식이 있습니다. 그대로 진행할까요, 다시 받겠습니까?', keep: '그대로 진행', fresh: '다시 입력' },
         done: [{ t: '{name} 님, 접수했습니다. 검토를 시작합니다.', face: 'neutral', fx: 'flash' }],
       },
       summon: [{ t: '년주, 월주, 일주, 시주. 네 개의 변수를 테이블에 올립니다.' }],
@@ -328,7 +328,7 @@
       entrance: 'master', particles: 'star',
       intro: [
         { t: '어서 오세요. 늦은 시간인데 잘 오셨어요. 별자리 보던 참이었어요.', face: 'smile', fx: 'glow' },
-        { t: '정경진입니다. 명리는 어렵지 않아요. 어렵게 말하는 사람이 있을 뿐이죠. 저는 원국부터 내년 열두 달까지, 전부 봅니다.', face: 'neutral' },
+        { t: '정경진이에요. 명리는 어렵지 않아요. 어렵게 말하는 사람이 있을 뿐이죠. 저는 원국부터 내년 열두 달까지, 전부 봐요.', face: 'neutral' },
         { t: '연애든 돈이든 아이든, 따로 떼지 않고 한 사람의 명식으로 한 번에 봐요. 그게 종합 풀이예요. 시작할까요?', face: 'smile', sprite: 'nod' },
       ],
       concern: {
@@ -345,7 +345,7 @@
         reuse: { prompt: '아까 세운 명식이 있네요. 그대로 볼까요, 다시 받을까요?', keep: '그대로 봐 주세요', fresh: '다시 입력할게요' },
         done: [{ t: '{name} 님, 받았어요. 별자리 선을 따라 네 기둥을 세울게요. 어려운 말 나오면 제가 바로 풀어 드려요.', face: 'smile', fx: 'burst' }],
       },
-      summon: [{ t: '년주, 월주, 일주, 시주. 하늘의 글자 넷이 남색 벽 위에 자리를 잡습니다.' }],
+      summon: [{ t: '년주, 월주, 일주, 시주. 하늘의 글자 넷이 남색 벽 위에 자리를 잡아요.' }],
       beats(c) {
         const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), sp = spouseInfo(r), now = r.seun[0], nx = r.seun[1], cur = r.daeun && r.daeun.current, sg = r.strongestGroup, top = r.sortedElems[0], low = r.sortedElems[4];
             const dm = R.DAYMASTER[r.day.stem];
@@ -359,13 +359,13 @@
         if (cur) b.push({ t: `대운은 10년 단위의 무대예요. 지금은 ${cur.stem}${cur.branch}, ${cur.tenGod.group} 운이고 ${cur.fromAge}세부터 ${cur.toAge}세까지예요. ${P.luckByGroupPolite[cur.tenGod.group]}`, face: 'neutral', visual: glyph(cur.stem + cur.branch, `현재 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세`) });
         b.push({ t: `세운은 그 해의 날씨예요. ${now.tenGod.group === nx.tenGod.group ? `올해 ${now.year}년과 내년 ${nx.year}년 모두 ${now.tenGod.group} 운이라 올해 배운 걸 내년에 쓰는 흐름이에요.` : `올해 ${now.year}년은 ${now.tenGod.group} 운, 내년 ${nx.year}년은 ${nx.tenGod.group} 운이에요.`} ${c.concern === 'why' ? `올해가 힘드셨다면 ${now.tenGod.group} 운의 성격 때문이에요. ${P.luckByGroupPolite[now.tenGod.group]}` : P.luckByGroupPolite[nx.tenGod.group]}`, face: c.concern === 'why' ? 'serious' : 'neutral', visual: { type: 'pair', title: '올해와 내년', a: { big: now.stem + now.branch, label: `${now.year} · ${now.tenGod.group}` }, b: { big: nx.stem + nx.branch, label: `${nx.year} · ${nx.tenGod.group}` }, sub: '세운 = 그 해의 날씨' } });
         b.push({ t: `배우자 자리도 볼게요. 배우자성 ${sp.sg}이 ${sp.count === 0 ? '원국에 없어요. 인연이 없다는 뜻이 아니라, 운에서 들어올 때 움직이는 구조예요' : `${sp.count}개, ${sp.where}에 있어요`}. 일지에는 ${r.day.branch}, ${sp.dayGod}이 앉아 있고요. ${P.groupDesc[sp.dayGroup] || ''}`, face: sp.count ? 'smile' : 'neutral', visual: glyph(sp.glyph, `배우자성 ${sp.sg} · ${sp.count}개`, `일지 ${r.day.branch} · ${sp.dayGod}`) });
-        b.push({ t: `일의 형태는 십신 비율로 봐요. ${sg}이 강하시니 1순위는 ${R.CAREER[sg]}. 한 가지로 단정하진 않지만, 비어 있는 ${r.weakestGroup}을 요구하는 환경은 오래 못 버티세요.`, face: 'neutral', visual: glyph('業', `적성 · ${sg}형`, R.CAREER[sg]) });
+        b.push({ t: `일의 형태는 십신 비율로 봐요. ${sg}이 강하니 1순위는 ${R.CAREER[sg]}. 한 가지로 단정하진 않지만, 비어 있는 ${r.weakestGroup}을 요구하는 환경은 오래 못 버티세요.`, face: 'neutral', visual: glyph('業', `적성 · ${sg}형`, R.CAREER[sg]) });
         b.push({ t: `마지막으로 ${mo.nextY}년 열두 달이에요. 추진해도 되는 달이 ${mo.push.length}개, 조심할 달이 ${mo.caution.length}개. 용신 쪽 기운이 들어오는 달은 ${mo.names(mo.focus)}이고, 새 습관·공부·관계 정리는 여기에 두세요.`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 용신 쪽 기운이 드는 달`) });
-        if (mo.caution.length) b.push({ t: `${mo.names(mo.caution)}은 충이 들어와요. 계약·이사·수술·결혼처럼 날짜가 있는 일은 이 달을 피하시고, 피할 수 없으면 두 번 확인하세요.`, face: 'serious', fx: 'shake' });
+        if (mo.caution.length) b.push({ t: `${mo.names(mo.caution)}은 충이 들어와요. 계약·이사·수술·결혼처럼 날짜가 있는 일은 이 달을 피하고, 피할 수 없으면 두 번 확인하세요.`, face: 'serious', fx: 'shake' });
         b.push({ t: '여기까지가 무료 종합이에요. 명리는 운명을 정하는 학문이 아니라 "내가 어떤 계절에 서 있는지" 알려 주는 달력이에요. 달력을 아는 사람은 비 오는 날 우산을 챙기죠.', face: 'smile', fx: 'glow', visual: null });
         return b;
       },
-      ending: { lines: [{ t: '시트에 전부 정리해 뒀어요. 심층에서는 열일곱 장으로 원국 해부부터 격·용신·조후, 대운·세운·열두 달, 배우자·직업·실행 계획까지 다 풀어 드립니다. 궁금한 점은 언제든 다시 물어보세요.', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '제 시트를 펼쳐 주세요', again: '다른 캐릭터에게도 보일게요' },
+      ending: { lines: [{ t: '시트에 전부 정리해 뒀어요. 심층에서는 열일곱 장으로 원국 해부부터 격·용신·조후, 대운·세운·열두 달, 배우자·직업·실행 계획까지 다 풀어 드려요. 궁금한 점은 언제든 다시 물어보세요.', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '제 시트를 펼쳐 주세요', again: '다른 캐릭터에게도 보일게요' },
     },
 
     // ─────────────────────────── MBTI 상담사 · 검사·명식·추구 세 글자 (친절한 과외 선생님 톤) ───────────────────────────
