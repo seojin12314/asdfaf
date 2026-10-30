@@ -42,6 +42,7 @@
   // ───── 화면·단계 ─────
   function show(id) {
     SCREENS.forEach(s => { const el = $('#s-' + s); if (el) el.hidden = s !== id; });
+    document.body.dataset.screen = id;
     const idx = SCREENS.indexOf(id);
     const stepsEl = $('#steps'); if (stepsEl) stepsEl.innerHTML = STEPS[state.mode].map((t, i) => `<li class="${i === idx ? 'on' : i < idx ? 'done' : ''}">${t}</li>`).join('');
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
@@ -62,18 +63,13 @@
   function renderHome() {
     const MBTI_CARD = { id: 'mbti', name: '도윤 선생님', role: 'MBTI 사주 · 성향 상담', tagline: '검사 결과와 타고난 결이 다른 이유를 네 축으로 풀어요.', tier: 'character', palette: { accent: '#66d6c5' }, report: { price: MBTI_PRODUCT.price } };
     const ids = Object.keys(P.personas); const cards = ids.filter(id => P.personas[id].tier !== 'expert').map(id => P.personas[id]).concat([MBTI_CARD], ids.filter(id => P.personas[id].tier === 'expert').map(id => P.personas[id]));
-    $('#roster').innerHTML = cards.map(p => { const id = p.id; const expert = p.tier === 'expert'; return `
-      <button type="button" class="pcard ${expert ? 'expert' : ''}" data-id="${id}" style="--pc:${p.palette.accent}">
-        ${expert ? '<span class="ribbon">전문가</span>' : ''}
-        <div class="art-wrap">${id === 'mbti' ? `<span class="art" data-kind="full"><img src="${ART}mbti/full.png" alt="" onerror="this.closest('.art').classList.add('noart')"></span>` : artHTML(p, 'full')}</div>
-        <div class="pbody">
-          <div class="pname">${p.name}</div>
-          <div class="prole">${p.role}${p.org ? ' · ' + p.org : ''}</div>
-          <div class="ptag">${p.tagline}</div>
-          <div class="pprice">무료 3줄 · ${expert ? '종합' : '심층'} <b>${won(p.report.price)}</b>${expert ? '<br><small>정통 30 + 연인·재물·이직 60, 질문 90개 답 전부</small>' : ''}</div>
-        </div>
-      </button>`; }).join('');
-    $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { if (b.dataset.id === 'mbti') { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } renderMbtiIntro(); show('persona'); return; } state.mode = 'persona'; setPersona(b.dataset.id); if (window.SajuVN) { window.SajuVN.start(b.dataset.id); return; } renderPersonaIntro(); show('persona'); }));
+    // 2.5D 무대: 라이트 테마에선 글자용으로 더 진한 강조색을 쓴다
+    const LIGHT_ACC = { flame: '#d94a3a', sage: '#b07d10', granny: '#7b5fd1', child: '#d9507a', hunter: '#2f7fd1', mbti: '#1f9c8d', master: '#a67c14' };
+    const light = document.documentElement.dataset.theme === 'light';
+    const toGlow = hex => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${light ? .24 : .38})`; };
+    const list = cards.map(p => { const acc = light ? (LIGHT_ACC[p.id] || p.palette.accent) : p.palette.accent; const expert = p.tier === 'expert'; return { id: p.id, name: p.name, role: p.role, tagline: p.tagline, acc, glow: toGlow(acc), prem: expert, sees: expert ? ['전 영역 질문 답', '원국 근거 카드', '12달 흐름', '4주 실행표', '용어표 17개'] : null }; });
+    const pick = id => { if (id === 'mbti') { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } renderMbtiIntro(); show('persona'); return; } state.mode = 'persona'; setPersona(id); if (window.SajuVN) { window.SajuVN.start(id); return; } renderPersonaIntro(); show('persona'); };
+    if (window.SajuHomeStage) window.SajuHomeStage.render($('#roster'), list, pick);
     renderResume();
   }
 
@@ -427,6 +423,8 @@
   }
   function start() {
     stars(); renderHome(); show('home');
+    const tb = $('#btn-theme'); const syncTheme = () => { const dark = document.documentElement.dataset.theme === 'dark'; if (tb) { tb.textContent = dark ? '☀ 라이트' : '☾ 다크'; tb.classList.toggle('on', dark); } };
+    syncTheme(); if (tb) tb.addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; try { localStorage.setItem('saju.theme', next); } catch (e) { /* 저장 불가 */ } syncTheme(); if (!$('#s-home').hidden) renderHome(); });
     const pb = $('#btn-plain'); const syncPlain = () => { if (pb) { pb.textContent = PL() && PL().on ? '쉬운 말' : '전문 용어'; pb.classList.toggle('on', !!(PL() && PL().on)); } }; syncPlain();
     if (pb) pb.addEventListener('click', () => { if (!PL()) return; PL().set(!PL().on); syncPlain(); if (!$('#s-result').hidden && state.result) { const wasUnlocked = state.unlocked; renderResult(); if (wasUnlocked) renderReport(); } });
     $('#mbti-pick').innerHTML = mbtiPickHTML('mbti'); $('#goal-pick').innerHTML = mbtiPickHTML('goal');

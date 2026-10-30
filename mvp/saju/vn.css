@@ -149,3 +149,14 @@
 
 @media (max-height: 640px) { .vn-sprite { height: 230%; width: 250%; } .vn-float { max-height: 40%; } .vn-text { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .vn-sprite, .vn-bg img, .vn-halo, .vn-port, .vn-next { animation: none !important; } }
+
+
+/* 미연시 무대는 라이트 테마에서도 어두운 연출을 유지한다(배경 일러스트가 밤 장면) */
+#vn { --bg: #0b0e18; --bg-2: #121829; --bg-3: #1a2238; --line: #273150; --line-2: #34406a; --ink: #f2ecdc; --ink-2: #b8b2a4; --ink-3: #7e7a72; color-scheme: dark; }
+#vn[data-persona="flame"]  { --p-accent: #ff6f5e; --p-accent2: #8e2a22; --p-glow: rgba(255,111,94,.38); }
+#vn[data-persona="sage"]   { --p-accent: #e2b74f; --p-accent2: #6e4f12; --p-glow: rgba(226,183,79,.35); }
+#vn[data-persona="granny"] { --p-accent: #b9a3ff; --p-accent2: #4a3a8c; --p-glow: rgba(185,163,255,.35); }
+#vn[data-persona="child"]  { --p-accent: #ff9ab5; --p-accent2: #8c3a5a; --p-glow: rgba(255,154,181,.35); }
+#vn[data-persona="hunter"] { --p-accent: #5fb0ff; --p-accent2: #1f4a80; --p-glow: rgba(95,176,255,.35); }
+#vn[data-persona="master"] { --p-accent: #d8b45f; --p-accent2: #2a2f5a; --p-glow: rgba(216,180,95,.35); }
+#vn[data-persona="mbti"]   { --p-accent: #66d6c5; --p-accent2: #1f4f52; --p-glow: rgba(102,214,197,.35); }
