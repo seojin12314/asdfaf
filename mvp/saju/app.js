@@ -1,7 +1,7 @@
 /* app.js — 화면 흐름(콘티)과 렌더링. 계산 Saju, 캐릭터 SajuPersonas, MBTI SajuMBTI, 장문 풀이 SajuReport. */
 (function () {
   'use strict';
-  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport, R2 = window.SajuReport2, UI = window.SajuReportUI, CP = window.SajuCompat;
+  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport, R2 = window.SajuReport2, UI = window.SajuReportUI, CP = window.SajuCompat, QB = window.SajuQuestions;
   const $ = (sel, el) => (el || document).querySelector(sel);
   const $$ = (sel, el) => Array.from((el || document).querySelectorAll(sel));
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -9,7 +9,7 @@
   const SCREENS = ['home', 'persona', 'form', 'reading', 'result'];
   const STEPS = { persona: ['시작', '캐릭터', '정보', '리딩', '시트'], mbti: ['시작', 'MBTI 사주', '정보', '리딩', '결과'] };
   const MBTI_PRODUCT = { title: 'MBTI 사주 심층', price: 9900, chapters: ['검사·명식·추구 세 글자 맞대기: 사주가 권하는 흐름', '네 축 심층: 명식이 그렇게 기운 이유', '검사와 명식의 간격 읽기', '일간·오행·십신으로 보는 기질', '환경 vs 기질 4주 실험'] };
-  const state = { mode: 'persona', persona: null, input: null, result: null, reading: null, unlocked: false, est: null, cmp: null, report: null, compat: null };
+  const state = { mode: 'persona', persona: null, input: null, result: null, reading: null, unlocked: false, est: null, cmp: null, report: null, compat: null, parent: null, qsel: [], qall: false, qdomain: null };
   const won = n => '₩' + n.toLocaleString();
   const PL = () => window.SajuPlain; const plainT = (t, seen) => (PL() ? PL().text(t, seen) : t); const plainH = (h, seen) => (PL() ? PL().html(h, seen) : h); const plainS = g => (PL() ? PL().short(g) : g);
 
@@ -193,6 +193,7 @@
     const r = state.result; state.unlocked = false; $('#report').hidden = true; $('#teaser').hidden = false; $('#report').innerHTML = '';
     $('#pillars').innerHTML = pillarsHTML(r, false); $('#radar').innerHTML = radarSVG(r); $('#stats').innerHTML = statsHTML(r); evidence(r);
     requestAnimationFrame(() => setTimeout(() => $$('#stats .bar i').forEach(i => i.style.width = i.dataset.w + '%'), 60));
+    renderQPick();
     if (state.mode === 'mbti') return renderMbtiResult();
     const p = state.persona, rd = state.reading, cls = P.classNames[r.day.stem];
     $('#result-eyebrow').textContent = '캐릭터 시트'; $('#mbti-card').hidden = true; $('#lines-card').hidden = false; $('#btn-cross').hidden = false; $('#btn-again').textContent = '다른 캐릭터로 같은 명식 보기';
@@ -227,6 +228,33 @@
   }
 
   // ───── 5. 심층 리포트(장문) ─────
+  // ───── 질문 10개 고르기 ─────
+  function qDomain() { return state.mode === 'mbti' ? 'mbti' : (QB.PERSONA_DOMAIN[state.persona ? state.persona.id : 'master'] || 'master'); }
+  function qFacts() {
+    if (state.qfacts) return state.qfacts;
+    const r = state.result; const est = state.mode === 'mbti' || state.input.mbti ? (state.est || M.estimate(r)) : null; const cmp = est && state.input.mbti ? (state.cmp || M.compare(state.input.mbti, est)) : null; const adv = est && state.input.goal ? (state.adv || M.advise(est, state.input.mbti, state.input.goal)) : null;
+    state.qfacts = QB.facts(r, { name: state.input.name || '나', compat: compatResult(), compatPr: state.compat ? state.compat.pr : null, parent: state.parent || null, est, cmp, adv });
+    return state.qfacts;
+  }
+  function qList() { return QB.list(qDomain(), qFacts()); }
+  function renderQPick() {
+    const box = $('#qpick'); if (!box || !QB) return; const domain = qDomain(); const items = qList();
+    if (!state.qsel.length) state.qsel = QB.recommend(domain, qFacts(), 10);
+    const sel = new Set(state.qsel);
+    box.hidden = false;
+    box.innerHTML = `<div class="eyebrow">질문 고르기 · ${QB.DOMAIN_KO[domain]}</div><div class="qpick-head"><h3>궁금한 질문 10개를 고르세요</h3><span class="qcount"><b id="qcount">${sel.size}</b>/10</span></div><p class="muted">고른 질문의 답을 내 사주로 풀어 드려요. 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 10개로 채우기</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div><div class="qlist">${items.map(it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`).join('')}</div>`;
+    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
+    $$('#qpick input[data-q]').forEach(cb => cb.addEventListener('change', () => { const id = cb.dataset.q; if (cb.checked) { if (state.qsel.length >= 10) { cb.checked = false; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); return; } state.qsel.push(id); } else state.qsel = state.qsel.filter(x => x !== id); state.report = null; sync(); }));
+    $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, qFacts(), 10); state.report = null; renderQPick(); });
+    $('#btn-qclear').addEventListener('click', () => { state.qsel = []; state.report = null; renderQPick(); });
+    sync();
+  }
+  function qaBlock() {
+    if (!QB) return null; const domain = qDomain(), F = qFacts(), items = qList();
+    const order = items.filter(it => state.qsel.includes(it.id) && !it.locked); const answers = order.map(it => QB.answer(domain, it.n, F));
+    const rest = items.filter(it => !state.qsel.includes(it.id)).map(it => state.qall && !it.locked ? QB.answer(domain, it.n, F) : it);
+    return { title: `${QB.DOMAIN_KO[domain]} · 내가 고른 질문`, lead: `${state.input.name || '당신'}의 명식으로 ${answers.length}개 질문에 답해요.`, answers, rest, all: state.qall };
+  }
   function compatResult() { const c = state.compat; if (!c || !c.pr || !CP || !state.result) return null; if (!c.res) c.res = CP.analyze(state.result, c.pr, { kind: c.kind, nameA: state.input.name || '나', nameB: c.nameB || '상대' }); return c.res; }
   function compatCardHTML(cp) {
     return `<div class="eyebrow">${cp.kindKo} · ${cp.A} × ${cp.B}</div>${UI.compatVizHTML(cp.section.viz)}<p class="chead">${cp.head}</p><ul class="cfacts">${cp.facts.map(f => `<li class="t-${f.tone}">${f.text}</li>`).join('')}</ul>${UI.pairHTML(cp.avoid, cp.instead)}<p class="muted" style="margin:10px 0 0">심층 리포트에는 이 궁합이 한 장으로 들어가고, 여덟 글자 관계표가 근거로 붙어요.</p>`;
@@ -247,8 +275,9 @@
         <h3 class="rtitle">${rep.title}</h3>
         <p class="muted">${state.input.name || '당신'} · ${birthString()}</p>
       </div>
-      <div class="rwrap">${UI.fullHTML(rep, { personaFace: face, planKey: planKey() })}</div>`;
+      <div class="rwrap">${UI.fullHTML(rep, { personaFace: face, planKey: planKey(), qa: qaBlock() })}</div>`;
     UI.bind($('#report'), rep);
+    const ub = $('#btn-unlock'); if (ub) ub.addEventListener('click', () => { const rest = qList().filter(it => !state.qsel.includes(it.id) && !it.locked).length; $('#unlock-what').textContent = `남은 ${rest}문항 전체 답변`; $('#m-unlock').hidden = false; });
     $('#teaser').hidden = true; $('#report').hidden = false; state.unlocked = true;
     $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   }
@@ -280,7 +309,7 @@
 
   // ───── 흐름 연결 ─────
   function compute(input) {
-    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null;
+    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.qsel = []; state.qall = false; state.qfacts = null;
     try { state.result = S.compute(input); } catch (err) { $('#form-error').textContent = '계산에 실패했습니다: ' + err.message; $('#form-error').hidden = false; return false; }
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;
@@ -298,8 +327,9 @@
     $('#birth').addEventListener('submit', e => { e.preventDefault(); const input = readForm(); if (!input || !compute(input)) return; show('reading'); runReading(() => { show('result'); renderResult(); }); });
     $('#hourUnknown').addEventListener('change', e => { $('#time').disabled = e.target.checked; });
     $('#btn-fill-sample').addEventListener('click', fillSample);
-    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `결론 + 쉬운 설명 ${rep.L2.length}장 + 근거 ${rep.L3.length}장`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
+    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `고른 질문 ${state.qsel.length}개 답 + 결론 화면 + 근거`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
     $('#btn-pay-confirm').addEventListener('click', () => { $('#m-pay').hidden = true; renderReport(); });
+    $('#btn-unlock-confirm').addEventListener('click', () => { $('#m-unlock').hidden = true; state.qall = true; renderReport(); setTimeout(() => { const t = $('#sec-qa .qrest'); if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); }, 50); });
     $('#btn-share').addEventListener('click', () => { state.shareBg = null; if (state.mode !== 'mbti' && state.persona) { const im = new Image(); im.onload = () => { state.shareBg = im; shareCard(); }; im.onerror = () => shareCard(); im.src = `${ART}${state.persona.id}/bg_card.png`; } else shareCard(); });
     $$('[data-close]').forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.close).hidden = true; }));
     $('#btn-cross').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } if (state.input.mbti) { compute(state.input); show('reading'); runReading(() => { show('result'); renderResult(); }); } else { renderMbtiIntro(); prepForm(); show('form'); } });

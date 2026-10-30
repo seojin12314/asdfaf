@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261031a">
-<link rel="stylesheet" href="report.css?v=20261031a">
-<link rel="stylesheet" href="vn.css?v=20261031a">
+<link rel="stylesheet" href="styles.css?v=20261031b">
+<link rel="stylesheet" href="report.css?v=20261031b">
+<link rel="stylesheet" href="vn.css?v=20261031b">
 </head>
 <body>
 <!--BODY-START-->
@@ -131,6 +131,7 @@
         </div>
         <div class="card compat" id="compat-card" hidden></div>
         <div class="card" id="lines-card"><div class="eyebrow">무료 3줄 결과</div><div class="lines" id="lines"></div><p class="muted" style="margin:10px 0 0"><span class="chip dev">MVP: 템플릿 문장 · 운영: 캐릭터 프롬프트 + 구조화 명식 → LLM 생성</span></p></div>
+        <div class="card qpick" id="qpick" hidden></div>
         <div class="card teaser" id="teaser">
           <div class="eyebrow">심층 리포트</div>
           <h3 id="teaser-title"></h3>
@@ -171,6 +172,20 @@
   </div>
 </div>
 
+<div class="modal" id="m-unlock" hidden>
+  <div class="box" role="dialog" aria-modal="true">
+    <div class="eyebrow">전체 답변 열기</div>
+    <h3 id="unlock-title">남은 질문 전부 보기</h3>
+    <div class="paysheet">
+      <div class="rowv"><span>상품</span><b id="unlock-what">남은 문항 전체 답변</b></div>
+      <div class="rowv"><span>추가 금액</span><b>₩5,000</b></div>
+    </div>
+    <p class="note">MVP 콘티: 실제 결제가 일어나지 않습니다. 운영에서는 추가 결제 승인 후 즉시 열립니다.</p>
+    <button type="button" class="btn primary block" id="btn-unlock-confirm">₩5,000 결제로 가정하고 전부 열기</button>
+    <button type="button" class="btn ghost block" data-close="m-unlock">닫기</button>
+  </div>
+</div>
+
 <div class="modal" id="m-share" hidden>
   <div class="box" role="dialog" aria-modal="true">
     <div class="eyebrow">공유 카드 (1080×1350)</div>
@@ -184,18 +199,19 @@
   <div>콘티 흐름: 홈(캐릭터 선택 / MBTI 사주) → 캐릭터 소개 → 정보 → 리딩 → 캐릭터 시트 → 심층 리포트(결제, 15화면 이상) → 공유 카드</div>
   <div>계산: 만세력 결정론 엔진. 해석: 캐릭터 템플릿(운영 시 LLM). 신강신약·격·용신은 간이 판정. 참고용 콘텐츠이며 의학·법률·금융 조언이 아닙니다.</div>
 </footer>
-<script src="saju.js?v=20261031a"></script>
-<script src="personas.js?v=20261031a"></script>
-<script src="mbti.js?v=20261031a"></script>
-<script src="report.js?v=20261031a"></script>
-<script src="report-lenses.js?v=20261031a"></script>
-<script src="report2.js?v=20261031a"></script>
-<script src="compat.js?v=20261031a"></script>
-<script src="report-ui.js?v=20261031a"></script>
-<script src="plain.js?v=20261031a"></script>
-<script src="app.js?v=20261031a"></script>
-<script src="vn-scripts.js?v=20261031a"></script>
-<script src="vn.js?v=20261031a"></script>
+<script src="saju.js?v=20261031b"></script>
+<script src="personas.js?v=20261031b"></script>
+<script src="mbti.js?v=20261031b"></script>
+<script src="report.js?v=20261031b"></script>
+<script src="report-lenses.js?v=20261031b"></script>
+<script src="report2.js?v=20261031b"></script>
+<script src="compat.js?v=20261031b"></script>
+<script src="questions.js?v=20261031b"></script>
+<script src="report-ui.js?v=20261031b"></script>
+<script src="plain.js?v=20261031b"></script>
+<script src="app.js?v=20261031b"></script>
+<script src="vn-scripts.js?v=20261031b"></script>
+<script src="vn.js?v=20261031b"></script>
 <!--BODY-END-->
 </body>
 </html>

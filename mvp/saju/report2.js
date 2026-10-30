@@ -469,5 +469,6 @@
     return P;
   }
 
-  return { G, EP, DM, PERSONA, LETTER_KO, build, lint, direction, calendar, josa: j, countChars, l12Texts };
+  const TABLES = { REL, WORK_PAIR, WORK_STYLE, CAREER, CAREER_S, DECADE, YEAR, BRANCH_POS, PRESC, FILL_ACTION, WEAK_WHY, STEM_MEAN, BRANCH_MEAN, BODY_SIGNAL, SP, POS_KO, SEASON_NEED, SEASON_SENT, SEASON_WORD, C_WORK, CAREER_C, LETTER_KO, MOVE_HOW, MOVE_PLAIN, MISMATCH, EXP, AXIS_NAME, ADJ, LVV, groupLevel, level, lastSound };
+  return { G, EP, DM, PERSONA, LETTER_KO, TABLES, build, lint, direction, calendar, josa: j, countChars, l12Texts, sentences, JARGON };
 });

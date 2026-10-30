@@ -67,17 +67,25 @@
     return `<div class="l3"><div class="l3-h">왜 이렇게 나왔나요? <small>근거 · 전문용어는 여기서만</small></div>${rep.L3.map(s => `<details class="l3d" id="${s.id}"><summary>${esc(s.title)}</summary><div class="l3b">${s.html}</div></details>`).join('')}<details class="l3d" id="l3-glossary"><summary>용어집</summary><div class="l3b"><dl class="gloss">${rep.glossary.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl></div></details></div>`;
   }
   /** 결제 후 전체 */
+  function qaHTML(qa) {
+    if (!qa) return '';
+    const card = a => `<div class="qa"><div class="qq"><span class="qn">Q${String(a.n).padStart(2, '0')}</span><b>${esc(a.q.replace(/^★\s*/, ''))}</b></div><div class="qa-a">${(a.text.match(/[^.!?]+[.!?]?/g) || [a.text]).map(x => `<p>${esc(x.trim())}</p>`).join('')}</div></div>`;
+    const lockRow = x => `<div class="qlock ${x.locked ? 'need' : ''}"><span class="qn">Q${String(x.n).padStart(2, '0')}</span><span>${esc(x.q.replace(/^★\s*/, ''))}</span>${x.locked ? `<small>${esc(x.locked)}</small>` : '<small>🔒</small>'}</div>`;
+    return `<section class="l2sec qa-sec" id="sec-qa"><div class="l2head"><span class="l2num">Q</span><h4>${esc(qa.title)}</h4><span class="chip accent">${qa.answers.length}문항</span></div><p class="l2concl">${esc(qa.lead)}</p>${qa.answers.map(card).join('')}${qa.rest.length ? `<div class="qrest"><div class="qrest-h">${qa.all ? '열린 나머지 문항' : `아직 안 본 질문 ${qa.rest.length}개`}</div>${qa.all ? qa.rest.map(card).join('') : qa.rest.map(lockRow).join('') + `<button type="button" class="btn primary block" id="btn-unlock">+₩5,000으로 ${qa.rest.filter(x => !x.locked).length}문항 전부 열기</button>`}</div>` : ''}</section>`;
+  }
+  /** 결제 후 전체 */
   function fullHTML(rep, opts) {
     opts = opts || {}; const face = opts.personaFace || '';
-    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div><div class="l2">${rep.L2.map((s, i) => sectionHTML(s, i, rep, face)).join('')}${endHTML(rep, opts.planKey || 'plan')}</div><div id="l3-top"></div>${l3HTML(rep)}`;
+    const l2 = `<div class="l2">${rep.L2.map((s, i) => sectionHTML(s, i, rep, face)).join('')}${endHTML(rep, opts.planKey || 'plan')}</div>`;
+    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
   }
   /** 이벤트: 달력 탭 지침, 진입점 스크롤, 왜? 링크 → L3 펼침, 4주 체크 저장 */
   function bind(rootEl, rep) {
     const tipFor = (cellBtn) => { const i = +cellBtn.dataset.cal; const c = rep.L1.calendar[i]; const sec = rep.L2.find(s => s.viz && s.viz.type === 'calendar'); const tip = sec && sec.viz.cells[i] ? sec.viz.cells[i].tip : ''; const box = cellBtn.closest('.l1, .l2sec, .teaser-l1'); const t = box && box.querySelector('.cal-tip'); if (t) { t.hidden = false; t.textContent = `${c.label}(${c.range}) · ${GRADE_KO[c.grade]} — ${tip}`; } box && box.querySelectorAll('.cell.sel').forEach(x => x.classList.remove('sel')); cellBtn.classList.add('sel'); };
     rootEl.querySelectorAll('.cal12 .cell:not([disabled])').forEach(b => b.addEventListener('click', () => tipFor(b)));
-    rootEl.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => { const t = rootEl.querySelector('#' + a.dataset.go); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+    rootEl.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => { const t = rootEl.querySelector('#' + a.dataset.go); if (!t) return; const d = t.closest('details'); if (d) d.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     rootEl.querySelectorAll('[data-l3]').forEach(a => a.addEventListener('click', () => { const d = rootEl.querySelector('#' + a.dataset.l3); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
     rootEl.querySelectorAll('input[data-plan]').forEach(cb => { const key = 'saju-plan-' + cb.dataset.key; let saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { /* ignore */ } cb.checked = !!saved[cb.dataset.plan]; cb.addEventListener('change', () => { saved[cb.dataset.plan] = cb.checked; try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) { /* ignore */ } cb.closest('.pitem').classList.toggle('done', cb.checked); }); cb.closest('.pitem').classList.toggle('done', cb.checked); });
   }
-  root.SajuReportUI = { teaserHTML, fullHTML, identityHTML, calendarHTML, trioHTML, pairHTML, compatVizHTML, bind };
+  root.SajuReportUI = { teaserHTML, fullHTML, qaHTML, identityHTML, calendarHTML, trioHTML, pairHTML, compatVizHTML, bind };
 })(typeof self !== 'undefined' ? self : this);

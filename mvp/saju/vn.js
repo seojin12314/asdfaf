@@ -272,7 +272,7 @@
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
     const r = A.state.result;
-    A.state.compat = pr ? { pr, kind: kind || sc.compatKind || 'love', nameB: prName || (sc.ask.partner && sc.ask.partner.who) || '상대' } : null;
+    if (sc.parentMode) { A.state.parent = pr || null; A.state.compat = null; } else A.state.compat = pr ? { pr, kind: kind || sc.compatKind || 'love', nameB: prName || (sc.ask.partner && sc.ask.partner.who) || '상대' } : null;
     await summon(sc.summon); if (!st.open) return;
     const c = { name, r, p, pr, concern, kind: kind || sc.compatKind || 'love', prName: prName || (sc.ask.partner && sc.ask.partner.who) || '상대', dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
     if (sc.mbti) { c.est = M.estimate(r); c.cmp = M.compare(input.mbti, c.est); c.adv = M.advise(c.est, input.mbti, input.goal); A.state.est = c.est; A.state.cmp = c.cmp; A.state.adv = c.adv; }
