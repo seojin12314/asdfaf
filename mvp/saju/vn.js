@@ -15,7 +15,6 @@
   const sleep = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  const voice = { manifest: null, audio: null, muted: false }; try { voice.muted = localStorage.getItem('saju-voice') === 'off'; } catch (e) { /* ignore */ }
   const st = { open: false, persona: null, script: null, auto: false, typing: false, skipType: false, tapResolve: null, faces: {}, fx: null, autoTimer: null, closing: false, mood: 'neutral' };
   const el = {};
 
@@ -41,7 +40,7 @@
         </div>
         <div class="vn-top">
           <div class="vn-name" id="vn-name"><b>${esc(p.name)}</b><small>${esc(p.role)}${p.org ? ' · ' + esc(p.org) : ''}</small></div>
-          <div class="vn-ctl"><button type="button" id="vn-voice" title="목소리 켜기/끄기">${voice.muted ? '소리 꺼짐' : '소리'}</button><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
+          <div class="vn-ctl"><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
         </div>
         <div class="vn-choices" id="vn-choices" hidden></div>
         <div class="vn-box" id="vn-box">
@@ -50,14 +49,12 @@
           <div class="vn-input" id="vn-input" hidden></div>
         </div>
       </div>`;
-    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input', 'voice'].forEach(k => { el[k] = $('#vn-' + k); });
+    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
     el.root = root;
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
     el.auto.addEventListener('click', e => { e.stopPropagation(); st.auto = !st.auto; el.auto.classList.toggle('on', st.auto); if (st.auto && st.tapResolve && !st.typing) tap(); });
     el.exit.addEventListener('click', e => { e.stopPropagation(); finish('home'); });
-    el.voice.addEventListener('click', e => { e.stopPropagation(); voice.muted = !voice.muted; el.voice.textContent = voice.muted ? '소리 꺼짐' : '소리'; el.voice.classList.toggle('on', !voice.muted); if (voice.muted) stopVoice(); try { localStorage.setItem('saju-voice', voice.muted ? 'off' : 'on'); } catch (err) { /* ignore */ } });
-    el.voice.classList.toggle('on', !voice.muted);
     bindParallax();
     document.addEventListener('keydown', onKey);
   }
@@ -69,12 +66,6 @@
     el.stage.addEventListener('pointerleave', () => move(0, 0));
     if (root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
   }
-
-  // ───── 목소리(일레븐랩스로 미리 생성한 고정 대사 mp3) ─────
-  async function loadVoices() { if (voice.manifest) return; try { const r = await fetch('assets/voice/manifest.json', { cache: 'no-cache' }); voice.manifest = r.ok ? await r.json() : {}; } catch (e) { voice.manifest = {}; } }
-  function voiceFile(text) { const m = voice.manifest && st.persona && voice.manifest[st.persona.id]; return m && m[text] ? `assets/voice/${st.persona.id}/${m[text]}` : null; }
-  function stopVoice() { if (voice.audio) { try { voice.audio.pause(); } catch (e) { /* ignore */ } voice.audio = null; } }
-  function playVoice(text) { stopVoice(); const f = voiceFile(text); if (!f || voice.muted) return null; const a = new Audio(f); a.preload = 'auto'; voice.audio = a; a.play().catch(() => {}); return a; }
 
   // ───── 표정·분위기·효과 ─────
   function probe(url) { return new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = url; }); }
@@ -130,22 +121,21 @@
   }
 
   // ───── 대사·입력 ─────
-  function tap() { if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; stopVoice(); r(); } }
+  function tap() { if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; r(); } }
   function waitTap(text) {
     return new Promise(res => {
       st.tapResolve = res; el.next.classList.add('on');
       const go = () => { if (st.tapResolve === res) tap(); };
-      if (st.auto) { const a = voice.audio; if (a && !a.ended && !a.paused) { a.addEventListener('ended', () => { st.autoTimer = setTimeout(go, 500); }, { once: true }); st.autoTimer = setTimeout(go, 20000); } else st.autoTimer = setTimeout(go, 900 + Math.min(2600, (text || '').length * 38)); }
+      if (st.auto) st.autoTimer = setTimeout(go, 900 + Math.min(2600, (text || '').length * 38));
     }).then(() => { el.next.classList.remove('on'); clearTimeout(st.autoTimer); });
   }
-  function type(text, audio) {
+  function type(text) {
     return new Promise(res => {
-      const t0 = performance.now();
       el.text.innerHTML = '<span></span><i class="caret"></i>'; const span = el.text.firstChild; let i = 0, tick = 0; st.typing = true; st.skipType = false; el.port.classList.add('talking');
       const base = st.mood; const chars = Array.from(text);
       const finishT = () => { span.textContent = text; const c = el.text.querySelector('.caret'); if (c) c.remove(); el.port.classList.remove('talking'); setFace(base); st.typing = false; res(); };
       if (reduced) return finishT();
-      const step = () => { if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; let d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (audio && isFinite(audio.duration) && audio.duration > 0 && !audio.paused) { const remain = audio.duration * 1000 - (performance.now() - t0) - 120; d = Math.max(14, Math.min(120, remain / Math.max(1, chars.length - i))); } if (i < chars.length) setTimeout(step, d); else finishT(); };
+      const step = () => { if (st.skipType || !st.open) return finishT(); span.textContent = chars.slice(0, ++i).join(''); if (i % 5 === 0) setFace((tick++ % 2) ? 'talk' : base); const ch = chars[i - 1]; let d = /[.!?…]/.test(ch) ? 190 : /[,、]/.test(ch) ? 90 : 26; if (i < chars.length) setTimeout(step, d); else finishT(); };
       step();
     });
   }
@@ -153,14 +143,12 @@
     o = o || {}; if (!st.open) return;
     setMood(o.face || 'neutral'); if (o.fx) fx(o.fx); if (o.sprite) spriteAnim(o.sprite);
     el.who.textContent = st.persona.name; el.box.classList.remove('input-mode'); el.input.hidden = true;
-    const a = playVoice(text);
-    await type(plain(text, new Set()), a); if (!st.open) return; await waitTap(text);
+    await type(plain(text, new Set())); if (!st.open) return; await waitTap(text);
   }
   async function choose(prompt, options) {
     if (!st.open) return null;
     setMood('neutral'); el.box.classList.remove('input-mode'); el.input.hidden = true;
-    const a = playVoice(prompt);
-    await type(plain(prompt, new Set()), a); if (!st.open) return null;
+    await type(plain(prompt, new Set())); if (!st.open) return null;
     return new Promise(res => {
       el.choices.innerHTML = options.map((o, i) => `<button type="button" data-i="${i}">${esc(o.label)}</button>`).join(''); el.choices.hidden = false;
       el.choices.querySelectorAll('button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const o = options[+b.dataset.i]; el.choices.hidden = true; el.choices.innerHTML = ''; res(o.value); }));
@@ -169,8 +157,7 @@
   async function ask(kind, prompt, o) {
     o = o || {}; if (!st.open) return null;
     setMood('neutral'); el.box.classList.add('input-mode'); el.input.hidden = true;
-    const a = playVoice(prompt);
-    await type(plain(prompt, new Set()), a); if (!st.open) return null;
+    await type(plain(prompt, new Set())); if (!st.open) return null;
     const html = kind === 'mbti' ? `<div class="mbti-pick">${M.AXES.map(x => `<div class="seg mini"><label><input type="radio" name="vn-m_${x.id}" value="${x.left}"><span>${x.left} <small>${x.leftKo}</small></span></label><label><input type="radio" name="vn-m_${x.id}" value="${x.right}"><span>${x.right} <small>${x.rightKo}</small></span></label></div>`).join('')}</div><div class="rowb"><span class="hint">네 축을 모두 골라 주세요</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거예요')}</button></div><div class="err" id="vn-err" hidden></div>`
       : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
       : kind === 'gender' ? `<div class="seg"><label><input type="radio" name="vn-g" value="F" checked><span>여성</span></label><label><input type="radio" name="vn-g" value="M"><span>남성</span></label></div><div class="rowb"><span></span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '맞아')}</button></div>`
@@ -222,7 +209,7 @@
     el.rings.hidden = true; el.sprite.classList.remove('wake');
   }
   function finish(mode) {
-    if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer); stopVoice();
+    if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer);
     document.removeEventListener('keydown', onKey);
     const A = root.SajuApp;
     if (mode === 'sheet') { A.show('result'); A.renderResult(); } else { A.state.mode = 'persona'; A.show('home'); }
@@ -236,7 +223,7 @@
     if (st.open) finish('home');
     st.open = true; st.closing = false; st.persona = p; st.script = sc; st.auto = false;
     if (sc.mbti) { A.setMode('mbti'); } else { A.setPersona(id); A.state.mode = 'persona'; }
-    build(p); await Promise.all([preloadFaces(p), loadVoices()]);
+    build(p); await preloadFaces(p);
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--p-accent').trim() || p.palette.accent;
     st.fx = particles(el.fx, sc.particles, accent);
     await sleep(250);
