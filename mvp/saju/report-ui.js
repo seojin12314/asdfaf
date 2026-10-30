@@ -47,8 +47,12 @@
     const L = viz.letters;
     return `<div class="ax3">${L.test ? `<span><b>${esc(L.test)}</b><small>검사</small></span>` : ''}<span class="chart"><b>${esc(L.chart)}</b><small>타고난 결</small></span>${L.goal ? `<span><b>${esc(L.goal)}</b><small>추구</small></span>` : ''}${L.rec ? `<span class="rec"><b>${esc(L.rec)}</b><small>권하는 흐름</small></span>` : ''}</div><div class="axes">${viz.axes.map(a => { const w = Math.abs(a.pct - 50); const fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`; return `<div class="axis"><div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}</div><div class="track"><div class="fill" style="${fill}"></div>${a.test ? `<div class="test" style="left:${a.test === a.left ? '5%' : '95%'}">${a.test}</div>` : ''}${a.goal ? `<div class="goal" style="left:${a.goal === a.left ? '18%' : '82%'}">★</div>` : ''}</div><div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}</div></div>`; }).join('')}</div>`;
   }
+  function compatVizHTML(v) {
+    return `<div class="cviz"><div class="cscore" style="--p:${v.score}"><b>${v.score}</b><small>${esc(v.label)}</small></div><div class="cpair"><span><small>${esc(v.a.name)}</small><b>${esc(v.a.ko)}</b></span><i>×</i><span><small>${esc(v.b.name)}</small><b>${esc(v.b.ko)}</b></span></div><div class="ctags">${(v.tags.length ? v.tags : ['특별한 합·충 없음']).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cmonths">둘 다 좋은 달 <b>${esc(v.good.join('·') || '없음')}</b>${v.shaky.length ? ` · 흔들리는 달 <b>${esc(v.shaky.join('·'))}</b>` : ''}</div></div>`;
+  }
   function vizHTML(s, rep) {
     const v = s.viz; if (!v) return '';
+    if (v.type === 'compat') return compatVizHTML(v);
     if (v.type === 'bars') return barsHTML(v); if (v.type === 'timeline') return timelineHTML(v); if (v.type === 'calendar') return calendarHTML(rep, false); if (v.type === 'years') return yearsHTML(v); if (v.type === 'axes') return axesHTML(v);
     return '';
   }
@@ -75,5 +79,5 @@
     rootEl.querySelectorAll('[data-l3]').forEach(a => a.addEventListener('click', () => { const d = rootEl.querySelector('#' + a.dataset.l3); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
     rootEl.querySelectorAll('input[data-plan]').forEach(cb => { const key = 'saju-plan-' + cb.dataset.key; let saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { /* ignore */ } cb.checked = !!saved[cb.dataset.plan]; cb.addEventListener('change', () => { saved[cb.dataset.plan] = cb.checked; try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) { /* ignore */ } cb.closest('.pitem').classList.toggle('done', cb.checked); }); cb.closest('.pitem').classList.toggle('done', cb.checked); });
   }
-  root.SajuReportUI = { teaserHTML, fullHTML, identityHTML, calendarHTML, trioHTML, bind };
+  root.SajuReportUI = { teaserHTML, fullHTML, identityHTML, calendarHTML, trioHTML, pairHTML, compatVizHTML, bind };
 })(typeof self !== 'undefined' ? self : this);

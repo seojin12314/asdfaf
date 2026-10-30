@@ -1,7 +1,7 @@
 /* app.js — 화면 흐름(콘티)과 렌더링. 계산 Saju, 캐릭터 SajuPersonas, MBTI SajuMBTI, 장문 풀이 SajuReport. */
 (function () {
   'use strict';
-  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport, R2 = window.SajuReport2, UI = window.SajuReportUI;
+  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport, R2 = window.SajuReport2, UI = window.SajuReportUI, CP = window.SajuCompat;
   const $ = (sel, el) => (el || document).querySelector(sel);
   const $$ = (sel, el) => Array.from((el || document).querySelectorAll(sel));
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -9,7 +9,7 @@
   const SCREENS = ['home', 'persona', 'form', 'reading', 'result'];
   const STEPS = { persona: ['시작', '캐릭터', '정보', '리딩', '시트'], mbti: ['시작', 'MBTI 사주', '정보', '리딩', '결과'] };
   const MBTI_PRODUCT = { title: 'MBTI 사주 심층', price: 9900, chapters: ['검사·명식·추구 세 글자 맞대기: 사주가 권하는 흐름', '네 축 심층: 명식이 그렇게 기운 이유', '검사와 명식의 간격 읽기', '일간·오행·십신으로 보는 기질', '환경 vs 기질 4주 실험'] };
-  const state = { mode: 'persona', persona: null, input: null, result: null, reading: null, unlocked: false, est: null, cmp: null, report: null };
+  const state = { mode: 'persona', persona: null, input: null, result: null, reading: null, unlocked: false, est: null, cmp: null, report: null, compat: null };
   const won = n => '₩' + n.toLocaleString();
   const PL = () => window.SajuPlain; const plainT = (t, seen) => (PL() ? PL().text(t, seen) : t); const plainH = (h, seen) => (PL() ? PL().html(h, seen) : h); const plainS = g => (PL() ? PL().short(g) : g);
 
@@ -198,6 +198,7 @@
     $('#result-eyebrow').textContent = '캐릭터 시트'; $('#mbti-card').hidden = true; $('#lines-card').hidden = false; $('#btn-cross').hidden = false; $('#btn-again').textContent = '다른 캐릭터로 같은 명식 보기';
     $('#sheet-head').innerHTML = `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()"><div class="portrait" id="portrait">${artHTML(p, 'face')}</div><div><div class="who">${p.name} · ${state.input.name || '당신'}의 명식</div><div class="cls">${cls}</div><div class="sub">${plainT(`${r.day.stemKo}${r.dayMaster.elementKo}(${r.day.stem}) 일간`, new Set())} · ${r.dayMaster.polarity}${S.ELEM_KO[r.dayMaster.element]} · ${P.elementWords[r.dayMaster.element]}</div></div><div class="bubble" id="bubble"></div>`;
     const lines = $('#lines'); lines.innerHTML = '';
+    const cc = $('#compat-card'); const cp = compatResult(); if (cp) { cc.hidden = false; cc.innerHTML = compatCardHTML(cp); } else cc.hidden = true;
     const title = P.fill(p.report.title, { seunNext: r.seun[1].year });
     const rep = state.report || (state.report = buildReport());
     $('#teaser-title').textContent = title; $('#teaser-meta').textContent = `${p.name}의 ${p.tier === 'expert' ? '전문가 종합' : '고민 특화'} 풀이 · 결론 1화면 + 쉬운 설명 ${rep.L2.length}장 + 근거`;
@@ -226,10 +227,14 @@
   }
 
   // ───── 5. 심층 리포트(장문) ─────
+  function compatResult() { const c = state.compat; if (!c || !c.pr || !CP || !state.result) return null; if (!c.res) c.res = CP.analyze(state.result, c.pr, { kind: c.kind, nameA: state.input.name || '나', nameB: c.nameB || '상대' }); return c.res; }
+  function compatCardHTML(cp) {
+    return `<div class="eyebrow">${cp.kindKo} · ${cp.A} × ${cp.B}</div>${UI.compatVizHTML(cp.section.viz)}<p class="chead">${cp.head}</p><ul class="cfacts">${cp.facts.map(f => `<li class="t-${f.tone}">${f.text}</li>`).join('')}</ul>${UI.pairHTML(cp.avoid, cp.instead)}<p class="muted" style="margin:10px 0 0">심층 리포트에는 이 궁합이 한 장으로 들어가고, 여덟 글자 관계표가 근거로 붙어요.</p>`;
+  }
   function buildReport() {
     const r = state.result, name = state.input.name || '당신';
     if (state.mode === 'mbti') { const est = state.est || M.estimate(r); const cmp = state.cmp || M.compare(state.input.mbti, est); const adv = state.adv || M.advise(est, state.input.mbti, state.input.goal); return R2.build(r, { kind: 'mbti', name, est, cmp, adv, title: MBTI_PRODUCT.title }); }
-    const p = state.persona; return R2.build(r, { persona: p, name, title: P.fill(p.report.title, { seunNext: r.seun[1].year }) });
+    const p = state.persona; return R2.build(r, { persona: p, name, title: P.fill(p.report.title, { seunNext: r.seun[1].year }), compat: compatResult() });
   }
   function planKey() { const i = state.input; return `${i.year}${i.month}${i.day}-${state.mode === 'mbti' ? 'mbti' : state.persona.id}`; }
   function renderReport() {
@@ -275,7 +280,7 @@
 
   // ───── 흐름 연결 ─────
   function compute(input) {
-    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null;
+    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null;
     try { state.result = S.compute(input); } catch (err) { $('#form-error').textContent = '계산에 실패했습니다: ' + err.message; $('#form-error').hidden = false; return false; }
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;
@@ -286,6 +291,7 @@
     if (pb) pb.addEventListener('click', () => { if (!PL()) return; PL().set(!PL().on); syncPlain(); if (!$('#s-result').hidden && state.result) { const wasUnlocked = state.unlocked; renderResult(); if (wasUnlocked) renderReport(); } });
     $('#mbti-pick').innerHTML = mbtiPickHTML('mbti'); $('#goal-pick').innerHTML = mbtiPickHTML('goal');
     $$('.mbti-pick .mbti-clear').forEach(b => b.addEventListener('click', () => setMBTI($('#birth'), b.dataset.prefix, null)));
+    $('#btn-pair-product').addEventListener('click', () => { state.mode = 'persona'; setPersona('sage'); if (window.SajuVN) { window.SajuVN.start('sage', { concern: 'pair' }); return; } renderPersonaIntro(); show('persona'); });
     $('#btn-mbti-product').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } renderMbtiIntro(); show('persona'); });
     $('#btn-sample').addEventListener('click', () => { state.mode = 'persona'; setPersona('master'); prepForm(); fillSample(); show('form'); });
     $('#birth').addEventListener('submit', e => { e.preventDefault(); const input = readForm(); if (!input || !compute(input)) return; show('reading'); runReading(() => { show('result'); renderResult(); }); });

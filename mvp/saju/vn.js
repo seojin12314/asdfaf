@@ -217,8 +217,8 @@
     setTimeout(() => { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.hidden = true; el.root.innerHTML = ''; st.closing = false; }, reduced ? 0 : 450);
   }
 
-  async function run(id) {
-    const A = root.SajuApp, SC = root.SajuVNScripts; const sc = SC && SC.SCRIPTS[id]; const p = P.personas[id] || (sc && sc.persona);
+  async function run(id, opts) {
+    opts = opts || {}; const A = root.SajuApp, SC = root.SajuVNScripts; const sc = SC && SC.SCRIPTS[id]; const p = P.personas[id] || (sc && sc.persona);
     if (!p || !sc || !A) return false;
     if (st.open) finish('home');
     st.open = true; st.closing = false; st.persona = p; st.script = sc; st.auto = false;
@@ -229,9 +229,12 @@
     await sleep(250);
     await enter(sc.entrance); if (!st.open) return;
     for (const l of sc.intro) { await say(l.t, l); if (!st.open) return; }
-    const concern = await choose(sc.concern.prompt, sc.concern.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return;
+    let concern = opts.concern && sc.concern.options.some(o => o.value === opts.concern) ? opts.concern : null;
+    if (!concern) { concern = await choose(sc.concern.prompt, sc.concern.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; }
     const opt = sc.concern.options.find(o => o.value === concern);
     for (const l of opt.reply) { await say(l.t, l); if (!st.open) return; }
+    let kind = null, prName = '';
+    if (sc.ask.partner && sc.ask.partner.kinds && (sc.partnerFor || []).includes(concern)) { kind = await choose(sc.ask.partner.kinds.prompt, sc.ask.partner.kinds.options); if (!st.open) return; }
 
     // 정보 받기(대화형)
     let input = null; const prev = A.state.input;
@@ -257,6 +260,7 @@
     if (sc.ask.partner && (sc.partnerFor || []).includes(concern)) {
       const y = await choose(sc.ask.partner.prompt, [{ label: sc.ask.partner.yes, value: 'y' }, { label: sc.ask.partner.no, value: 'n' }]); if (!st.open) return;
       if (y === 'y') {
+        if (sc.ask.partner.name) { prName = (await ask('text', sc.ask.partner.name, { optional: true, placeholder: '이름 또는 호칭(선택)' })) || ''; if (!st.open) return; }
         const g = await ask('gender', sc.ask.partner.gender); if (!st.open) return;
         const d = await ask('date', sc.ask.partner.date); if (!st.open) return;
         try { pr = S.compute({ year: d.year, month: d.month, day: d.day, hour: 12, minute: 0, hourUnknown: true, gender: g, solarCorrectionMin: 0 }); } catch (e) { pr = null; }
@@ -268,8 +272,9 @@
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
     const r = A.state.result;
+    A.state.compat = pr ? { pr, kind: kind || sc.compatKind || 'love', nameB: prName || (sc.ask.partner && sc.ask.partner.who) || '상대' } : null;
     await summon(sc.summon); if (!st.open) return;
-    const c = { name, r, p, pr, concern, dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
+    const c = { name, r, p, pr, concern, kind: kind || sc.compatKind || 'love', prName: prName || (sc.ask.partner && sc.ask.partner.who) || '상대', dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
     if (sc.mbti) { c.est = M.estimate(r); c.cmp = M.compare(input.mbti, c.est); c.adv = M.advise(c.est, input.mbti, input.goal); A.state.est = c.est; A.state.cmp = c.cmp; A.state.adv = c.adv; }
     const beats = sc.beats(c);
     for (const b of beats) { if ('visual' in b) visual(b.visual, c); await say(P.fill(b.t, c), b); if (!st.open) return; }
@@ -280,5 +285,5 @@
     return true;
   }
 
-  root.SajuVN = { start: id => { run(id).catch(err => { console.error('[vn]', err); finish('home'); }); }, close: () => finish('home'), get open() { return st.open; } };
+  root.SajuVN = { start: (id, opts) => { run(id, opts).catch(err => { console.error('[vn]', err); finish('home'); }); }, close: () => finish('home'), get open() { return st.open; } };
 })(typeof self !== 'undefined' ? self : this);

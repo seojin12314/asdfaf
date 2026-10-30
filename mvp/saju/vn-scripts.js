@@ -49,6 +49,46 @@
     return { lines: out, score, visual: { type: 'pair', title: '두 일주를 맞붙이면', a: { big: me.day.stem + me.day.branch, label: '나' }, b: { big: pr.day.stem + pr.day.branch, label: '그 사람' }, sub: [hap ? '천간합' : '', clash ? '일지충' : '', sameB ? '같은 일지' : '', prTop === myWeak ? '오행 보완' : ''].filter(Boolean).join(' · ') || '특별한 합·충 없음' } };
   }
   const glyph = (big, title, sub, sm) => ({ type: 'glyph', big, title, sub, sm });
+  // ───── 궁합(두 명식 맞대기) 대사: 엔진(compat.js)의 사실을 캐릭터 말투로 ─────
+  const VOICE = {
+    flame: {
+      stem: { hap: '둘의 일간부터 천간합이야. 처음부터 끌렸을 거야. 끌림은 확실해.', clash: '일간끼리 정면으로 부딪혀. 좋아하는데도 말이 자꾸 세게 나가는 조합이야.', same: '둘 다 같은 기운. 거울 같은 사이야. 편한데 단점도 똑같아.', aGen: '네가 그 사람을 키워 주는 쪽이야. 주는 쪽이 늘 너였지?', bGen: '그 사람이 널 키워 주는 쪽이야. 받는 데 익숙하지 않은 네가 밀어낸 건 아니고?', aOver: '네가 그 사람을 누르는 모양. 주도권은 너한테 있어.', bOver: '그 사람이 널 누르는 모양이야. 네가 작아지는 느낌, 기분 탓 아니야.' },
+      branch: { hap: '{posA}랑 {posB} 글자가 끌림으로 묶여 있어. 붙는 건 금방이야.', tri: '{posA}랑 {posB}가 같은 편으로 모여. 뜻이 잘 맞아.', clash: '{posA}랑 {posB} 글자가 부딪혀. 큰일이 아니라 사소한 데서 싸우는 자리야.', hyeong: '{posA}랑 {posB}에 마찰이 있어. 서로 깎아 가며 맞추는 사이.', hae: '{posA}랑 {posB}가 어긋나. 말 안 한 게 오해로 쌓이는 자리야.', none: '여덟 글자 사이에 큰 끌림도 부딪힘도 없어. 잔잔해. 불은 네가 붙여야 해.' },
+      supply: { both: '서로 비어 있는 기운을 채워 줘. 이건 보완이야. 흔치 않아.', aOnly: '그 사람이 네 빈자리를 채워 줘. 네가 못 하는 걸 그 사람이 해.', bOnly: '네가 그 사람의 빈자리를 채워 주는 쪽이야. 고마운 줄 아는지는 봐야지.', none: '둘 다 같은 데가 비어 있어. 서로 못 채워 주니까 밖에서 채워야 해.' },
+      balance: { strongStrong: '둘 다 힘이 세. 주도권 싸움이 나는 조합이야.', weakWeak: '둘 다 짐이 많은 편. 서로 기대다 같이 지쳐.', comp: '한쪽이 세고 한쪽이 받쳐 줘. 균형은 좋아.', mid: '한쪽이 중간이라 흐름 따라 맞춰져. 나쁘지 않아.' },
+      role: { mutual: '서로가 서로의 짝 기운이야. 인연 모양이 분명해.', aSees: '그 사람은 네 짝 기운이야. 네 마음이 먼저 움직이는 쪽.', bSees: '넌 그 사람의 짝 기운이야. 그 사람이 먼저 다가와.', none: '짝 기운으로 묶인 사이는 아니야. 친구처럼 시작하는 인연이지.' },
+      months: '{nextY}년 둘 다 좋은 달은 {good}. {shaky} 고백도 결정도 좋은 달에 해.', shakyOn: '흔들리는 달은 {shaky}.', shakyOff: '흔들리는 달은 없어.',
+      verdict: { 4: '맞붙여 보니 모양이 좋아. 꼬인 건 궁합이 아니라 타이밍이었어.', 3: '나쁘지 않아. 둘 중 하나가 먼저 숙이면 돌아가는 모양이야.', 2: '규칙이 필요한 사이야. 규칙만 있으면 괜찮아.', 1: '솔직히 말할게. 쉬운 조합은 아니야. 그래도 모양을 알면 피할 수 있어.' },
+    },
+    sage: {
+      stem: { hap: '둘의 일간이 천간합이로구나. 처음부터 손이 맞는 사이다.', clash: '일간끼리 정면으로 부딪친다. 뜻은 같아도 말이 먼저 깨지는 조합이다.', same: '둘 다 같은 기운이라 거울 같다. 편하되 같은 구멍이 있다.', aGen: '네가 상대를 키우는 쪽이다. 주는 쪽이 늘 너였을 게다.', bGen: '상대가 너를 키우는 쪽이다. 받을 복이 있구나.', aOver: '네가 상대를 누르는 모양. 판은 네가 쥔다.', bOver: '상대가 너를 누르는 모양이다. 네 몫이 작아지기 쉬우니 먼저 정해 두거라.' },
+      branch: { hap: '{posA}와 {posB} 글자가 끌림으로 묶였다. 손발이 빨리 맞는다.', tri: '{posA}와 {posB}가 같은 편으로 모인다. 뜻이 맞는 자리다.', clash: '{posA}와 {posB} 글자가 부딪친다. 큰일보다 잔돈에서 싸우는 자리니라.', hyeong: '{posA}와 {posB}에 마찰이 있다. 서로 깎이며 맞춰 가는 사이다.', hae: '{posA}와 {posB}가 어긋난다. 말하지 않은 것이 오해로 쌓인다.', none: '여덟 글자 사이에 큰 합도 충도 없다. 잔잔하니 규칙으로 엮어라.' },
+      supply: { both: '서로의 빈 기운을 채워 준다. 보기 드문 보완이다.', aOnly: '상대가 네 빈자리를 채워 준다. 네가 못 하는 것을 상대가 한다.', bOnly: '네가 상대의 빈자리를 채우는 쪽이다. 그 값을 몫에 넣어라.', none: '둘 다 같은 데가 비었다. 셋째 사람이 필요한 모양이다.' },
+      balance: { strongStrong: '둘 다 힘이 세다. 대표가 둘이면 배가 산으로 간다.', weakWeak: '둘 다 짐이 많은 편이라 결정이 늦어진다.', comp: '한쪽이 세고 한쪽이 받친다. 역할만 정하면 좋은 균형이다.', mid: '한쪽이 중간이라 흐름 따라 맞춰진다.' },
+      role: { 비겁: '동등한 공동대표 구도다. 몫을 문서로 나누지 않으면 반드시 흔들린다.', 식상: '네가 만들고 상대가 배우며 받는 구도다. 기여를 기록해 두어라.', 인성: '상대가 너를 받쳐 주는 후원자 구도다. 네가 결과를 내야 오래간다.', 재성: '네가 판을 쥐고 상대가 실행한다. 상대의 몫을 먼저 정하거라.', 관성: '상대가 기준을 쥐고 네가 실행한다. 네 재량을 미리 정해 두어라.' },
+      roleFriend: { 비겁: '같은 눈높이의 벗이다. 경쟁이 붙거든 돈 거래만 피하거라.', 식상: '네가 베풀고 상대가 받는 벗이다. 한쪽만 주면 서운함이 쌓인다.', 인성: '상대가 챙기고 네가 받는 벗이다. 돌려주는 날을 정해 두거라.', 재성: '네가 이끌고 상대가 따른다. 부탁이 한쪽으로 몰린다.', 관성: '상대가 이끌고 네가 따른다. 싫은 건 싫다 해야 오래간다.' },
+      months: '{nextY}년 둘 다 좋은 달은 {good}. {shaky} 서명과 송금은 좋은 달에 하거라.', shakyOn: '흔들리는 달은 {shaky}.', shakyOff: '흔들리는 달은 없다.',
+      verdict: { 4: '맞대어 보니 역할이 맞물린다. 문서 한 장이면 오래간다.', 3: '문서만 있으면 굴러가는 사이다.', 2: '권한부터 나누어야 하는 사이다. 그 뒤에 돈을 섞어라.', 1: '솔직히 말하마. 돈을 섞기엔 조심스러운 사이다. 벗으로는 괜찮다.' },
+    },
+  };
+  const POSV = { 년주: '집안 자리', 월주: '일터 자리', 일주: '가장 가까운 자리', 시주: '말년 자리' };
+  function compatBeats(voiceId, cp) {
+    const V = VOICE[voiceId] || VOICE.sage; const b = []; const band = cp.score >= 75 ? 4 : cp.score >= 55 ? 3 : cp.score >= 40 ? 2 : 1;
+    const tone = key => (cp.facts.find(f => f.key === key) || {}).tone;
+    const face = t => t === 'good' ? 'smile' : t === 'bad' ? 'serious' : 'neutral';
+    b.push({ t: V.stem[cp.stem], face: face(tone('stem')), fx: cp.stem === 'hap' ? 'glow' : cp.stem === 'clash' ? 'shake' : null });
+    const br = cp.main ? V.branch[cp.main.rel].replace('{posA}', POSV[cp.main.pa]).replace('{posB}', POSV[cp.main.pb]) : V.branch.none;
+    b.push({ t: br, face: face(tone('branch')), fx: cp.main && cp.main.rel === 'clash' ? 'shake' : null });
+    b.push({ t: V.supply[cp.supply], face: face(tone('supply')), fx: cp.supply === 'both' ? 'glow' : cp.supply === 'none' ? 'dim' : null });
+    b.push({ t: V.balance[cp.balance], face: face(tone('balance')) });
+    const roleT = cp.kind === 'love' ? V.role[cp.role] : cp.kind === 'friend' && V.roleFriend ? V.roleFriend[cp.tgAB] : V.role[cp.tgAB];
+    if (roleT) b.push({ t: roleT, face: face(tone('role')) });
+    const shaky = cp.shaky.length ? V.shakyOn.replace('{shaky}', cp.shaky.slice(0, 2).map(x => x.label).join('·')) : V.shakyOff;
+    b.push({ t: V.months.replace('{nextY}', cp.nextY).replace('{good}', cp.good.slice(0, 2).join('·') || '뚜렷하지 않아').replace('{shaky}', shaky), face: 'neutral', visual: { type: 'pair', title: `${cp.kindKo} · ${cp.score}점 ${cp.label}`, a: { big: cp.A === '나' ? cp.section.viz.a.hanja : cp.section.viz.a.hanja, label: cp.A }, b: { big: cp.section.viz.b.hanja, label: cp.B }, sub: (cp.tags.join(' · ') || '특별한 합·충 없음') } });
+    b.push({ t: V.verdict[band], face: band >= 3 ? 'smile' : 'serious', fx: band >= 3 ? 'glow' : 'dim' });
+    return b;
+  }
+
 
   // ───── 캐릭터 대본 ─────
   const SCRIPTS = {
@@ -66,14 +106,15 @@
           { value: 'reunion', label: '그 사람이랑 다시 될까', reply: [{ t: '재회라… 실은 네가 제일 먼저 답을 알고 있어. 그래도 명식은 거짓말을 안 하니까, 같이 보자.', face: 'serious' }] },
           { value: 'new', label: '새 인연은 언제 와', reply: [{ t: '좋아. 기다리는 사람한테 인연이 오는 달은 정해져 있어. 네 명식에서 그 달을 찾아 줄게.', face: 'smile', fx: 'glow' }] },
           { value: 'pattern', label: '왜 매번 같은 데서 꼬일까', reply: [{ t: '그 질문을 하는 사람은 이미 반은 왔어. 패턴은 운이 아니라 모양이야. 모양은 명식에 있어.', face: 'neutral' }] },
+          { value: 'match', label: '지금 그 사람과 맞을까', reply: [{ t: '궁합이구나. 둘의 여덟 글자를 전부 맞붙여야 해. 끌림, 부딪힘, 서로 채워 주는지, 누가 주도하는지까지.', face: 'smile', fx: 'glow' }] },
         ],
       },
-      partnerFor: ['reunion'],
+      partnerFor: ['reunion', 'match'], compatKind: 'love',
       ask: {
         lead: [{ t: '그럼 네 걸 보여 줘. 태어난 날과 시각. 그게 네 인연의 지도야.', face: 'neutral' }],
         name: '먼저, 널 뭐라고 부를까?', gender: '성별은? 배우자성이 어느 글자인지가 여기서 갈려.', date: '태어난 날. 양력으로.', time: '태어난 시각은? 모르면 모른다고 해. 시주 없이도 볼 수 있어.',
         reuse: { prompt: '아까 펼친 명식이 있네. 그대로 볼까, 다시 받을까?', keep: '그대로 봐 줘', fresh: '다시 입력할게' },
-        partner: { prompt: '그 사람 생년월일, 알아? 둘을 맞붙여야 궁합이 보여.', yes: '알아', no: '몰라', gender: '그 사람 성별은?', date: '그 사람이 태어난 날. 시간은 몰라도 돼.', got: '…받았어. 두 명식을 겹쳐 볼게.', skip: '괜찮아. 네 명식만으로도 그 사람이 어떤 자리에 있는지는 보여.' },
+        partner: { prompt: '그 사람 생년월일, 알아? 둘을 맞붙여야 궁합이 보여.', yes: '알아', no: '몰라', who: '그 사람', name: '그 사람을 뭐라고 부를까? 안 적어도 돼.', gender: '그 사람 성별은?', date: '그 사람이 태어난 날. 시간은 몰라도 돼.', got: '…받았어. 두 명식을 겹쳐 볼게.', skip: '괜찮아. 네 명식만으로도 그 사람이 어떤 자리에 있는지는 보여.' },
         done: [{ t: '{name}. 받았어. 눈 감지 마. 지금부터 네 명식이 타오를 거야.', face: 'smile', fx: 'burst' }],
       },
       summon: [{ t: '년, 월, 일, 시… 네 글자가 불 속에서 떠오른다.' }],
@@ -90,7 +131,7 @@
           { t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } },
           { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', fx: 'dim', sprite: 'nod' },
         ];
-        if (c.pr) { const cp = compat(r, c.pr); b.push({ t: '이제 그 사람. 둘을 맞붙여 볼게.', face: 'neutral', fx: 'flash', visual: cp.visual }); cp.lines.forEach(l => b.push(l)); }
+        if (c.pr && root.SajuCompat) { const cp = root.SajuCompat.analyze(r, c.pr, { kind: 'love', nameA: c.name, nameB: c.prName || '그 사람' }); b.push({ t: '이제 그 사람. 둘의 여덟 글자를 전부 맞붙여 볼게.', face: 'neutral', fx: 'flash', visual: { type: 'pair', title: '두 일주를 맞붙이면', a: { big: r.day.hanja, label: c.name }, b: { big: c.pr.day.hanja, label: cp.B }, sub: cp.tags.join(' · ') || '특별한 합·충 없음' } }); compatBeats('flame', cp).forEach(l => b.push(l)); }
         b.push({ t: `${mo.nextY}년, 인연이 움직이는 달은 ${mo.names(mo.focus)}. ${c.concern === 'new' ? '이 달에 만난 사람은 가볍게 보지 마.' : c.concern === 'reunion' ? '그 사람이 움직인다면 이 달이야. 네가 먼저 연락하는 건 그다음 얘기고.' : '패턴을 끊고 싶으면 이 달에 시작하는 관계부터 다르게 해 봐.'}`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 배우자성이 들어오는 달`) });
         if (mo.caution.length) b.push({ t: `반대로 ${mo.names(mo.caution)}엔 고백도 결정도 하지 마. 충이 들어오는 달이야. 그 달에 끝난 관계는 네 탓이 아니었어.`, face: 'serious', fx: 'shake' });
         b.push({ t: '여기까지가 무료야. 네 연애가 꼬이는 자리는 운이 아니라 모양이야. 그리고 모양은, 바꿀 수 있어.', face: 'smile', fx: 'glow', visual: null });
@@ -113,12 +154,15 @@
           { value: 'business', label: '사업을 해도 될까요', reply: [{ t: '사업이라… 벌 재주와 지킬 재주는 다른 것이니라. 네 명에 둘 중 무엇이 있는지부터 보자.', face: 'neutral' }] },
           { value: 'invest', label: '투자가 자꾸 어긋나요', reply: [{ t: '허허, 남 따라 들어간 자리에서 다친 게로구나. 네 돈이 어디서 움직이고 어디서 멈추는지 명이 말해 줄 것이다.', face: 'serious' }] },
           { value: 'save', label: '버는데 왜 안 모일까요', reply: [{ t: '그것이 가장 흔한 병이다. 들어오는 문은 있는데 나가는 구멍이 더 크지. 구멍은 늘 같은 자리에 있느니라.', face: 'smile' }] },
+          { value: 'pair', label: '동업·지인 궁합을 보고 싶어요', reply: [{ t: '허허, 돈을 섞기 전에 명식부터 맞대 보겠다니 영리하구나. 둘의 여덟 글자를 전부 맞대어 끌림과 부딪힘, 누가 판을 쥐는지 보마.', face: 'smile', fx: 'glow' }] },
         ],
       },
+      partnerFor: ['pair'], compatKind: 'biz',
       ask: {
         lead: [{ t: '그럼 네 명식을 펼쳐야겠다. 태어난 날과 시각을 말해 보거라.', face: 'neutral' }],
         name: '이름이 무엇이냐? 부르기 편한 대로.', gender: '남자냐, 여자냐? 대운이 어느 쪽으로 흐르는지가 여기서 갈린다.', date: '태어난 날은? 양력으로 말하거라.', time: '태어난 시각은 아느냐? 모르면 모른다 해도 된다. 시주 없이도 재물 그릇은 보인다.',
         reuse: { prompt: '허허, 이미 펼친 명식이 있구나. 그대로 볼까, 다시 받을까?', keep: '그대로 봐 주세요', fresh: '다시 입력할게요' },
+        partner: { kinds: { prompt: '그 사람은 어떤 사이냐?', options: [{ label: '동업·사업 파트너', value: 'biz' }, { label: '친구·지인', value: 'friend' }] }, prompt: '상대의 생년월일을 아느냐? 둘을 맞대야 보이는 법이다.', yes: '알아요', no: '몰라요', who: '상대', name: '상대를 뭐라 부를까? 안 적어도 된다.', gender: '상대는 남자냐, 여자냐?', date: '상대가 태어난 날은? 시간은 몰라도 된다.', got: '받았다. 두 명식을 맞대어 보마.', skip: '그러면 네 명식만 보자. 상대 것은 알게 되거든 다시 오너라.' },
         done: [{ t: '{name}이라… 받았다. 엽전을 던져 보마. 네 글자가 떨어지는 자리를 보거라.', face: 'smile', fx: 'burst' }],
       },
       summon: [{ t: '쩔렁… 년주, 월주, 일주, 시주. 네 기둥이 안개 위로 선다.' }],
@@ -138,6 +182,7 @@
         if (cur) b.push({ t: `지금 네 대운은 ${cur.stem}${cur.branch}, ${cur.tenGod.group} 운이다. ${P.luckByGroup[cur.tenGod.group]} 큰돈은 대운이 가져오는 법이니, 이 10년의 성격을 알고 움직여라.`, face: cur.tenGod.group === '재성' || cur.tenGod.group === '식상' ? 'smile' : 'neutral', fx: 'flash', visual: glyph(cur.stem + cur.branch, `현재 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세`) });
         b.push({ t: `${mo.nextY}년에 재성이 들어오는 달은 ${mo.names(mo.focus)}. ${c.concern === 'business' ? '시작과 계약은 이 달에 밀어라.' : c.concern === 'invest' ? '들어갈 거면 이 달에 들어가고, 모르는 것엔 그래도 손대지 마라.' : '수입을 늘릴 궁리는 이 달에 하거라.'}`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 재성이 들어오는 달`) });
         if (mo.caution.length) b.push({ t: `${mo.names(mo.caution)}은 충이 드는 달이다. 큰 지출, 보증, 동업 서명은 피하고, 피할 수 없으면 계약서를 두 번 읽어라.`, face: 'serious', fx: 'shake' });
+        if (c.pr && root.SajuCompat) { const cp = root.SajuCompat.analyze(r, c.pr, { kind: c.kind === 'friend' ? 'friend' : 'biz', nameA: c.name, nameB: c.prName || '상대' }); b.push({ t: `이제 ${cp.B}. 두 명식을 맞대어 보자.`, face: 'neutral', fx: 'flash', visual: { type: 'pair', title: `${cp.kindKo}`, a: { big: r.day.hanja, label: c.name }, b: { big: c.pr.day.hanja, label: cp.B }, sub: cp.tags.join(' · ') || '특별한 합·충 없음' } }); compatBeats('sage', cp).forEach(l => b.push(l)); }
         b.push({ t: '허허, 여기까지가 무료다. 새는 구멍은 보통 하나다. 그 하나를 막으면 나머지는 저절로 고이느니라.', face: 'smile', fx: 'glow', visual: null });
         return b;
       },

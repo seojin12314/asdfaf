@@ -10,9 +10,9 @@
  *  - lint(rep)가 합격 기준 전부를 검사한다. tools/report_lint.cjs가 수백 명식에 돌린다.
  */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./saju.js'), require('./report.js'), require('./mbti.js'));
-  else root.SajuReport2 = factory(root.Saju, root.SajuReport, root.SajuMBTI);
-})(typeof self !== 'undefined' ? self : this, function (S, R, M) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./saju.js'), require('./report.js'), require('./mbti.js'), require('./report-lenses.js'));
+  else root.SajuReport2 = factory(root.Saju, root.SajuReport, root.SajuMBTI, root.SajuLenses);
+})(typeof self !== 'undefined' ? self : this, function (S, R, M, LZS) {
   'use strict';
 
   // ───── 조사 ─────
@@ -201,12 +201,12 @@
 
   // ───── 캐릭터 색깔(한마디 · 제목 패턴 · 초점) ─────
   const PERSONA = {
-    flame: { focus: 'rel', avoidTitle: '올해 피해야 할 3가지', memo: { who: '넌 사랑할 때 이 모양 그대로야. 그걸 먼저 알아.', power: '연애에서 새는 자리가 여기야. 외워.', decade: '지금 10년의 인연 운은 이 색이야.', year: '올해 네 연애는 이 흐름 위에 있어.', months: '고백도 이별도 달을 골라서 해.', rel: '내 전문이야. 여기만은 밑줄 그어.', work: '일 얘긴 짧게. 근데 연애랑 같은 패턴이야.' } },
-    sage: { focus: 'power', avoidTitle: '당신 사주가 손해 보는 자리 3곳', memo: { who: '그릇을 알아야 담을 돈의 양이 보이느니라.', power: '돈이 새는 구멍은 늘 같은 자리에 있다. 여기다.', decade: '이 10년은 벌 때냐 지킬 때냐, 그것만 보거라.', year: '올해는 들어오는 길과 나가는 길이 이렇다.', months: '큰 거래는 진한 달에, 붉은 달엔 지갑을 닫아라.', rel: '돈과 사람은 늘 같이 움직이는 법이지.', work: '벌 재주와 지킬 재주는 다른 것이니라.' } },
-    granny: { focus: 'year', avoidTitle: '2027년 절대 하면 안 되는 시기', memo: { who: '넌 원래 이런 애야. 그러니 네 탓 말아.', power: '힘이 센지 약한지, 그게 올해 버티는 법을 정한단다.', decade: '이 10년은 계절로 치면 이렇단다.', year: '올해 힘들었던 건 네 탓이 아니라 계절 탓이야.', months: '할머니는 이 달력만 보고 산다. 너도 붙여 둬.', rel: '식구 일은 여기 다 있어. 천천히 봐.', work: '일은 밥벌이지. 몸 상하면서 하진 말아.' } },
-    child: { focus: 'who', avoidTitle: '우리 아이, 올해 하면 안 되는 3가지', memo: { who: '이 아이는 이렇게 생긴 아이예요! 고치지 말고 읽어요.', power: '아이 안에 어떤 힘이 많고 적은지 다 보여요.', decade: '아이의 첫 10년 계절이에요.', year: '올해 아이한테 오는 날씨예요.', months: '달력에 붙여 두면 엄마 아빠가 덜 놀라요.', rel: '친구랑 가족이랑 이렇게 지내요.', work: '아이가 잘하는 게 여기 있어요!' } },
-    hunter: { focus: 'work', avoidTitle: '2027년 이직하면 안 되는 시기', memo: { who: '시장이 보는 당신의 유형입니다.', power: '이력서에 적히지 않는 당신의 자원 배분입니다.', decade: '커리어 관점의 10년 단위 해석입니다.', year: '올해 움직임의 결론은 하나입니다.', months: '면접과 사직서는 달을 골라야 합니다.', rel: '관계는 생략하되, 상사 궁합만 봅니다.', work: '제 전문입니다. 여기부터 읽으셔도 됩니다.' } },
-    master: { focus: null, avoidTitle: '올해 피해야 할 3가지', memo: { who: '여기가 명식의 출발점이에요.', power: '힘의 분포가 처방의 방향을 정해요.', decade: '큰 계절부터 보고 작은 날씨를 봐요.', year: '두 해를 나란히 두면 차이가 보여요.', months: '달의 경계는 절기예요. 괄호 안 날짜를 보세요.', rel: '가까운 자리의 글자가 관계 방식이에요.', work: '격과 용신을 쉬운 말로 풀면 이거예요.' } },
+    flame: { focus: 'rel', avoidTitle: '올해 피해야 할 3가지', memo: { pair: '둘을 맞붙인 결과야. 여기만은 두 번 읽어.', who: '넌 사랑할 때 이 모양 그대로야. 그걸 먼저 알아.', power: '연애에서 새는 자리가 여기야. 외워.', decade: '지금 10년의 인연 운은 이 색이야.', year: '올해 네 연애는 이 흐름 위에 있어.', months: '고백도 이별도 달을 골라서 해.', rel: '내 전문이야. 여기만은 밑줄 그어.', work: '일 얘긴 짧게. 근데 연애랑 같은 패턴이야.' } },
+    sage: { focus: 'power', avoidTitle: '당신 사주가 손해 보는 자리 3곳', memo: { pair: '돈을 섞기 전에 이 장부터 보거라.', who: '그릇을 알아야 담을 돈의 양이 보이느니라.', power: '돈이 새는 구멍은 늘 같은 자리에 있다. 여기다.', decade: '이 10년은 벌 때냐 지킬 때냐, 그것만 보거라.', year: '올해는 들어오는 길과 나가는 길이 이렇다.', months: '큰 거래는 진한 달에, 붉은 달엔 지갑을 닫아라.', rel: '돈과 사람은 늘 같이 움직이는 법이지.', work: '벌 재주와 지킬 재주는 다른 것이니라.' } },
+    granny: { focus: 'year', avoidTitle: '2027년 절대 하면 안 되는 시기', memo: { pair: '둘이 맞는지는 글자가 먼저 말한단다.', who: '넌 원래 이런 애야. 그러니 네 탓 말아.', power: '힘이 센지 약한지, 그게 올해 버티는 법을 정한단다.', decade: '이 10년은 계절로 치면 이렇단다.', year: '올해 힘들었던 건 네 탓이 아니라 계절 탓이야.', months: '할머니는 이 달력만 보고 산다. 너도 붙여 둬.', rel: '식구 일은 여기 다 있어. 천천히 봐.', work: '일은 밥벌이지. 몸 상하면서 하진 말아.' } },
+    child: { focus: 'who', avoidTitle: '우리 아이, 올해 하면 안 되는 3가지', memo: { pair: '둘이 어떻게 맞는지 보여요!', who: '이 아이는 이렇게 생긴 아이예요! 고치지 말고 읽어요.', power: '아이 안에 어떤 힘이 많고 적은지 다 보여요.', decade: '아이의 첫 10년 계절이에요.', year: '올해 아이한테 오는 날씨예요.', months: '달력에 붙여 두면 엄마 아빠가 덜 놀라요.', rel: '친구랑 가족이랑 이렇게 지내요.', work: '아이가 잘하는 게 여기 있어요!' } },
+    hunter: { focus: 'work', avoidTitle: '2027년 이직하면 안 되는 시기', memo: { pair: '파트너 검증 결과입니다.', who: '시장이 보는 당신의 유형입니다.', power: '이력서에 적히지 않는 당신의 자원 배분입니다.', decade: '커리어 관점의 10년 단위 해석입니다.', year: '올해 움직임의 결론은 하나입니다.', months: '면접과 사직서는 달을 골라야 합니다.', rel: '관계는 생략하되, 상사 궁합만 봅니다.', work: '제 전문입니다. 여기부터 읽으셔도 됩니다.' } },
+    master: { focus: null, avoidTitle: '올해 피해야 할 3가지', memo: { pair: '두 명식은 따로 보지 말고 겹쳐 봐요.', who: '여기가 명식의 출발점이에요.', power: '힘의 분포가 처방의 방향을 정해요.', decade: '큰 계절부터 보고 작은 날씨를 봐요.', year: '두 해를 나란히 두면 차이가 보여요.', months: '달의 경계는 절기예요. 괄호 안 날짜를 보세요.', rel: '가까운 자리의 글자가 관계 방식이에요.', work: '격과 용신을 쉬운 말로 풀면 이거예요.' } },
     mbti: { focus: 'axes', avoidTitle: '올해 피해야 할 3가지', memo: { who: '검사 결과 말고, 타고난 결부터 볼게요.', power: '여기가 성향 추정의 재료예요.', axes: '세 글자를 나란히 두는 게 오늘의 핵심이에요.', goal: '바꾸기보다 빌려 쓰는 쪽이 오래가요.', year: '성향도 해마다 쓰이는 자리가 달라요.', months: '실험은 진한 달에 하면 결과가 빨라요.', relwork: '관계와 일에서 그 글자가 어떻게 나오는지 볼게요.' } },
   };
 
@@ -257,7 +257,8 @@
     const nextD = r.daeun ? (cur ? r.daeun.list[r.daeun.list.indexOf(cur) + 1] : r.daeun.list[0]) : null;
     const edge = !!(cur && (r.daeun.ageYears >= cur.toAge - 1 || r.daeun.ageYears <= cur.fromAge + 1));
     const P = PERSONA[pid] || PERSONA.master; const memo = P.memo;
-    const T = isChild ? { WA: C_WEAK_AVOID, WI: C_WEAK_INSTEAD, WR: C_WEAK_RECAP, Y: C_YEAR, MD: C_MONTH_DOMAIN, PLAN: C_PLAN } : { WA: WEAK_AVOID, WI: WEAK_INSTEAD, WR: WEAK_RECAP, Y: YEAR, MD: MONTH_DOMAIN, PLAN: PLAN_4W };
+    const LZ = (LZS && LZS.LENS && LZS.LENS[pid]) || null; // 캐릭터 렌즈(재물·연애·이직…)
+    const T = isChild ? { WA: C_WEAK_AVOID, WI: C_WEAK_INSTEAD, WR: C_WEAK_RECAP, Y: C_YEAR, MD: C_MONTH_DOMAIN, PLAN: C_PLAN } : (LZ && LZ.weakAvoid) ? { WA: LZ.weakAvoid, WI: LZ.weakInstead, WR: LZ.weakRecap, Y: LZ.year || YEAR, MD: LZ.monthDomain, PLAN: LZ.plan } : { WA: WEAK_AVOID, WI: WEAK_INSTEAD, WR: WEAK_RECAP, Y: YEAR, MD: MONTH_DOMAIN, PLAN: PLAN_4W };
 
     // ── 원국 관계(충·합·형) ──
     const br = r.pillars.map(p => ({ b: p.branch, name: p.name }));
@@ -281,7 +282,7 @@
       const dom = T.MD[mc[0].clashes[0]]; const after = good.filter(c => c.i > mc[mc.length - 1].i); const moveTo = after.length ? after[0] : good[0];
       month = { src: 'month', time: `${nextY}년 ${mLabel}에는`, avoid: `${nextY}년 ${mLabel}에는 ${j(dom, '은')} 하지 마세요`, why: `그 달 글자가 내 ${POS_KO[mc[0].clashes[0]]} 자리와 정면으로 부딪혀요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${j(moveTo.label, '으로')} 옮기고 그때까진 정보만 모으세요. 부딪히는 달은 나쁜 달이 아니라 마음이 흔들리는 달일 뿐이에요. 결정만 옮기면 그 사이 모은 정보가 준비를 두 배 빠르게 해요.`, recap: `${dom}은 ${moveTo.label}에, 그 전엔 정보 수집만.`, fills: false, months: mc.map(c => c.solarMonth) };
     } else {
-      const fb = normal.find(c => c.branchGroup === '관성') || normal[0] || cal[0]; const dom = isChild ? '학원 추가' : MONTH_FALLBACK[fb.branchGroup] || '큰 지출';
+      const fb = normal.find(c => c.branchGroup === '관성') || normal[0] || cal[0]; const dom = isChild ? '학원 추가' : (LZ && LZ.monthFallback) || MONTH_FALLBACK[fb.branchGroup] || '큰 지출';
       month = { src: 'month', time: `${nextY}년 ${mlabel(fb)}에는`, avoid: `${nextY}년 ${mlabel(fb)}에는 ${j(dom, '을')} 새로 늘리지 마세요`, why: `부딪히는 달은 없지만 ${G[fb.branchGroup]} 주제가 몰리는 달이에요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${bestM.label}에 하나만 고르세요. 몰리는 달에는 더하기보다 고르는 쪽이 한 해 전체를 가볍게 만들어요.`, recap: `${dom}은 ${bestM.label}에 하나만.`, fills: false, months: [fb.solarMonth] };
     }
     const trio = [natal, seun, month];
@@ -359,13 +360,31 @@
     const workSec = { id: 'work', title: isChild ? '공부와 재능' : '일', conclusion: isChild ? workT.body.replace(/\.$/, '') : `맞는 일은 ${CAREER[top[0]]}`, body: workBody.slice(0, 5), pair: workPair };
     if (kind === 'mbti') sec('relwork', '관계와 일', `${SPOUSE_N[Math.min(3, spouseN)].split('.')[0]}`, [relT.body, dm.rel, `맞는 일은 ${j(CAREER[top[0]], '이에요')}.`, WORK_STYLE[strong]].slice(0, 5), workPair);
     else { sec(relSec.id, relSec.title, relSec.conclusion, relSec.body, relSec.pair); sec(workSec.id, workSec.title, workSec.conclusion, workSec.body, workSec.pair); }
+    // 캐릭터 렌즈: 그 캐릭터를 누른 이유에 맞춰 7장을 통째로 바꾼다(재물·연애·이직), 복순은 6·7장만
+    if (LZ && (LZ.sections || LZ.tail)) {
+      const vizOf = id => (L2.find(x => x.id === id) || {}).viz || null;
+      const ctx = { r, name, j, G, EP, lvG, lvE, strong, weak, pickG, rx, rxPhrase, st, dm, season, SEASON_SENT, SP, POS_KO, cur, nextD, edge, curG, cal, push, caution, normal, good, goodM, bestM, prevOfBest, sy, yClash, yClashPillar, yKey, yPair, spouseGroup, spouseN, spouseMonths, dayG, top, rec, forbidden, workPair, weakInAllowed, identityLine, T, nowY, nextY, mlist, mlabel, REL, STEM_MEAN, BRANCH_MEAN, BRANCH_POS, BODY_SIGNAL, STEM_HAP, HAP6, CLASH, CAREER, CAREER_S, WORK_STYLE, viz: { bars: vizOf('power'), timeline: vizOf('decade'), years: vizOf('year'), calendar: vizOf('months') } };
+      const norm = x => Object.assign({ memo: memo[x.id] || '', viz: null }, x, { body: x.body.filter(Boolean).slice(0, 5) });
+      if (LZ.sections) { const ns = LZ.sections(ctx).map(norm); L2.splice(0, L2.length); ns.forEach(x => L2.push(x)); }
+      else { LZ.tail(ctx).map(norm).forEach(x => { const i = L2.findIndex(y => y.id === x.id); if (i >= 0) L2[i] = x; else L2.push(x); }); }
+      if (LZ.entries) L1.entries = LZ.entries.slice();
+      // 렌즈 본문에 금지 직군 토큰이 섞이면 금지를 두지 않는다(1-2)
+      const ws = L2.find(x => x.id === 'work'); if (forbidden && ws && CAREER_S[forbidden].split(/[·\s]/).filter(Boolean).some(t => ws.body.join(' ').includes(t))) { if (!isChild && ws.avoid === workPair.avoid) { ws.avoid = WORK_PAIR[strong].avoid; ws.instead = WORK_PAIR[strong].instead; } forbidden = null; }
+    }
+    // 궁합(두 명식 맞대기): 연애면 관계 장을, 동업·지인이면 일 장을 대신한다
+    if (opts.compat && opts.compat.section) {
+      const cp = opts.compat; const target = cp.kind === 'love' ? 'rel' : (kind === 'mbti' ? 'relwork' : 'work'); const idx = L2.findIndex(x => x.id === target);
+      const sec2 = Object.assign({}, cp.section, { memo: memo.pair || '', focus: true, replaced: target });
+      if (idx >= 0) L2.splice(idx, 1, sec2); else L2.push(sec2);
+      L1.entries = L1.entries.map(e => e.id === target || e.id === 'rel' ? { id: 'pair', label: cp.kindKo } : e);
+    }
     // 초점 섹션 표시
-    L2.forEach(s => { s.focus = P.focus === s.id; });
+    L2.forEach(s => { s.focus = s.focus || P.focus === s.id; });
 
     // ── L2 마무리: 대신 3개 + 4주 + 맺음 ──
     const mismAll = kind === 'mbti' && opts.cmp ? opts.cmp.axes.filter(x => !x.match) : [];
     const plan = (kind === 'mbti' && mismAll.length) ? mismAll.slice(0, 4).map((x, k) => `${k + 1}주: ${EXP[x.id]}`).concat(T.PLAN[pickG].slice(mismAll.length)).slice(0, 4) : T.PLAN[pickG];
-    const end = { title: '대신 이렇게 하면 잘 풀려요', insteads: trio.map(t => ({ src: t.src, text: t.recap, fills: t.fills })), planTitle: `${j(G[pickG], '을')} ${rx.dir === 'drain' ? '쓰는' : '채우는'} 4주`, plan, closing: ['여기까지 읽었다면 이미 절반은 했어요.', '4주 뒤 같은 자리에서 다른 선택을 한 번 했다면 충분해요.', `${bestM.label}에 시작할 일 하나만 적어 두고 덮으세요.`] };
+    const end = { title: '대신 이렇게 하면 잘 풀려요', insteads: trio.map(t => ({ src: t.src, text: t.recap, fills: t.fills })), planTitle: LZ && LZ.planTitle ? LZ.planTitle(G[pickG]) : `${j(G[pickG], '을')} ${rx.dir === 'drain' ? '쓰는' : '채우는'} 4주`, plan, closing: ['여기까지 읽었다면 이미 절반은 했어요.', '4주 뒤 같은 자리에서 다른 선택을 한 번 했다면 충분해요.', `${bestM.label}에 시작할 일 하나만 적어 두고 덮으세요.`] };
 
     // ── L3 근거 ──
     const L3 = []; const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -378,6 +397,7 @@
     L3.push({ id: 'l3-strength', title: '신강·신약 판정과 처방 방향', html: `<p><b>${st.label}</b>(점수 ${st.score}/6) · ${SP[st.label]}.</p><ul class="keylist">${st.why.map(w => `<li>${w.replace(/([一-龥])\(([一-龥])\)/g, (m, b, e) => `${b} ${S.BRANCHES_KO[S.BRANCHES.indexOf(b)]}(${EP[e]})`).replace(/돕습니다/g, '도와요').replace(/받칩니다/g, '받쳐요').replace(/않습니다/g, '않아요')}</li>`).join('')}</ul><p><b>처방 방향.</b> ${rx.dir === 'drain' ? '힘이 세니 식상·재성·관성으로 덜어 써요.' : rx.label === '중화' ? `중화라 조후(계절 균형)를 우선해요. ${st.season}생이라 ${rx.needElem}(${S.ELEM_KO[rx.needElem]})이 반갑고, 일간 기준 ${rx.pick}이에요.` : '힘이 약하니 인성·비겁으로 채워요.'} 용신 후보 1순위는 <b>${rx.pick}</b>(${G[rx.pick]})${lastSound(rx.pick).b ? '이' : ''}고, 이 리포트의 모든 처방은 이 방향 안에서만 나와요.</p><p><b>격(간이).</b> 월지 ${rd(r.month.branch)}의 본기는 ${rs(S.STEMS[S.BRANCH_MAIN_STEM[r.month.branchIdx]])}, 일간 기준 ${j(mg.name, '이라')} ${j(gyeok, '으로')} 봐요.</p><p><b>십신 비율.</b> ${S.TEN_GOD_GROUPS.map(k => `${k}(${G[k]}) ${g[k]}개 ${lvG[k]}`).join(' · ')} (전체 ${tot}개).</p><p class="muted">득령·득지·득세를 단순 점수화한 간이 판정이에요. 지장간·합충·격국을 반영한 정식 판정은 전문가 감수가 필요해요.</p>` });
     L3.push({ id: 'l3-luck', title: '대운표와 세운', html: (r.daeun ? `<table class="gods l3t"><thead><tr><th>만 나이</th><th>대운</th><th>십신</th></tr></thead><tbody>${r.daeun.list.map(p => `<tr class="${cur && p.index60 === cur.index60 ? 'now' : ''}"><td>${p.fromAge}~${p.toAge}세</td><td>${rs(p.stem)} ${rd(p.branch)}</td><td>${p.tenGod.name}·${p.branchTenGod.name}</td></tr>`).join('')}</tbody></table><p class="muted">대운수 ${r.daeun.startAge}, ${r.daeun.forward ? '순행' : '역행'}, 현재 만 ${r.daeun.ageYears}세. 만 나이 기준이에요.</p>` : '<p>성별이 없어 대운을 세우지 않았어요.</p>') + r.seun.map(sp => `<p><b>${sp.year}년 ${rs(sp.stem)} ${rd(sp.branch)}.</b> 천간 ${sp.tenGod.name}, 지지 ${sp.branchTenGod.name}.${[r.day, r.year].some(x => CLASH[sp.branch] === x.branch) ? ` 원국 ${[r.day, r.year].filter(x => CLASH[sp.branch] === x.branch).map(x => x.name).join('·')}와 충이에요.` : ''}</p>`).join('') });
     L3.push({ id: 'l3-months', title: `${nextY}년 월운표(절기 기준)`, html: `<table class="gods l3t months"><thead><tr><th>양력</th><th>절기월</th><th>월운</th><th>십신</th><th>등급</th></tr></thead><tbody>${cal.map(c => `<tr class="g-${c.grade}"><td>${c.label}<br><small>${c.range}</small></td><td>${c.term}</td><td>${rs(c.pillar.stem)} ${rd(c.pillar.branch)}</td><td>${c.stemGroup}·${c.branchGroup}</td><td><b>${c.grade}</b>${c.clashes.length ? `<br><small>${c.clashes.join('·')} 충</small>` : ''}</td></tr>`).join('')}</tbody></table><p class="muted">추진은 처방 방향(${rx.allowed.map(k => `${k}`).join('·')})의 기운이 드는 달, 주의는 원국 일지·년지·월지와 충하는 달이에요. 달의 경계는 절입일이에요.</p>` });
+    if (opts.compat && opts.compat.l3) L3.push({ id: 'l3-pair', title: `${opts.compat.kindKo} 근거: 두 명식 맞대기`, html: opts.compat.l3 });
     L3.push({ id: 'l3-basis', title: '계산 기준과 안내', html: `<p class="muted">년주 경계 입춘, 월주 경계 12절기(태양 황경 근사식), 일주 (율리우스일수+49) mod 60, 23시 이후 익일 일주, 진태양시 보정 ${r.input.solarCorrectionMin || 0}분. ${r.notes.join(' / ') || ''}</p><p class="muted">몸의 신호는 오행 배속이라는 전통 관점이고 의학적 진단이 아니에요. 이 리포트는 참고용 콘텐츠이며 의학·법률·금융 조언이 아니에요.</p>` });
     const glossary = [['나 자신의 힘', '비겁(비견·겁재)'], ['내보내는 힘', '식상(식신·상관)'], ['손에 쥐는 힘', '재성(정재·편재)'], ['나를 누르는 힘', '관성(정관·편관)'], ['쉬고 배우는 힘', '인성(정인·편인)'], ['10년 계절', '대운'], ['올해 날씨', '세운'], ['이달 날씨', '월운'], ['나를 살리는 기운', '용신'], ['부딪힘', '충'], ['끌림', '합'], ['마찰', '형'], ['나를 뜻하는 글자', '일간']];
 
@@ -402,11 +422,11 @@
   function countChars(rep) { return l12Texts(rep).filter(x => x.k !== 'memo').map(x => x.t).join('').replace(/\s/g, '').length; }
   const sentences = t => String(t).split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
 
-  const JARGON = /비견|겁재|식신|상관|정재|편재|정관|편관|정인|편인|비겁|식상|재성|관성|인성|용신|대운|세운|월운|일간|천간|지지|신강|신약|원국|격국|십신|조후|억부|지장간|일지|월지|년지|시지/;
+  const JARGON = /비견|겁재|식신|상관|정재|편재|정관|편관|정인|편인|비겁|식상|재성|관성|인성|용신|대운|세운|월운|일간|천간|(?<![가-힣])지지(?![가-힣])|신강|신약|원국|격국|십신|조후|억부|지장간|일지|월지|년지|시지/;
   const TERMS_IN = /(?<![가-힣\d])[자축인묘진사오미신유술해]월(?![가-힣\d])/;
   const LOSS = /피하|하지 마|손해|위험|조심|주의|잃|실패|불안|나쁜|막아/;
-  const TERM_NAMES = /입춘|경칩|청명|입하|망종|소서|입추|백로|한로|입동|대설|소한/;
-  const FEAR = /질병|사고|사망|죽|병원|이별|암\b|수술/;
+  const TERM_NAMES = /(?<![가-힣])(입춘|경칩|청명|입하|망종|소서|입추|백로|한로|입동|대설|소한)(?![가-힣])/;
+  const FEAR = /질병|사고|사망|죽|병원|수술|헤어지게|이별이 와|이별할 운|이별 운/;
   /** 합격 기준 검사. 문제 목록(빈 배열이면 통과). */
   function lint(rep) {
     const P = []; const push = (rule, msg) => P.push({ rule, msg });
