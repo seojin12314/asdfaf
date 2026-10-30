@@ -112,6 +112,7 @@
         ],
       },
       partnerFor: ['reunion', 'match'], compatKind: 'love',
+      situation: { prompt: '지금 네 상황은?', options: [{ value: 'solo', label: '지금은 혼자야' }, { value: 'some', label: '썸 타는 중이야' }, { value: 'dating', label: '만나는 사람 있어' }, { value: 'after', label: '얼마 전에 헤어졌어' }] },
       ask: {
         lead: [{ t: '그럼 네 걸 보여 줘. 태어난 날과 시각. 그게 네 인연의 지도야.', face: 'neutral' }],
         name: '먼저, 널 뭐라고 부를까?', gender: '성별은? 배우자성이 어느 글자인지가 여기서 갈려.', date: '태어난 날. 양력으로.', time: '태어난 시각은? 모르면 모른다고 해. 시주 없이도 볼 수 있어.',
@@ -160,6 +161,7 @@
         ],
       },
       partnerFor: ['pair'], compatKind: 'biz',
+      situation: { prompt: '지금 자네 형편은 어떤가?', options: [{ value: 'salary', label: '월급 받는 직장인입니다' }, { value: 'biz', label: '사업·장사를 하고 있어요' }, { value: 'prep', label: '준비 중이에요' }, { value: 'invest', label: '투자가 주업이에요' }] },
       ask: {
         lead: [{ t: '그럼 네 명식을 펼쳐야겠다. 태어난 날과 시각을 말해 보거라.', face: 'neutral' }],
         name: '이름이 무엇이냐? 부르기 편한 대로.', gender: '남자냐, 여자냐? 대운이 어느 쪽으로 흐르는지가 여기서 갈린다.', date: '태어난 날은? 양력으로 말하거라.', time: '태어난 시각은 아느냐? 모르면 모른다 해도 된다. 시주 없이도 재물 그릇은 보인다.',
@@ -207,6 +209,7 @@
           { value: 'next', label: '내년이 걱정돼요', reply: [{ t: '걱정은 미리 하는 게 아니라 달력에 적어 두는 거야. 조심할 달 몇 개만 알면 돼. 겁먹지 마.', face: 'smile' }] },
         ],
       },
+      situation: { prompt: '요즘 어떻게 지냈어?', options: [{ value: 'hard', label: '올해 유난히 힘들었어요' }, { value: 'change', label: '큰 변화를 앞두고 있어요' }, { value: 'fam', label: '가족 일이 걱정이에요' }, { value: 'ok', label: '그냥 내년이 궁금해요' }] },
       ask: {
         lead: [{ t: '어디 손 좀 줘 봐라. 아니, 손 말고 생일. 태어난 날이랑 시간을 말해 줘.', face: 'smile' }],
         name: '우리 애기 이름이 뭐야? 할머니가 부를 이름.', gender: '남자아이야, 여자아이야? 대운이 어느 쪽으로 도는지 봐야 해서.', date: '태어난 날은? 양력으로.', time: '태어난 시간은 알아? 모르면 괜찮아. 할머니는 시간 몰라도 봐.',
@@ -252,6 +255,7 @@
       },
       partnerFor: ['temper', 'discipline', 'next'], parentMode: true,
       adultNote: '어? 어른 명식이네요! 괜찮아요. 타고난 기질은 어른이 돼도 그대로라서, 어릴 적 모습으로 읽을게요!',
+      situation: { prompt: '아이는 몇 살쯤이에요?', options: [{ value: 'baby', label: '영유아(0~6세)예요' }, { value: 'elem', label: '초등학생이에요' }, { value: 'teen', label: '10대예요' }] },
       ask: {
         lead: [{ t: '그럼 아이 생일을 알려 주세요! 지금 넣는 건 아이 거예요. 부모님 생일은 그다음에 따로 물어볼게요.', face: 'smile' }],
         partner: { prompt: '부모님 생년월일도 알려 줄래요? 넣으면 부모-자녀 조합 질문 6개가 더 열려요! 아이 것만으로도 14개는 볼 수 있어요.', yes: '알아요', no: '다음에요', who: '부모', gender: '부모님은 어머니예요, 아버지예요?', date: '부모님이 태어난 날이요! 시간은 몰라도 돼요.', got: '받았어요! 아이랑 부모님을 같이 볼게요.', skip: '괜찮아요. 아이 것만 볼게요!' },
@@ -297,6 +301,7 @@
           { value: 'burnout', label: '번아웃입니다', reply: [{ t: '번아웃은 기질과 환경의 간격에서 옵니다. 명식에서 그 간격이 어디인지 짚겠습니다. 이직이 답이 아닐 수도 있습니다.', face: 'serious' }] },
         ],
       },
+      situation: { prompt: '현재 상태를 확인하겠습니다.', options: [{ value: 'working', label: '재직 중, 이직 고민' }, { value: 'rest', label: '퇴사했거나 쉬는 중' }, { value: 'offer', label: '이직 제안을 받았습니다' }, { value: 'promo', label: '승진·평가를 앞두고 있습니다' }] },
       ask: {
         lead: [{ t: '기본 정보를 받겠습니다. 생년월일시입니다. 이력서보다 정확한 자료입니다.', face: 'neutral' }],
         name: '성함, 또는 부를 이름을 알려 주십시오.', gender: '성별을 선택해 주십시오. 대운의 방향이 달라집니다.', date: '생년월일입니다. 양력 기준입니다.', time: '출생 시각입니다. 모르시면 "모름"으로 두셔도 됩니다. 시주 없이도 유형 분류는 가능합니다.',
@@ -340,6 +345,7 @@
           { value: 'who', label: '내가 어떤 사람인지 궁금해요', reply: [{ t: '좋은 질문이에요. 일간과 십신 비율이 그 답이에요. 그래도 사람은 혼자 안 살죠. 배우자 자리와 일의 형태까지 같이 볼게요.', face: 'smile' }] },
         ],
       },
+      situation: { prompt: '지금 어떤 상황에서 오셨어요?', options: [{ value: 'decide', label: '큰 결정을 앞두고 있어요' }, { value: 'lost', label: '방향을 잃은 느낌이에요' }, { value: 'repeat', label: '같은 일이 반복돼요' }, { value: 'curious', label: '제 명식이 그냥 궁금해요' }] },
       ask: {
         lead: [{ t: '그럼 명식을 세워 볼게요. 생년월일시를 알려 주세요. 시간까지 있으면 네 기둥이 다 서요.', face: 'neutral' }],
         name: '뭐라고 불러 드릴까요?', gender: '성별을 알려 주세요. 대운 순·역행과 배우자성 판단에 써요.', date: '생년월일이요. 양력 기준으로요.', time: '태어난 시각은요? 모르시면 년·월·일주로만 봐도 돼요. 대신 시주 얘기는 빼고 갈게요.',
@@ -386,6 +392,7 @@
           { value: 'who', label: '타고난 성향이 뭔지 알고 싶어요', reply: [{ t: '그럼 명식부터 볼게요. 검사는 지금의 자기 보고고, 명식은 태어난 시각의 구조라서 서로 다른 얘기를 해 줘요.', face: 'neutral' }] },
         ],
       },
+      situation: { prompt: '지금 어떤 쪽이에요?', options: [{ value: 'mismatch', label: '검사 결과가 잘 안 맞는 것 같아요' }, { value: 'varies', label: '상황마다 달라져요' }, { value: 'goal', label: '되고 싶은 모습이 있어요' }, { value: 'curious', label: '그냥 궁금해요' }] },
       ask: {
         lead: [{ t: '먼저 명식을 세워야 해요. 태어난 날과 시각을 알려 주세요. 그다음에 검사 결과를 받을게요.', face: 'neutral' }],
         name: '제가 뭐라고 부르면 좋을까요?', gender: '성별을 알려 주세요. 큰 흐름의 방향을 계산할 때 써요.', date: '태어난 날이에요. 양력으로요.', time: '태어난 시각은요? 모르시면 "몰라요"를 눌러 주세요. 시각 없이도 성향은 볼 수 있어요.',

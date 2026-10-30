@@ -256,13 +256,22 @@
     master: { all: [3, 5, 4, 18, 30], why: [28, 6, 8, 14, 18], who: [1, 2, 4, 14, 29], year: [21, 22, 18, 28, 23], family: [24, 25, 8, 22, 26], next: [22, 23, 21, 19, 20], _: [1, 3, 5, 18, 30] },
     work: { move: [6, 7, 5, 9, 8], promo: [11, 4, 12, 10, 19], burnout: [16, 15, 1, 3, 17], _: [1, 2, 6, 7, 3] },
   };
-  function core(domain, concern, F) {
+  /** 지금 상황(대화 두 번째 선택지) → 맨 앞에 올 질문 1~2개. */
+  const SIT = {
+    love: { solo: [9, 6], some: [3, 7], dating: [11, 16], after: [4, 5] },
+    money: { salary: [1, 11], biz: [12, 14], prep: [13, 3], invest: [10, 17] },
+    master: { hard: [21, 28], change: [22, 19], fam: [24, 25], ok: [23, 22], decide: [23, 22], lost: [28, 29], repeat: [28, 6], curious: [1, 30] },
+    child: { baby: [1, 5], elem: [2, 6], teen: [10, 3] },
+    work: { working: [6, 5], rest: [15, 1], offer: [7, 9], promo: [11, 4] },
+    mbti: { mismatch: [2, 18], varies: [4, 15], goal: [5, 6], curious: [1, 7] },
+  };
+  function core(domain, concern, F, situation) {
     const open = list(domain, F).filter(x => !x.locked); const byN = n => open.find(x => x.n === n);
-    const tbl = CORE[domain] || {}; const ns = tbl[concern] || tbl._ || [];
+    const tbl = CORE[domain] || {}; const ns = [...new Set(((SIT[domain] || {})[situation] || []).concat(tbl[concern] || tbl._ || []))];
     const ids = ns.map(byN).filter(Boolean).map(x => x.id);
     if (ids.length < 3) recommend(domain, F, 10).forEach(id => { if (ids.length < 3 && !ids.includes(id)) ids.push(id); });
     return ids.slice(0, 5);
   }
   function recommend(domain, F, k) { const open = list(domain, F).filter(x => !x.locked); const pri = { love: [1, 3, 4, 6, 9, 10, 11, 16, 18, 8], money: [20, 2, 1, 7, 8, 9, 4, 16, 6, 19], child: [1, 2, 9, 11, 3, 5, 6, 12, 15, 16], mbti: [1, 2, 3, 5, 6, 7, 10, 13, 19, 20], master: [1, 3, 5, 8, 9, 14, 17, 18, 23, 30], work: [1, 2, 6, 7, 3, 12, 10, 19, 14, 20] }[domain] || []; const ids = pri.map(n => open.find(x => x.n === n)).filter(Boolean).map(x => x.id); open.forEach(x => { if (ids.length < (k || 10) && !ids.includes(x.id)) ids.push(x.id); }); return ids.slice(0, k || 10); }
-  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, core, CORE, hooks };
+  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, core, CORE, SIT, hooks };
 });

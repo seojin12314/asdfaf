@@ -252,6 +252,8 @@
     if (!concern) { concern = await choose(sc.concern.prompt, sc.concern.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; }
     const opt = sc.concern.options.find(o => o.value === concern);
     for (const l of opt.reply) { await say(l.t, l); if (!st.open) return; }
+    let situation = null, situationLabel = '';
+    if (sc.situation) { situation = await choose(sc.situation.prompt, sc.situation.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; const so = sc.situation.options.find(o => o.value === situation); situationLabel = so ? so.label : ''; }
     let kind = null, prName = '';
     if (sc.ask.partner && sc.ask.partner.kinds && (sc.partnerFor || []).includes(concern)) { kind = await choose(sc.ask.partner.kinds.prompt, sc.ask.partner.kinds.options); if (!st.open) return; }
 
@@ -291,7 +293,7 @@
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
     if (sc.adultNote && (new Date().getFullYear() - input.year) >= 19) { await say(P.fill(sc.adultNote, { name }), { face: 'smile' }); if (!st.open) return; }
-    const r = A.state.result; A.state.concern = concern; A.state.concernLabel = (opt.label || '').replace(/[?!.]+$/, '');
+    const r = A.state.result; A.state.concern = concern; A.state.concernLabel = (opt.label || '').replace(/[?!.]+$/, ''); A.state.situation = situation; A.state.situationLabel = situationLabel.replace(/[?!.]+$/, '');
     const nameB = prName || (sc.ask.partner && sc.ask.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
     if (sc.parentMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
     await summon(sc.summon); if (!st.open) return;
