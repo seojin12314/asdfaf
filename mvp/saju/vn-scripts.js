@@ -103,10 +103,9 @@
       concern: {
         prompt: '그래서, 뭘 보러 왔어?',
         options: [
-          { value: 'match', label: '그 사람과 궁합이 맞을까', reply: [{ t: '궁합이구나. 둘의 여덟 글자를 전부 맞붙여야 해. 끌림, 부딪힘, 서로 채워 주는지, 누가 주도하는지까지.', face: 'smile', fx: 'glow' }] },
-          { value: 'reunion', label: '그 사람이랑 다시 될까', reply: [{ t: '재회라… 실은 네가 제일 먼저 답을 알고 있어. 그래도 명식은 거짓말을 안 하니까, 같이 보자.', face: 'serious' }] },
-          { value: 'new', label: '새 인연은 언제 와', reply: [{ t: '좋아. 기다리는 사람한테 인연이 오는 달은 정해져 있어. 네 명식에서 그 달을 찾아 줄게.', face: 'smile', fx: 'glow' }] },
-          { value: 'pattern', label: '왜 매번 같은 데서 꼬일까', reply: [{ t: '그 질문을 하는 사람은 이미 반은 왔어. 패턴은 운이 아니라 모양이야. 모양은 명식에 있어.', face: 'neutral' }] },
+          { value: 'reunion', label: '그 사람이랑 다시 될까?', reply: [{ t: '재회라… 실은 네가 제일 먼저 답을 알고 있어. 그래도 명식은 거짓말을 안 하니까, 같이 보자.', face: 'serious' }] },
+          { value: 'new', label: '새 인연은 언제 와?', reply: [{ t: '좋아. 기다리는 사람한테 인연이 오는 달은 정해져 있어. 네 명식에서 그 달을 찾아 줄게.', face: 'smile', fx: 'glow' }] },
+          { value: 'match', label: '이 사람과 궁합을 보고 싶어', reply: [{ t: '궁합이구나. 둘의 여덟 글자를 전부 맞붙여야 해. 끌림, 부딪힘, 서로 채워 주는지, 누가 주도하는지까지.', face: 'smile', fx: 'glow' }] },
         ],
       },
       partnerFor: ['reunion', 'match'], compatKind: 'love',
