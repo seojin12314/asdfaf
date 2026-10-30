@@ -311,3 +311,8 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 .sheet-head > *:not(.head-bg), .rtop > *:not(.head-bg) { position: relative; z-index: 1; }
 @keyframes bgZoom { from { transform: scale(1); } to { transform: scale(1.06); } }
 @keyframes bgRise { 0% { transform: translateY(6%); opacity: 0; } 15% { opacity: .9; } 85% { opacity: .9; } 100% { transform: translateY(-6%); opacity: 0; } }
+
+/* 최근 리포트 이어 보기 */
+.resume { margin-bottom: 14px; border-color: color-mix(in oklab, var(--accent) 45%, transparent); }
+.resume .resume-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.resume b { display: block; font-size: 15px; } .resume small { color: var(--ink-3); font-size: 12px; }

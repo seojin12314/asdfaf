@@ -73,11 +73,41 @@
         </div>
       </button>`; }).join('');
     $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { state.mode = 'persona'; setPersona(b.dataset.id); if (window.SajuVN) { window.SajuVN.start(b.dataset.id); return; } renderPersonaIntro(); show('persona'); }));
+    renderResume();
     // MBTI 상품 글자 플립
     const types = ['ENFP', 'INTJ', 'ISFJ', 'ESTP', 'INFJ', 'ENTJ', 'ISTP', 'ESFJ'];
     let ti = 0; const spans = $$('#mbti-letters span');
     if (!reduced) setInterval(() => { ti = (ti + 1) % types.length; spans.forEach((sp, i) => { sp.classList.remove('flip'); void sp.offsetWidth; sp.classList.add('flip'); setTimeout(() => { sp.textContent = types[ti][i]; }, 280); }); }, 2200);
   }
+
+  // ───── 결과 보관(새로고침 뒤 재열람) ─────
+  const SNAP_KEY = 'saju.last';
+  function saveSnap() {
+    if (!state.input || !state.result) return;
+    try { localStorage.setItem(SNAP_KEY, JSON.stringify({ v: 1, at: Date.now(), mode: state.mode, persona: state.persona ? state.persona.id : null, input: state.input, compatIn: state.compatIn || null, parentIn: state.parentIn || null, qsel: state.qsel, qall: state.qall, paid: !!state.unlocked })); } catch (e) { /* 저장 공간 없음·차단 */ }
+  }
+  function clearSnap() { try { localStorage.removeItem(SNAP_KEY); } catch (e) { /* 무시 */ } }
+  function loadSnap() { try { const s = JSON.parse(localStorage.getItem(SNAP_KEY) || 'null'); return s && s.v === 1 && s.input ? s : null; } catch (e) { return null; } }
+  function renderResume() {
+    const old = $('#resume'); if (old) old.remove(); const s = loadSnap(); if (!s) return;
+    const p = s.persona ? P.personas[s.persona] : null; const who = s.mode === 'mbti' ? '도윤 선생님 · MBTI 사주' : p ? `${p.name} · ${p.role}` : ''; if (!who) return;
+    const i = s.input; const birth = `${i.year}.${String(i.month).padStart(2, '0')}.${String(i.day).padStart(2, '0')}${i.hourUnknown ? '' : ' ' + String(i.hour).padStart(2, '0') + ':' + String(i.minute).padStart(2, '0')}`;
+    $('#roster').insertAdjacentHTML('beforebegin', `<div class="card resume" id="resume"><div class="eyebrow">최근에 본 리포트 · 새로고침해도 여기서 다시 열려요</div><div class="resume-row"><div><b>${who}</b><small>${i.name || '당신'} · ${birth} · ${s.paid ? '심층 열림' + (s.qall ? ' · 전체 답' : '') : '무료 결과'}</small></div><div class="row"><button type="button" class="btn primary" id="btn-resume">이어 보기</button><button type="button" class="btn ghost" id="btn-resume-del">지우기</button></div></div></div>`);
+    $('#btn-resume').addEventListener('click', () => resume(s));
+    $('#btn-resume-del').addEventListener('click', () => { clearSnap(); renderResume(); });
+  }
+  function resume(s) {
+    if (s.mode === 'mbti') setMode('mbti'); else { state.mode = 'persona'; setPersona(s.persona); }
+    if (!compute(s.input)) { clearSnap(); renderResume(); return; }
+    const sub = x => { try { return S.compute({ year: x.year, month: x.month, day: x.day, hour: 12, minute: 0, hourUnknown: true, gender: x.gender, solarCorrectionMin: 0 }); } catch (e) { return null; } };
+    if (s.compatIn) { const pr = sub(s.compatIn); state.compatIn = s.compatIn; state.compat = pr ? { pr, kind: s.compatIn.kind || 'love', nameB: s.compatIn.nameB || '상대' } : null; }
+    if (s.parentIn) { state.parentIn = s.parentIn; state.parent = sub(s.parentIn); }
+    if (Array.isArray(s.qsel) && s.qsel.length) { state.qsel = s.qsel.slice(); state.qinitialized = true; }
+    state.qall = !!s.qall;
+    show('result'); renderResult();
+    if (s.paid) { renderReport(); setTimeout(() => { const t = $('#report'); if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); }, 80); }
+  }
+  function domainKo(domain) { const pid = state.mode === 'mbti' ? 'mbti' : state.persona && state.persona.id; return (QB.PERSONA_DOMAIN_KO || {})[pid] || QB.DOMAIN_KO[domain]; }
 
   // ───── 1. 캐릭터 소개 / MBTI 사주 소개 ─────
   function renderPersonaIntro() {
@@ -93,7 +123,7 @@
           <h3>이 캐릭터가 보는 명식</h3>
           <ul>${p.sees.map(s => `<li>${s}</li>`).join('')}</ul>
           <div class="formula small"><span><b>${p.name}</b><small>캐릭터 하나</small></span><i>×</i><span><b>내 명식</b><small>하나</small></span><i>×</i><span><b>리포트</b><small>하나</small></span></div>
-          <div class="pricebox"><div>무료 · 3줄 결과 + 캐릭터 시트 + 오행·십신</div><div>심층 · ${P.fill(p.report.title, { seunNext: new Date().getFullYear() + 1 })} <b>${won(p.report.price)}</b> · 모바일 15화면 이상</div></div>
+          <div class="pricebox"><div>무료 · 3줄 결과 + 캐릭터 시트 + 오행·십신</div><div>심층 · ${P.fill(p.report.title, { seunNext: new Date().getFullYear() + 1 })} <b>${won(p.report.price)}</b> · 결론 1화면 + 쉬운 설명 7장 + 근거</div></div>
           <div class="actions"><button type="button" class="btn primary block" id="btn-persona-next">${p.name}에게 보이기</button><button type="button" class="btn ghost block" data-back="home">← 다른 캐릭터 보기</button></div>
         </div>
       </div>`;
@@ -213,7 +243,7 @@
     const r = state.result; state.unlocked = false; $('#report').hidden = true; $('#teaser').hidden = false; $('#report').innerHTML = '';
     $('#pillars').innerHTML = pillarsHTML(r, false); $('#radar').innerHTML = radarSVG(r); $('#stats').innerHTML = statsHTML(r); evidence(r);
     requestAnimationFrame(() => setTimeout(() => $$('#stats .bar i').forEach(i => i.style.width = i.dataset.w + '%'), 60));
-    renderQPick();
+    renderQPick(); saveSnap();
     if (state.mode === 'mbti') return renderMbtiResult();
     const p = state.persona, rd = state.reading, cls = P.classNames[r.day.stem];
     $('#result-eyebrow').textContent = '캐릭터 시트'; $('#mbti-card').hidden = true; $('#lines-card').hidden = false; $('#btn-cross').hidden = false; $('#btn-again').textContent = '다른 캐릭터로 같은 명식 보기';
@@ -263,8 +293,8 @@
     if (!state.qinitialized) { state.qsel = QB.recommend(domain, qFacts(), 10); state.qinitialized = true; }
     const sel = new Set(state.qsel);
     box.hidden = false;
-    box.innerHTML = `<div class="eyebrow">질문 고르기 · ${QB.DOMAIN_KO[domain]}</div><div class="qpick-head"><h3>궁금한 질문을 최대 ${available}개 고르세요</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">고른 질문의 답을 내 사주로 풀어 드려요. 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ""}<div class="qlist">${items.map(it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`).join('')}</div>`;
-    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; renderQSample(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
+    box.innerHTML = `<div class="eyebrow">질문 고르기 · ${domainKo(domain)}</div><div class="qpick-head"><h3>궁금한 질문을 최대 ${available}개 고르세요</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">고른 질문의 답을 내 사주로 풀어 드려요. 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ""}<div class="qlist">${items.map(it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`).join('')}</div>`;
+    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; renderQSample(); saveSnap(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
     $$('#qpick input[data-q]').forEach(cb => cb.addEventListener('change', () => { const id = cb.dataset.q; if (cb.checked) { if (state.qsel.length >= 10) { cb.checked = false; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); return; } state.qsel.push(id); } else state.qsel = state.qsel.filter(x => x !== id); state.report = null; sync(); }));
     $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, qFacts(), 10); state.report = null; renderQPick(); });
     $('#btn-qclear').addEventListener('click', () => { state.qsel = []; state.report = null; renderQPick(); });
@@ -285,11 +315,11 @@
     if (!QB) return null; const domain = qDomain(), F = qFacts(), items = qList();
     const order = items.filter(it => state.qsel.includes(it.id) && !it.locked); const answers = order.map(it => QB.answer(domain, it.n, F));
     const rest = items.filter(it => !state.qsel.includes(it.id)).map(it => state.qall && !it.locked ? QB.answer(domain, it.n, F) : it);
-    return { title: `${QB.DOMAIN_KO[domain]} · 내가 고른 질문`, lead: `${state.input.name || '당신'}의 명식으로 ${answers.length}개 질문에 답해요.`, answers, rest, all: state.qall };
+    return { title: `${domainKo(domain)} · 내가 고른 질문`, lead: `${state.input.name || '당신'}의 명식으로 ${answers.length}개 질문에 답해요.`, answers, rest, all: state.qall };
   }
   function compatResult() { const c = state.compat; if (!c || !c.pr || !CP || !state.result) return null; if (!c.res) c.res = CP.analyze(state.result, c.pr, { kind: c.kind, nameA: state.input.name || '나', nameB: c.nameB || '상대' }); return c.res; }
   function compatCardHTML(cp) {
-    return `<div class="eyebrow">${cp.kindKo} · ${cp.A} × ${cp.B}</div>${UI.compatVizHTML(cp.section.viz)}<p class="chead">${cp.head}</p><ul class="cfacts">${cp.facts.map(f => `<li class="t-${f.tone}">${f.text}</li>`).join('')}</ul>${UI.pairHTML(cp.avoid, cp.instead)}<p class="muted" style="margin:10px 0 0">심층 리포트에는 이 궁합이 한 장으로 들어가고, 여덟 글자 관계표가 근거로 붙어요.</p>`;
+    return `<div class="eyebrow">${cp.kindKo} · ${cp.A} × ${cp.B}</div>${UI.compatVizHTML(cp.section.viz)}<p class="chead">${cp.head}</p><ul class="cfacts">${cp.facts.map(f => `<li class="t-${f.tone}">${f.text}</li>`).join('')}</ul>${UI.pairHTML(cp.avoid, cp.instead)}<p class="muted" style="margin:10px 0 0">상대 출생 시각은 받지 않아 년·월·일 세 기둥으로 맞댔어요. 심층 리포트에는 이 궁합이 한 장으로 들어가고 글자 관계표가 근거로 붙어요.</p>`;
   }
   function buildReport() {
     const r = state.result, name = state.input.name || '당신';
@@ -298,7 +328,7 @@
   }
   function planKey() { const i = state.input; return `${i.year}${i.month}${i.day}-${state.mode === 'mbti' ? 'mbti' : state.persona.id}`; }
   function renderReport() {
-    const rep = state.report || (state.report = buildReport()); const p = state.persona;
+    const rep = state.report || (state.report = buildReport()); const p = state.persona; state.unlocked = true; saveSnap();
     const face = p ? `<span class="face-chip">${artHTML(p, 'face')}</span>` : '';
     $('#report').innerHTML = `
       <div class="rtop">
@@ -343,7 +373,7 @@
 
   // ───── 흐름 연결 ─────
   function compute(input) {
-    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.qsel = []; state.qinitialized = false; state.qall = false; state.qfacts = null;
+    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.compatIn = null; state.parentIn = null; state.qsel = []; state.qinitialized = false; state.qall = false; state.qfacts = null;
     try { state.result = S.compute(input); } catch (err) { $('#form-error').textContent = '계산에 실패했습니다: ' + err.message; $('#form-error').hidden = false; return false; }
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;
@@ -369,7 +399,7 @@
     $$('[data-close]').forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.close).hidden = true; }));
     $('#btn-cross').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } if (state.input.mbti) { compute(state.input); show('reading'); runReading(() => { show('result'); renderResult(); }); } else { renderMbtiIntro(); prepForm(); show('form'); } });
     $('#btn-again').addEventListener('click', () => { if (state.mode === 'mbti') { state.mode = 'persona'; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; } show('home'); });
-    $('#btn-restart').addEventListener('click', () => { Object.assign(state, { mode: 'persona', persona: null, input: null, result: null, reading: null, report: null, est: null, cmp: null, adv: null, compat: null, parent: null, qsel: [], qinitialized: false, qfacts: null, qall: false, unlocked: false }); document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; show('home'); });
+    $('#btn-restart').addEventListener('click', () => { clearSnap(); Object.assign(state, { mode: 'persona', persona: null, input: null, result: null, reading: null, report: null, est: null, cmp: null, adv: null, compat: null, parent: null, qsel: [], qinitialized: false, qfacts: null, qall: false, unlocked: false }); document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; show('home'); });
   }
   // 미연시 연출 레이어(vn.js)가 쓰는 공개 API
   window.SajuApp = { state, setPersona, setMode, compute, show, renderResult, renderPersonaIntro, pillarsHTML, radarSVG, statsHTML, artHTML, won, birthFields };

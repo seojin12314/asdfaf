@@ -274,14 +274,14 @@
         if (!st.open) return;
       }
     }
-    let pr = null;
+    let pr = null, prIn = null;
     if (sc.ask.partner && (sc.partnerFor || []).includes(concern)) {
       const y = await choose(sc.ask.partner.prompt, [{ label: sc.ask.partner.yes, value: 'y' }, { label: sc.ask.partner.no, value: 'n' }]); if (!st.open) return;
       if (y === 'y') {
         if (sc.ask.partner.name) { prName = (await ask('text', sc.ask.partner.name, { optional: true, placeholder: '이름 또는 호칭(선택)' })) || ''; if (!st.open) return; }
         const g = await ask('gender', sc.ask.partner.gender); if (!st.open) return;
         const d = await ask('date', sc.ask.partner.date); if (!st.open) return;
-        try { pr = S.compute({ year: d.year, month: d.month, day: d.day, hour: 12, minute: 0, hourUnknown: true, gender: g, solarCorrectionMin: 0 }); } catch (e) { pr = null; }
+        try { pr = S.compute({ year: d.year, month: d.month, day: d.day, hour: 12, minute: 0, hourUnknown: true, gender: g, solarCorrectionMin: 0 }); } catch (e) { pr = null; } prIn = pr ? { year: d.year, month: d.month, day: d.day, gender: g } : null;
         await say(sc.ask.partner.got, { face: 'smile', fx: 'glow' });
       } else await say(sc.ask.partner.skip, { face: 'neutral' });
       if (!st.open) return;
@@ -290,7 +290,8 @@
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
     const r = A.state.result;
-    if (sc.parentMode) { A.state.parent = pr || null; A.state.compat = null; } else A.state.compat = pr ? { pr, kind: kind || sc.compatKind || 'love', nameB: prName || (sc.ask.partner && sc.ask.partner.who) || '상대' } : null;
+    const nameB = prName || (sc.ask.partner && sc.ask.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
+    if (sc.parentMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
     await summon(sc.summon); if (!st.open) return;
     const c = { name, r, p, pr, concern, kind: kind || sc.compatKind || 'love', prName: prName || (sc.ask.partner && sc.ask.partner.who) || '상대', dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
     if (sc.mbti) { c.est = M.estimate(r); c.cmp = M.compare(input.mbti, c.est); c.adv = M.advise(c.est, input.mbti, input.goal); A.state.est = c.est; A.state.cmp = c.cmp; A.state.adv = c.adv; }

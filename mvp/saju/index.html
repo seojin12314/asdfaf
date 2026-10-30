@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>사주도감</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="캐릭터 하나, 명식 하나, 리포트 하나. 캐릭터가 읽어 주는 내 명식 — MVP 콘티">
+<meta name="description" content="캐릭터 하나, 명식 하나, 리포트 하나. 캐릭터가 읽어 주는 내 명식 — 베타">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261031e">
-<link rel="stylesheet" href="report.css?v=20261031e">
-<link rel="stylesheet" href="vn.css?v=20261031e">
+<link rel="stylesheet" href="styles.css?v=20261031f">
+<link rel="stylesheet" href="report.css?v=20261031f">
+<link rel="stylesheet" href="vn.css?v=20261031f">
 </head>
 <body>
 <!--BODY-START-->
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="shell">
   <header class="topbar">
-    <div class="brand">사주도감 <span class="tag">MVP 콘티</span><button type="button" class="plain-toggle" id="btn-plain" title="전문 용어를 쉬운 말로 바꿔 보여 줍니다">쉬운 말</button></div>
+    <div class="brand">사주도감 <span class="tag">베타</span><button type="button" class="plain-toggle" id="btn-plain" title="전문 용어를 쉬운 말로 바꿔 보여 줍니다">쉬운 말</button></div>
     <ol class="steps" id="steps" aria-label="진행 단계"></ol>
   </header>
 
@@ -64,7 +64,7 @@
       <div class="features">
         <div><b>계산은 코드</b>만세력 결정론 엔진</div>
         <div><b>해석은 캐릭터</b>캐릭터 5 + 전문가 1</div>
-        <div><b>풀이는 길게</b>모바일 15화면 이상</div>
+        <div><b>답은 결론부터</b>결론 1화면 · 쉬운 설명 7장 · 근거</div>
       </div>
     </section>
 
@@ -128,7 +128,7 @@
           <div class="card"><div class="eyebrow">십신 스탯</div><div id="stats"></div></div>
         </div>
         <div class="card compat" id="compat-card" hidden></div>
-        <div class="card" id="lines-card"><div class="eyebrow">무료 3줄 결과</div><div class="lines" id="lines"></div><p class="muted" style="margin:10px 0 0"><span class="chip dev">MVP: 템플릿 문장 · 운영: 캐릭터 프롬프트 + 구조화 명식 → LLM 생성</span></p></div>
+        <div class="card" id="lines-card"><div class="eyebrow">무료 3줄 결과</div><div class="lines" id="lines"></div></div>
         <div class="card qpick" id="qpick" hidden></div>
         <div class="card qsample" id="qsample" hidden></div>
         <div class="card teaser" id="teaser">
@@ -157,7 +157,7 @@
 
 <div class="modal" id="m-pay" hidden>
   <div class="box" role="dialog" aria-modal="true" aria-labelledby="pay-title">
-    <div class="eyebrow">결제 · 토스페이먼츠/포트원 연동 지점</div>
+    <div class="eyebrow">결제</div>
     <h3 id="pay-title"></h3>
     <div class="paysheet">
       <div class="rowv"><span>상품</span><b id="pay-what">심층 리포트 1회</b></div>
@@ -165,8 +165,8 @@
       <div class="rowv"><span>분량</span><b id="pay-size"></b></div>
       <div class="rowv"><span>발행</span><b>결제 즉시</b></div>
     </div>
-    <p class="note">MVP 콘티: 실제 결제가 일어나지 않습니다. 운영에서는 결제 승인 콜백 → 리포트 생성 큐 → 알림톡 링크 순서로 자동 처리됩니다.</p>
-    <button type="button" class="btn primary block" id="btn-pay-confirm">결제 완료로 가정하고 열기</button>
+    <p class="note">지금은 테스트 기간이라 실제 결제 없이 바로 열려요. 결과는 이 기기에 저장돼 새로고침해도 홈에서 다시 열 수 있어요.</p>
+    <button type="button" class="btn primary block" id="btn-pay-confirm">테스트 기간 · 바로 열기</button>
     <button type="button" class="btn ghost block" data-close="m-pay">닫기</button>
   </div>
 </div>
@@ -179,8 +179,8 @@
       <div class="rowv"><span>상품</span><b id="unlock-what">남은 문항 전체 답변</b></div>
       <div class="rowv"><span>추가 금액</span><b>₩5,000</b></div>
     </div>
-    <p class="note">MVP 콘티: 실제 결제가 일어나지 않습니다. 운영에서는 추가 결제 승인 후 즉시 열립니다.</p>
-    <button type="button" class="btn primary block" id="btn-unlock-confirm">₩5,000 결제로 가정하고 전부 열기</button>
+    <p class="note">지금은 테스트 기간이라 실제 결제 없이 바로 열려요.</p>
+    <button type="button" class="btn primary block" id="btn-unlock-confirm">테스트 기간 · 전부 열기</button>
     <button type="button" class="btn ghost block" data-close="m-unlock">닫기</button>
   </div>
 </div>
@@ -195,22 +195,22 @@
 </div>
 
 <footer class="foot">
-  <div>콘티 흐름: 홈(캐릭터 선택 / MBTI 사주) → 캐릭터 소개 → 정보 → 리딩 → 캐릭터 시트 → 심층 리포트(결제, 15화면 이상) → 공유 카드</div>
+  <div>콘티 흐름: 홈(캐릭터 선택 / MBTI 사주) → 캐릭터 소개 → 정보 → 리딩 → 캐릭터 시트 → 심층 리포트(결제 · 결론·질문 답·7장·근거) → 공유 카드</div>
   <div>계산: 만세력 결정론 엔진. 해석: 캐릭터 템플릿(운영 시 LLM). 신강신약·격·용신은 간이 판정. 참고용 콘텐츠이며 의학·법률·금융 조언이 아닙니다.</div>
 </footer>
-<script src="saju.js?v=20261031e"></script>
-<script src="personas.js?v=20261031e"></script>
-<script src="mbti.js?v=20261031e"></script>
-<script src="report.js?v=20261031e"></script>
-<script src="report-lenses.js?v=20261031e"></script>
-<script src="report2.js?v=20261031e"></script>
-<script src="compat.js?v=20261031e"></script>
-<script src="questions.js?v=20261031e"></script>
-<script src="report-ui.js?v=20261031e"></script>
-<script src="plain.js?v=20261031e"></script>
-<script src="app.js?v=20261031e"></script>
-<script src="vn-scripts.js?v=20261031e"></script>
-<script src="vn.js?v=20261031e"></script>
+<script src="saju.js?v=20261031f"></script>
+<script src="personas.js?v=20261031f"></script>
+<script src="mbti.js?v=20261031f"></script>
+<script src="report.js?v=20261031f"></script>
+<script src="report-lenses.js?v=20261031f"></script>
+<script src="report2.js?v=20261031f"></script>
+<script src="compat.js?v=20261031f"></script>
+<script src="questions.js?v=20261031f"></script>
+<script src="report-ui.js?v=20261031f"></script>
+<script src="plain.js?v=20261031f"></script>
+<script src="app.js?v=20261031f"></script>
+<script src="vn-scripts.js?v=20261031f"></script>
+<script src="vn.js?v=20261031f"></script>
 <!--BODY-END-->
 </body>
 </html>
