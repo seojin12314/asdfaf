@@ -299,6 +299,13 @@
     관성: '책임·규칙·평가의 시기. 직책과 시험, 계약이 걸린다. 건강과 압박 관리가 핵심.',
     인성: '학습·회복·준비의 시기. 배우고 쉬는 데 유리하고, 실행은 느려진다. 결정은 미루지 말 것.',
   };
+  const luckByGroupPolite = {
+    비겁: '내 힘이 커지는 시기예요. 독립·경쟁·동료 이슈가 앞에 와요. 혼자 결정하되 돈은 나누지 마세요.',
+    식상: '표현·생산·새 시도의 시기예요. 만들고 알리는 일이 잘 풀리고, 지출과 과로도 따라와요.',
+    재성: '현실·결과·돈이 움직이는 시기예요. 들어오는 만큼 나가요. 구조를 먼저 만들고 버세요.',
+    관성: '책임·규칙·평가의 시기예요. 직책과 시험, 계약이 걸려요. 건강과 압박 관리가 핵심이에요.',
+    인성: '학습·회복·준비의 시기예요. 배우고 쉬는 데 유리하고 실행은 느려져요. 결정은 미루지 마세요.',
+  };
   const ifThenByWeak = {
     비겁: ['상대가 선택을 떠넘기면 → 24시간 안에 내 답을 먼저 말한다', '거절해야 할 부탁이 오면 → 이유 없이 "이번엔 어렵다"로 끝낸다', '혼자 결정이 두려우면 → 결정 기준 3개를 미리 적어 둔다'],
     식상: ['속에 할 말이 쌓이면 → 그날 밤 세 줄로 적어 상대에게 보낸다', '성과를 설명할 자리가 오면 → 숫자 하나와 사례 하나만 말한다', '표현이 막히면 → 글·그림·음성 중 하나로 바꿔 꺼낸다'],
@@ -315,5 +322,5 @@
     return { greeting: fill(persona.greeting, c), lines: [fill(persona.open[result.dayMaster.element], c), fill(persona.strong[result.strongestGroup], c), fill(persona.weak[result.weakestGroup], c)], close: fill(persona.close, c) };
   }
 
-  root.SajuPersonas = { concerns, personas, classNames, elementWords, groupStats, groupDesc, luckByGroup, ifThenByWeak, fill, generateReading };
+  root.SajuPersonas = { concerns, personas, classNames, elementWords, groupStats, groupDesc, luckByGroup, luckByGroupPolite, ifThenByWeak, fill, generateReading };
 })(typeof self !== 'undefined' ? self : this);

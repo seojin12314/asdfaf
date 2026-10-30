@@ -160,7 +160,10 @@
     const opt = Object.assign({ tzOffsetMin: 540, solarCorrectionMin: -30, lateZiNextDay: true, hourUnknown: false, minute: 0 }, input || {});
     const notes = [];
     const y = +opt.year, mo = +opt.month, d = +opt.day;
-    if (!y || !mo || !d) throw new Error('year/month/day 필수');
+    const calendarDate = new Date(Date.UTC(y, mo - 1, d));
+    if (![y, mo, d].every(Number.isInteger) || y < 1900 || y > 2030 || calendarDate.getUTCFullYear() !== y || calendarDate.getUTCMonth() !== mo - 1 || calendarDate.getUTCDate() !== d) throw new Error('1900~2030년의 올바른 양력 생년월일을 입력해 주세요.');
+    if (!opt.hourUnknown && (!Number.isInteger(+opt.hour) || +opt.hour < 0 || +opt.hour > 23 || !Number.isInteger(+opt.minute) || +opt.minute < 0 || +opt.minute > 59)) throw new Error('올바른 출생 시각을 입력해 주세요.');
+    if (!Number.isFinite(+opt.solarCorrectionMin) || Math.abs(+opt.solarCorrectionMin) > 1440 || !Number.isFinite(+opt.tzOffsetMin) || Math.abs(+opt.tzOffsetMin) > 1440) throw new Error('시간 보정값을 확인해 주세요.');
 
     // 1) 보정된 현지 시각
     let localMin;

@@ -21,7 +21,7 @@
     재성: { 부족: '돈을 손에 쥐는 감각이 비어 있어 들어와도 남지 않아요.', 적정: '돈 감각은 알맞아 벌고 쓰는 리듬이 있어요.', 과다: '돈 기회는 많은데 몸이 먼저 지치는 구조예요.' },
     비겁: { 부족: '내 몫을 주장하는 힘이 작아 나눌 때 손해를 봐요.', 적정: '내 몫을 지키면서 나눌 줄 알아요.', 과다: '동업과 보증에서 새는 자리가 가장 커요.' },
     식상: { 부족: '파는 통로가 비어 있어 좋은 걸 들고도 못 팔아요.', 적정: '만든 것을 파는 통로가 알맞게 있어요.', 과다: '재주는 많은데 동시에 벌여 정산이 늦어요.' },
-    관성: { 부족: '지키는 울타리가 비어 있어 번 돈이 흩어져요.', 적정: '지키는 울타리가 알맞아 큰 구멍은 없어요.', 과다: '책임과 체면에 쓰는 돈이 커요.' },
+    관성: { 부족: '지키는 울타리가 비어 있어 번 돈이 흩어져요.', 적정: '돈을 관리할 기준은 있어요. 관계에서 새는 돈은 따로 살펴요.', 과다: '책임과 체면에 쓰는 돈이 커요.' },
   };
   const LEAK = {
     비겁: { avoid: '동업·보증·공동 명의에 돈을 넣지 마세요', instead: '같이 하고 싶으면 돈 대신 시간과 일로 참여하세요. 몫은 문서로, 돈은 내 이름으로 두는 게 이 명식의 울타리예요.' },
@@ -192,7 +192,7 @@
       const q = [1, 2, 3, 4].map(n => ({ n, score: cal.filter(x => Math.ceil(x.solarMonth / 3) === n && x.yearLabel === nextY).reduce((a, x) => a + (x.grade === '추진' ? 1 : x.grade === '주의' ? -3 : 0), 0) })); const best = q.slice().sort((a, b) => b.score - a.score)[0], worst = q.slice().sort((a, b) => a.score - b.score)[0];
       S.push({ id: 'months', title: `${nextY}년 분기별 적기`, conclusion: `적기 ${best.n}분기, 비적기 ${worst.n}분기`, body: [`${nextY}년 이직 적기는 ${best.n}분기, 비적기는 ${worst.n}분기예요.`, `면접은 ${c.mlist(push.slice(0, 3)) || '보통 달'}에 잡는 게 좋아요.`, caution.length ? `사직서는 ${j(c.mlist(caution), '을')} 피해서 내세요.` : '정면으로 부딪히는 달은 없어요.', '달의 경계는 1일이 아니라 괄호 안 날짜예요.'], avoid: `${nextY}년 ${worst.n}분기에는 사직서를 내지 마세요`, instead: `사직서는 ${best.n}분기에, 면접은 ${bestM.label}에 잡으세요. 적기에 움직이면 같은 경력도 더 좋은 조건으로 팔려요.`, viz: viz.calendar });
       const wr = WORK_REL[dayG];
-      S.push({ id: 'rel', title: '상사·동료 궁합', conclusion: wr.body.replace(/\.$/, ''), body: [wr.body, dm.rel.replace(/사랑|연인/g, '동료'), lvG['비겁'] === '과다' ? '동업자나 공동 창업자와는 몫 문제가 먼저 와요.' : '팀에서는 역할이 분명할 때 가장 편해요.'], avoid: wr.avoid, instead: wr.instead });
+      S.push({ id: 'rel', title: '상사·동료 궁합', conclusion: wr.body.replace(/\.$/, ''), body: [wr.body, WORK_LEVEL.비겁[lvG['비겁']], lvG['비겁'] === '과다' ? '동업자나 공동 창업자와는 몫 문제가 먼저 와요.' : '팀에서는 역할이 분명할 때 가장 편해요.'], avoid: wr.avoid, instead: wr.instead });
       const rec = c.rec; const forb = c.forbidden;
       S.push({ id: 'work', title: '적합 직무와 피할 환경', conclusion: `맞는 일은 ${CAREER[top[0]]}`, body: [`맞는 일은 ${j(CAREER[top[0]], '이에요')}.`, WORK_STYLE[strong], rec[1] && rec[1] !== top[0] ? `두 번째로는 ${CAREER[rec[1]]} 쪽이에요.` : '', c.weakInAllowed ? `${j(CAREER_S[weak], '은')} 지금 힘들어도 길게 보면 채울 방향이에요.` : `길게 보면 ${CAREER_S[pickG]} 쪽이 타고난 판을 보완해요.`].filter(Boolean), avoid: c.workPair.avoid, instead: c.workPair.instead });
       return S;

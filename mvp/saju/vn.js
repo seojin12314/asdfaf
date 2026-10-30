@@ -162,7 +162,7 @@
       : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
       : kind === 'gender' ? `<div class="seg"><label><input type="radio" name="vn-g" value="F" checked><span>여성</span></label><label><input type="radio" name="vn-g" value="M"><span>남성</span></label></div><div class="rowb"><span></span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '맞아')}</button></div>`
       : kind === 'date' ? `<input type="date" id="vn-f" min="1900-01-01" max="2030-12-31"><div class="rowb"><span class="hint">양력</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><div class="err" id="vn-err" hidden></div>`
-      : `<input type="time" id="vn-f"><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
+      : `<input type="time" id="vn-f" aria-label="출생 시각"><label class="hint"><input type="checkbox" id="vn-solar" checked> 출생 시각 −30분 근사 보정</label><p class="hint">지역에 따라 달라요. 보정하지 않으려면 해제하세요. 시주 경계에서는 결과가 달라질 수 있어요.</p><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
     el.input.innerHTML = html; el.input.hidden = false;
     const f = $('#vn-f', el.input); if (f) setTimeout(() => f.focus(), 50);
     return new Promise(res => {
@@ -173,8 +173,8 @@
         if (kind === 'mbti') { const l = M.AXES.map(x => { const r = el.input.querySelector(`input[name="vn-m_${x.id}"]:checked`); return r ? r.value : ''; }).join(''); if (l.length !== 4) return err('네 축을 모두 골라 주세요.'); return done(l); }
         if (kind === 'text') return done(f.value.trim());
         if (kind === 'gender') return done(el.input.querySelector('input[name="vn-g"]:checked').value);
-        if (kind === 'date') { if (!f.value) return err('날짜를 골라 줘.'); const [y, m, d] = f.value.split('-').map(Number); return done({ year: y, month: m, day: d }); }
-        if (!f.value) return err('시각을 넣거나 "몰라요"를 눌러 줘.'); const [hh, mm] = f.value.split(':').map(Number); return done({ hour: hh, minute: mm });
+        if (kind === 'date') { if (!f.value) return err('날짜를 골라 줘.'); if (!f.validity.valid) return err('1900~2030년의 올바른 양력 날짜를 입력해 주세요.'); const [y, m, d] = f.value.split('-').map(Number); return done({ year: y, month: m, day: d }); }
+        if (!f.value || !f.validity.valid) return err('시각을 넣거나 "몰라요"를 눌러 줘.'); const [hh, mm] = f.value.split(':').map(Number); return done({ hour: hh, minute: mm, solarCorrectionMin: $('#vn-solar', el.input).checked ? -30 : 0 });
       });
       const unk = $('#vn-unk', el.input); if (unk) unk.addEventListener('click', e => { e.stopPropagation(); done(null); });
       if (f) f.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#vn-ok', el.input).click(); } });
@@ -194,7 +194,7 @@
     if (v.type === 'letters') return swap(`<div class="vn-letters">${v.items.map(it => `<div><small>${esc(it.label)}</small><b>${esc(it.v)}</b></div>`).join('')}</div>`);
     if (v.type === 'axis') { const a = v.a, w = Math.abs(a.pct - 50), fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`; return swap(`<div class="eyebrow">${a.left}/${a.right} · 명식 ${a.letter} ${a.letterPct}%</div><div class="axes"><div class="axis"><div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}<small>${a.leftKo}</small></div><div class="track"><div class="fill" style="${fill}"></div>${v.test ? `<div class="test" style="left:${v.test === a.left ? '5%' : '95%'}">${v.test}</div>` : ''}${v.goal ? `<div class="goal" style="left:${v.goal === a.left ? '18%' : '82%'}">★</div>` : ''}</div><div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}<small>${a.rightKo}</small></div><div class="meta"><span>명식 <b>${a.letter}</b> ${a.letterPct}%</span>${v.test ? `<span class="${v.test === a.letter ? 'ok' : 'ng'}">검사 ${v.test}</span>` : ''}${v.goal ? `<span class="${v.goal === a.letter ? 'ok' : 'ng'}">추구 ${v.goal}</span>` : ''}</div></div></div>`); }
     if (v.type === 'pair') return swap(`<div class="eyebrow">${esc(v.title)}</div><div class="vn-glyph"><div class="pair"><div class="big sm">${esc(v.a.big)}</div><span class="vs">VS</span><div class="big sm">${esc(v.b.big)}</div></div><div class="t"><b>${esc(v.a.label)} · ${esc(v.b.label)}</b><span>${esc(v.sub || '')}</span></div></div>`);
-    if (v.type === 'months') return swap(`<div class="eyebrow">${esc(v.title)}</div><div class="vn-months">${v.months.map((m, i) => `<div class="${v.focus.has(m.idx) ? 'focus' : ''} ${v.caution.has(m.idx) ? 'caution' : ''}" style="animation-delay:${i * 45}ms"><b>${esc(m.pillar.branch)}</b>${esc(m.pillar.branchKo)}월</div>`).join('')}<div class="legend"><span class="f"><i></i>들어오는 달</span><span class="c"><i></i>충·주의</span></div></div>`);
+    if (v.type === 'months') return swap(`<div class="eyebrow">${esc(v.title)}</div><div class="vn-months">${v.months.map((m, i) => `<div class="${v.focus.has(m.idx) ? 'focus' : ''} ${v.caution.has(m.idx) ? 'caution' : ''}" style="animation-delay:${i * 45}ms"><b>${m.pillar.startKST ? m.pillar.startKST.getUTCMonth() + 1 : ''}월</b>${esc(m.pillar.branch)}</div>`).join('')}<div class="legend"><span class="f"><i></i>들어오는 달</span><span class="c"><i></i>충·주의</span></div></div>`);
   }
 
   // ───── 흐름 ─────
@@ -245,7 +245,7 @@
       const gender = await ask('gender', sc.ask.gender); if (!st.open) return;
       const d = await ask('date', sc.ask.date); if (!st.open) return;
       const t = await ask('time', sc.ask.time); if (!st.open) return;
-      input = { name, year: d.year, month: d.month, day: d.day, hour: t ? t.hour : 12, minute: t ? t.minute : 0, hourUnknown: !t, gender, solarCorrectionMin: -30, mbti: prev && prev.mbti ? prev.mbti : null };
+      input = { name, year: d.year, month: d.month, day: d.day, hour: t ? t.hour : 12, minute: t ? t.minute : 0, hourUnknown: !t, gender, solarCorrectionMin: t ? t.solarCorrectionMin : 0, mbti: prev && prev.mbti ? prev.mbti : null };
     }
     const name = input.name || '당신';
     if (sc.mbti) {

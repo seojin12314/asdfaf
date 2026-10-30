@@ -138,6 +138,7 @@
   function readForm() {
     const f = $('#birth'); const err = (m) => { $('#form-error').textContent = m; $('#form-error').hidden = false; return null; };
     const date = f.date.value; if (!date) { f.date.focus(); return err('생년월일을 입력해 주세요.'); }
+    if (!f.date.validity.valid) return err('1900~2030년의 올바른 양력 생년월일을 입력해 주세요.');
     const [y, m, d] = date.split('-').map(Number);
     const hourUnknown = f.hourUnknown.checked; let hour = 12, minute = 0;
     if (!hourUnknown) { if (!f.time.value) { f.time.focus(); return err('출생 시각을 입력하거나 "시간을 모릅니다"를 선택해 주세요.'); } [hour, minute] = f.time.value.split(':').map(Number); }
@@ -239,15 +240,26 @@
   function qList() { return QB.list(qDomain(), qFacts()); }
   function renderQPick() {
     const box = $('#qpick'); if (!box || !QB) return; const domain = qDomain(); const items = qList();
-    if (!state.qsel.length) state.qsel = QB.recommend(domain, qFacts(), 10);
+    if (!state.qinitialized) { state.qsel = QB.recommend(domain, qFacts(), 10); state.qinitialized = true; }
     const sel = new Set(state.qsel);
     box.hidden = false;
     box.innerHTML = `<div class="eyebrow">질문 고르기 · ${QB.DOMAIN_KO[domain]}</div><div class="qpick-head"><h3>궁금한 질문 10개를 고르세요</h3><span class="qcount"><b id="qcount">${sel.size}</b>/10</span></div><p class="muted">고른 질문의 답을 내 사주로 풀어 드려요. 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 10개로 채우기</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div><div class="qlist">${items.map(it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`).join('')}</div>`;
-    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
+    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; renderQSample(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
     $$('#qpick input[data-q]').forEach(cb => cb.addEventListener('change', () => { const id = cb.dataset.q; if (cb.checked) { if (state.qsel.length >= 10) { cb.checked = false; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); return; } state.qsel.push(id); } else state.qsel = state.qsel.filter(x => x !== id); state.report = null; sync(); }));
     $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, qFacts(), 10); state.report = null; renderQPick(); });
     $('#btn-qclear').addEventListener('click', () => { state.qsel = []; state.report = null; renderQPick(); });
     sync();
+  }
+  function renderQSample() {
+    const box = $('#qsample'); if (!box) return; const domain = qDomain(), F = qFacts(); const items = qList(); const first = items.find(it => state.qsel.includes(it.id) && !it.locked);
+    if (!first) { box.hidden = true; return; }
+    const a = QB.answer(domain, first.n, F); const others = state.qsel.length - 1;
+    box.hidden = false; box.innerHTML = `<div class="eyebrow">맛보기 · 고른 질문 중 첫 번째 답</div><div class="qa"><div class="qq"><span class="qn">Q${String(a.n).padStart(2, '0')}</span><b>${a.q.replace(/^★\s*/, '')}</b></div><div class="qa-a">${(a.text.match(/[^.!?]+[.!?]?/g) || [a.text]).map(x => `<p>${x.trim()}</p>`).join('')}</div></div>${others > 0 ? `<p class="muted" style="margin:8px 0 0">나머지 ${others}개 답도 이렇게 바로 결론부터 말해요. 결제하면 결론 화면과 근거까지 함께 열려요.</p>` : ''}`;
+  }
+  function crossBlock() {
+    if (!QB) return []; const me = state.mode === 'mbti' ? 'mbti' : state.persona.id; const F = qFacts();
+    const pri = { flame: ['sage', 'master', 'mbti'], sage: ['hunter', 'flame', 'master'], hunter: ['sage', 'mbti', 'master'], granny: ['master', 'sage', 'flame'], child: ['master', 'granny', 'flame'], master: ['flame', 'sage', 'hunter'], mbti: ['flame', 'hunter', 'master'] }[me] || ['master'];
+    return QB.hooks(F, me).filter(h => pri.includes(h.id)).sort((a, b) => pri.indexOf(a.id) - pri.indexOf(b.id)).slice(0, 3).map(h => { const p = P.personas[h.id]; return Object.assign(h, p ? { name: p.name, role: p.role, accent: p.palette.accent, face: artHTML(p, 'face') } : { name: '도윤 선생님', role: 'MBTI 사주', accent: '#66d6c5', face: `<img src="${ART}mbti/face.png" alt="">` }); });
   }
   function qaBlock() {
     if (!QB) return null; const domain = qDomain(), F = qFacts(), items = qList();
@@ -275,8 +287,9 @@
         <h3 class="rtitle">${rep.title}</h3>
         <p class="muted">${state.input.name || '당신'} · ${birthString()}</p>
       </div>
-      <div class="rwrap">${UI.fullHTML(rep, { personaFace: face, planKey: planKey(), qa: qaBlock() })}</div>`;
+      <div class="rwrap">${UI.fullHTML(rep, { personaFace: face, planKey: planKey(), qa: qaBlock(), cross: crossBlock() })}</div>`;
     UI.bind($('#report'), rep);
+    $$('#report .cross-card').forEach(b => b.addEventListener('click', () => { const id = b.dataset.vn; if (id === 'mbti') { setMode('mbti'); if (window.SajuVN) return window.SajuVN.start('mbti'); } else { state.mode = 'persona'; setPersona(id); if (window.SajuVN) return window.SajuVN.start(id); } show('home'); }));
     const ub = $('#btn-unlock'); if (ub) ub.addEventListener('click', () => { const rest = qList().filter(it => !state.qsel.includes(it.id) && !it.locked).length; $('#unlock-what').textContent = `남은 ${rest}문항 전체 답변`; $('#m-unlock').hidden = false; });
     $('#teaser').hidden = true; $('#report').hidden = false; state.unlocked = true;
     $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
@@ -309,7 +322,7 @@
 
   // ───── 흐름 연결 ─────
   function compute(input) {
-    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.qsel = []; state.qall = false; state.qfacts = null;
+    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.qsel = []; state.qinitialized = false; state.qall = false; state.qfacts = null;
     try { state.result = S.compute(input); } catch (err) { $('#form-error').textContent = '계산에 실패했습니다: ' + err.message; $('#form-error').hidden = false; return false; }
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;
@@ -334,7 +347,7 @@
     $$('[data-close]').forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.close).hidden = true; }));
     $('#btn-cross').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } if (state.input.mbti) { compute(state.input); show('reading'); runReading(() => { show('result'); renderResult(); }); } else { renderMbtiIntro(); prepForm(); show('form'); } });
     $('#btn-again').addEventListener('click', () => { if (state.mode === 'mbti') { state.mode = 'persona'; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; } show('home'); });
-    $('#btn-restart').addEventListener('click', () => { state.mode = 'persona'; state.persona = null; document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; show('home'); });
+    $('#btn-restart').addEventListener('click', () => { Object.assign(state, { mode: 'persona', persona: null, input: null, result: null, reading: null, report: null, est: null, cmp: null, adv: null, compat: null, parent: null, qsel: [], qinitialized: false, qfacts: null, qall: false, unlocked: false }); document.documentElement.dataset.persona = ''; $('#app').dataset.persona = ''; show('home'); });
   }
   // 미연시 연출 레이어(vn.js)가 쓰는 공개 API
   window.SajuApp = { state, setPersona, setMode, compute, show, renderResult, renderPersonaIntro, pillarsHTML, radarSVG, statsHTML, artHTML, won };

@@ -73,11 +73,15 @@
     const lockRow = x => `<div class="qlock ${x.locked ? 'need' : ''}"><span class="qn">Q${String(x.n).padStart(2, '0')}</span><span>${esc(x.q.replace(/^★\s*/, ''))}</span>${x.locked ? `<small>${esc(x.locked)}</small>` : '<small>🔒</small>'}</div>`;
     return `<section class="l2sec qa-sec" id="sec-qa"><div class="l2head"><span class="l2num">Q</span><h4>${esc(qa.title)}</h4><span class="chip accent">${qa.answers.length}문항</span></div><p class="l2concl">${esc(qa.lead)}</p>${qa.answers.map(card).join('')}${qa.rest.length ? `<div class="qrest"><div class="qrest-h">${qa.all ? '열린 나머지 문항' : `아직 안 본 질문 ${qa.rest.length}개`}</div>${qa.all ? qa.rest.map(card).join('') : qa.rest.map(lockRow).join('') + `<button type="button" class="btn primary block" id="btn-unlock">+₩5,000으로 ${qa.rest.filter(x => !x.locked).length}문항 전부 열기</button>`}</div>` : ''}</section>`;
   }
+  function crossHTML(cross) {
+    if (!cross || !cross.length) return '';
+    return `<section class="l2sec cross-sec" id="sec-cross"><div class="l2head"><span class="l2num">→</span><h4>같은 명식, 다른 캐릭터는 이렇게 봐요</h4></div><p class="l2concl">입력은 그대로 두고 캐릭터만 바꾸면 돼요.</p><div class="cross-list">${cross.map(c => `<button type="button" class="cross-card" data-vn="${c.id}" style="--pc:${esc(c.accent || '')}"><span class="cross-face">${c.face || ''}</span><span class="cross-body"><b>${esc(c.name)}</b><small>${esc(c.role)}</small><p>${esc(c.text)}</p></span><span class="cross-go">보러 가기</span></button>`).join('')}</div></section>`;
+  }
   /** 결제 후 전체 */
   function fullHTML(rep, opts) {
     opts = opts || {}; const face = opts.personaFace || '';
     const l2 = `<div class="l2">${rep.L2.map((s, i) => sectionHTML(s, i, rep, face)).join('')}${endHTML(rep, opts.planKey || 'plan')}</div>`;
-    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
+    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${crossHTML(opts.cross)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
   }
   /** 이벤트: 달력 탭 지침, 진입점 스크롤, 왜? 링크 → L3 펼침, 4주 체크 저장 */
   function bind(rootEl, rep) {
@@ -87,5 +91,5 @@
     rootEl.querySelectorAll('[data-l3]').forEach(a => a.addEventListener('click', () => { const d = rootEl.querySelector('#' + a.dataset.l3); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
     rootEl.querySelectorAll('input[data-plan]').forEach(cb => { const key = 'saju-plan-' + cb.dataset.key; let saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { /* ignore */ } cb.checked = !!saved[cb.dataset.plan]; cb.addEventListener('change', () => { saved[cb.dataset.plan] = cb.checked; try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) { /* ignore */ } cb.closest('.pitem').classList.toggle('done', cb.checked); }); cb.closest('.pitem').classList.toggle('done', cb.checked); });
   }
-  root.SajuReportUI = { teaserHTML, fullHTML, qaHTML, identityHTML, calendarHTML, trioHTML, pairHTML, compatVizHTML, bind };
+  root.SajuReportUI = { teaserHTML, fullHTML, qaHTML, crossHTML, identityHTML, calendarHTML, trioHTML, pairHTML, compatVizHTML, bind };
 })(typeof self !== 'undefined' ? self : this);

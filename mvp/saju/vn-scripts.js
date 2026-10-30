@@ -11,6 +11,8 @@
   const GEN = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
   const OVER = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
   const KO = S.ELEM_KO;
+  const jo = (w, b, n) => { const t = String(w).replace(/[)\]\s]+$/, ''); const c = t.charCodeAt(t.length - 1); return w + ((c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0) ? b : n); };
+  const elKo = e => `${e}(${KO[e]})`; const elJ = (e, b, n) => jo(elKo(e), b, n);
   const SG = r => (r.input.gender === 'M' ? '재성' : '관성'); // 배우자성
   const CG = r => (r.input.gender === 'M' ? '관성' : '식상'); // 자녀성
 
@@ -23,7 +25,8 @@
   function monthsInfo(r, persona) {
     const nextY = r.seun[1].year; const months = R.monthTable(r, nextY);
     const focus = months.filter(m => persona.special.focus(r, m)); const caution = months.filter(m => m.grade === '주의'); const push = months.filter(m => m.grade === '추진');
-    const names = ms => (ms.length ? ms.map(m => m.pillar.branchKo + '월').join('·') : '없음');
+    const solar = m => `${m.pillar.startKST ? m.pillar.startKST.getUTCMonth() + 1 : ((m.idx + 2) % 12) + 1}월`;
+    const names = ms => (ms.length ? ms.map(solar).join('·') : '없음');
     return { nextY, months, focus, caution, push, names };
   }
   function monthsVisual(mo, title, focusList) {
@@ -121,12 +124,12 @@
         const r = c.r, p = c.p, sp = spouseInfo(r), mo = monthsInfo(r, p), top = r.sortedElems[0];
         const temp = { 火: '뜨겁게 시작하고 금방 식는다는 말, 들어 봤지? 그게 너야. 식은 게 아니라 다른 데를 비추고 있을 뿐인데, 상대는 몰라.', 水: '먼저 식어서 먼저 떠나는 쪽은 늘 너였을 거야. 상대 기분을 물처럼 읽다가 네가 먼저 지치거든.', 木: '한 번 뿌리내리면 못 빠져나오는 사랑이야. 끝난 자리를 오래 붙드는 것도 그래서고.', 土: '묵묵히 지키다 서운함을 쌓는 사랑. 상대는 네가 괜찮은 줄 알아. 괜찮지 않은데.', 金: '기준이 분명해서 아무나 못 들어오는 사랑. 들어오면 끝까지 가는데, 실망하면 문이 닫혀.' };
         const seat = { 비겁: '옆자리에 나와 같은 기운. 친구 같은 연인, 아니면 경쟁자 같은 연인을 끌어들이는 모양이야.', 식상: '옆자리가 표현의 기운. 사랑을 말로 주고받아야 사는 사람. 과묵한 상대랑은 굶어.', 재성: '옆자리가 현실의 기운. 같이 살 수 있는 사람인지를 먼저 보는 눈이 있어.', 관성: '옆자리가 책임의 기운. 가볍게 못 만나고, 만나면 끝까지 가려 해. 그래서 가벼운 사람들 사이에서 네가 무거워 보여.', 인성: '옆자리가 품는 기운. 상대를 돌보다가 네가 먼저 지치는 자리야.' };
-        const spouseLine = sp.count === 0 ? `배우자성 ${sp.sg}이 원국에 없어. 인연이 없다는 게 아니라, 네가 직접 찾아 나서야 보이는 모양이야. 기다리면 안 와.` : sp.count === 1 ? `배우자성 ${sp.list[0].name}이 ${sp.where}에 하나. 깔끔해. 한 사람에게 오래 머무는 모양이야.` : `배우자성이 ${sp.count}개. ${sp.where}. 선택지가 많은 게 아니라, 마음이 자주 흔들리는 모양이야. 그래서 매번 다른 사람인데 매번 같은 결말이지.`;
+        const spouseLine = sp.count === 0 ? `배우자성 ${sp.sg}이 원국에 없어. 인연이 없다는 게 아니라, 네가 직접 찾아 나서야 보이는 모양이야. 기다리면 안 와.` : sp.count === 1 ? `배우자성 ${jo(sp.list[0].name, '이', '가')} ${sp.where}에 하나. 깔끔해. 한 사람에게 오래 머무는 모양이야.` : `배우자성이 ${sp.count}개. ${sp.where}. 선택지가 많은 게 아니라, 마음이 자주 흔들리는 모양이야. 그래서 매번 다른 사람인데 매번 같은 결말이지.`;
         const b = [
           { t: P.fill(p.open[r.dayMaster.element], c), face: 'neutral', visual: { type: 'pillars' } },
           { t: spouseLine, face: sp.count === 0 ? 'serious' : 'smile', fx: sp.count === 0 ? 'dim' : 'glow', visual: glyph(sp.glyph, `배우자성 ${sp.sg} · ${sp.count}개`, sp.count ? sp.where : '원국에 없음') },
           { t: `그리고 네 일지. 네 옆자리에 앉은 글자는 ${r.day.branch}, ${sp.dayGod}이야. ${seat[sp.dayGroup] || ''}`, face: 'neutral', visual: glyph(r.day.branch, `일지 · ${sp.dayGod}`, '내 옆자리에 누가 앉는지') },
-          { t: `오행은 네 사랑의 온도야. ${top}(${KO[top]})이 제일 많아. ${temp[top]}`, face: top === '火' || top === '木' ? 'smile' : 'serious', visual: { type: 'radar' } },
+          { t: `오행은 네 사랑의 온도야. ${elJ(top, '이', '가')} 제일 많아. ${temp[top]}`, face: top === '火' || top === '木' ? 'smile' : 'serious', visual: { type: 'radar' } },
           { t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } },
           { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', fx: 'dim', sprite: 'nod' },
         ];
@@ -174,7 +177,7 @@
         const b = [
           { t: P.fill(p.open[r.dayMaster.element], c), face: 'neutral', visual: { type: 'pillars' } },
           { t: `재물의 셈을 해 보자. 재성 ${n재}개, 벌 재주인 식상 ${n식}개, 지킬 울타리인 관성 ${n관}개. ${hole}`, face: (n재 && n식 && n관) ? 'smile' : 'serious', fx: (n재 && n식 && n관) ? 'glow' : 'dim', visual: glyph(n재 ? (r.tenGods.find(t => t.group === '재성') || {}).char : '財', `재성 ${n재} · 식상 ${n식} · 관성 ${n관}`, '벌 재주 · 돈 · 지킬 울타리') },
-          { t: `오행의 치우침은 소비의 치우침이다. ${top}(${KO[top]})이 가장 많으니, ${spend[top]}`, face: 'neutral', visual: { type: 'radar' } },
+          { t: `오행의 치우침은 소비의 치우침이다. ${elJ(top, '이', '가')} 가장 많다. ${spend[top]}`, face: 'neutral', visual: { type: 'radar' } },
           { t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } },
           { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' },
         ];
@@ -217,10 +220,10 @@
         const b = [
           { t: P.fill(p.open[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
           { t: `올해 ${now.year}년은 ${now.stem}${now.branch}, ${now.tenGod.group} 운이었어. ${P.luckByGroup[now.tenGod.group]} ${c.concern === 'year' ? '그래서 힘들었던 거야. 네가 못나서가 아니라.' : '그 해를 지나온 거야.'}`, face: now.tenGod.group === '관성' || now.tenGod.group === '비겁' ? 'serious' : 'neutral', visual: glyph(now.stem + now.branch, `올해 ${now.year}년 · ${now.tenGod.group}`, P.groupDesc[now.tenGod.group]) },
-          { t: `내년 ${nx.year}년은 ${nx.stem}${nx.branch}, ${nx.tenGod.group} 운. ${P.luckByGroup[nx.tenGod.group]} 올해랑은 달라. 봐, 계절이 바뀌잖아.`, face: 'smile', fx: 'flash', visual: glyph(nx.stem + nx.branch, `내년 ${nx.year}년 · ${nx.tenGod.group}`, P.groupDesc[nx.tenGod.group]) },
+          { t: nx.tenGod.group === now.tenGod.group ? `내년 ${nx.year}년은 ${nx.stem}${nx.branch}. 같은 ${nx.tenGod.group} 운이 한 해 더 가. 올해 배운 걸 내년에 써먹는 흐름이야. 글자만 바뀌니 서두르지 마.` : `내년 ${nx.year}년은 ${nx.stem}${nx.branch}, ${nx.tenGod.group} 운. ${P.luckByGroup[nx.tenGod.group]} 올해랑은 달라. 봐, 계절이 바뀌잖아.`, face: 'smile', fx: 'flash', visual: glyph(nx.stem + nx.branch, `내년 ${nx.year}년 · ${nx.tenGod.group}`, P.groupDesc[nx.tenGod.group]) },
         ];
         if (cur) b.push({ t: turning ? `그리고 얘야, 지금 네 대운이 바뀌는 길목이야. ${cur.stem}${cur.branch} 대운이 ${cur.fromAge}세부터 ${cur.toAge}세까지인데, 네가 그 끝자락에 있어. 길목에서는 큰일 벌이지 말고 짐 정리만 해.` : `지금 대운은 ${cur.stem}${cur.branch}, ${cur.fromAge}세부터 ${cur.toAge}세까지. 아직 한 계절 안에 있어. 급하게 바꾸려 하지 마.`, face: turning ? 'serious' : 'neutral', visual: glyph(cur.stem + cur.branch, `지금 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세${turning ? ' · 바뀌는 길목' : ''}`) });
-        b.push({ t: `네 몸의 계절은 ${st.seasonText.split('.')[0]}. ${st.seasonText.split('.').slice(1).join('.').trim()}`, face: 'neutral', visual: { type: 'radar' } });
+        b.push({ t: `네 몸은 ${st.season}에 태어난 몸이야. ${({ 봄: '자라는 기운이 넉넉해서 시작은 잘하는데 마무리를 챙겨야 해.', 여름: '열기가 많아서 물이 약이야. 잠이랑 물을 챙기렴.', 가을: '거두는 기운이라 몸이 마르기 쉬워. 따뜻하게 지내.', 겨울: '몸이 쉽게 식어. 햇볕이랑 움직임이 약이야.' })[st.season]}`, face: 'neutral', visual: { type: 'radar' } });
         b.push({ t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } });
         b.push({ t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' });
         b.push({ t: mo.caution.length ? `자, 달력 꺼내. ${mo.nextY}년에 조심할 달은 ${mo.names(mo.caution)}. 이 달엔 이사, 수술, 큰 계약, ${c.concern === 'family' ? '가족 행사' : '큰 결정'}은 피해. 피할 수 없으면 두 번 확인해.` : `${mo.nextY}년엔 충이 드는 달이 없어. 아이고, 다행이다. 그래도 들뜨진 마.`, face: 'serious', fx: mo.caution.length ? 'shake' : 'glow', visual: monthsVisual(mo, `${mo.nextY}년 · 조심할 달과 밀어붙일 달`, mo.push) });
@@ -263,7 +266,7 @@
         const power = st.label === '신강' ? '아이 힘이 세요! 센 아이는 부딪혀 봐야 배워요. 다 막아 주지 마세요.' : st.label === '신약' ? '아이 힘이 약한 편이에요. 약한 게 나쁜 게 아니에요. 안아 줘야 크는 아이예요.' : '아이 힘이 딱 중간이에요. 밀어도 되고 안아 줘도 돼요. 아이가 원하는 걸 보세요.';
         const b = [
           { t: P.fill(p.open[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
-          { t: `오행은 아이 몸의 온도예요. ${top}(${KO[top]})이 제일 많아요. ${temp[top]}`, face: 'smile', visual: { type: 'radar' } },
+          { t: `오행은 아이 몸의 온도예요. ${elJ(top, '이', '가')} 제일 많아요. ${temp[top]}`, face: 'smile', visual: { type: 'radar' } },
           Object.assign({ visual: { type: 'stats' }, fx: 'glow' }, style),
           { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' },
           { t: power, face: st.label === '신약' ? 'serious' : 'smile', visual: glyph(st.label, `아이 힘 · ${st.label}`, st.why[0]) },
@@ -347,14 +350,14 @@
         const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), sp = spouseInfo(r), now = r.seun[0], nx = r.seun[1], cur = r.daeun && r.daeun.current, sg = r.strongestGroup, top = r.sortedElems[0], low = r.sortedElems[4];
             const dm = R.DAYMASTER[r.day.stem];
         const b = [
-          { t: `${P.fill(p.open[r.dayMaster.element], c)} 쉽게 말해 ${dm.image}예요.`, face: 'smile', visual: { type: 'pillars' } },
+          { t: `${P.fill(p.open[r.dayMaster.element], c)} 쉽게 말해 ${jo(dm.image, '이에요', '예요')}.`, face: 'smile', visual: { type: 'pillars' } },
           { t: `원국의 힘 분포예요. 가장 강한 기운은 ${sg}, 가장 약한 기운은 ${r.weakestGroup}. ${P.fill(p.strong[sg], c)}`, face: 'neutral', visual: { type: 'stats' } },
           { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' },
-          { t: `오행은 ${top}(${KO[top]})이 가장 많고 ${low}(${KO[low]})이 가장 적어요. 조후로 보면 ${st.seasonText}`, face: 'neutral', visual: { type: 'radar' } },
-          { t: `전문가들이 가장 오래 보는 장이에요. 판정은 ${st.label}. ${st.why[0]}. ${st.yongshin.pick ? `용신 후보는 ${st.yongshin.pick}이에요. ${st.yongshin.why}.` : st.yongshin.why + '.'} 간이 판정이지만 근거는 이렇습니다.`, face: 'neutral', fx: 'flash', visual: glyph(st.label, `${st.label} · ${st.score}점`, st.yongshin.pick ? `용신 후보 ${st.yongshin.groups.join('·')}` : '조후 우선') },
+          { t: `오행은 ${elJ(top, '이', '가')} 가장 많고 ${elJ(low, '이', '가')} 가장 적어요. 조후로 보면 ${root.SajuReport2.TABLES.SEASON_SENT[st.season]} ${({ 봄: '쇠 기운과 불 기운이 반가워요.', 여름: '물 기운이 가장 반가워요.', 가을: '불 기운이 반가워요.', 겨울: '불 기운이 가장 반가워요.' })[st.season]}`, face: 'neutral', visual: { type: 'radar' } },
+          { t: `전문가들이 가장 오래 보는 장이에요. 판정은 ${st.label}. ${st.why[0].replace(/돕습니다/g, '도와요').replace(/받칩니다/g, '받쳐요').replace(/않습니다/g, '않아요')}. ${st.yongshin.pick ? `용신 후보는 ${st.yongshin.pick}이에요. ${st.yongshin.why}.` : st.yongshin.why + '.'} 간이 판정이지만 근거는 이래요.`, face: 'neutral', fx: 'flash', visual: glyph(st.label, `${st.label} · ${st.score}점`, st.yongshin.pick ? `용신 후보 ${st.yongshin.groups.join('·')}` : '조후 우선') },
         ];
-        if (cur) b.push({ t: `대운은 10년 단위의 무대예요. 지금은 ${cur.stem}${cur.branch}, ${cur.tenGod.group} 운이고 ${cur.fromAge}세부터 ${cur.toAge}세까지예요. ${P.luckByGroup[cur.tenGod.group]}`, face: 'neutral', visual: glyph(cur.stem + cur.branch, `현재 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세`) });
-        b.push({ t: `세운은 그 해의 날씨예요. 올해 ${now.year}년은 ${now.tenGod.group} 운, 내년 ${nx.year}년은 ${nx.tenGod.group} 운. ${c.concern === 'why' ? `올해가 힘드셨다면 ${now.tenGod.group} 운의 성격 때문이에요. ${P.luckByGroup[now.tenGod.group]}` : P.luckByGroup[nx.tenGod.group]}`, face: c.concern === 'why' ? 'serious' : 'neutral', visual: { type: 'pair', title: '올해와 내년', a: { big: now.stem + now.branch, label: `${now.year} · ${now.tenGod.group}` }, b: { big: nx.stem + nx.branch, label: `${nx.year} · ${nx.tenGod.group}` }, sub: '세운 = 그 해의 날씨' } });
+        if (cur) b.push({ t: `대운은 10년 단위의 무대예요. 지금은 ${cur.stem}${cur.branch}, ${cur.tenGod.group} 운이고 ${cur.fromAge}세부터 ${cur.toAge}세까지예요. ${P.luckByGroupPolite[cur.tenGod.group]}`, face: 'neutral', visual: glyph(cur.stem + cur.branch, `현재 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세`) });
+        b.push({ t: `세운은 그 해의 날씨예요. ${now.tenGod.group === nx.tenGod.group ? `올해 ${now.year}년과 내년 ${nx.year}년 모두 ${now.tenGod.group} 운이라 올해 배운 걸 내년에 쓰는 흐름이에요.` : `올해 ${now.year}년은 ${now.tenGod.group} 운, 내년 ${nx.year}년은 ${nx.tenGod.group} 운이에요.`} ${c.concern === 'why' ? `올해가 힘드셨다면 ${now.tenGod.group} 운의 성격 때문이에요. ${P.luckByGroupPolite[now.tenGod.group]}` : P.luckByGroupPolite[nx.tenGod.group]}`, face: c.concern === 'why' ? 'serious' : 'neutral', visual: { type: 'pair', title: '올해와 내년', a: { big: now.stem + now.branch, label: `${now.year} · ${now.tenGod.group}` }, b: { big: nx.stem + nx.branch, label: `${nx.year} · ${nx.tenGod.group}` }, sub: '세운 = 그 해의 날씨' } });
         b.push({ t: `배우자 자리도 볼게요. 배우자성 ${sp.sg}이 ${sp.count === 0 ? '원국에 없어요. 인연이 없다는 뜻이 아니라, 운에서 들어올 때 움직이는 구조예요' : `${sp.count}개, ${sp.where}에 있어요`}. 일지에는 ${r.day.branch}, ${sp.dayGod}이 앉아 있고요. ${P.groupDesc[sp.dayGroup] || ''}`, face: sp.count ? 'smile' : 'neutral', visual: glyph(sp.glyph, `배우자성 ${sp.sg} · ${sp.count}개`, `일지 ${r.day.branch} · ${sp.dayGod}`) });
         b.push({ t: `일의 형태는 십신 비율로 봐요. ${sg}이 강하시니 1순위는 ${R.CAREER[sg]}. 한 가지로 단정하진 않지만, 비어 있는 ${r.weakestGroup}을 요구하는 환경은 오래 못 버티세요.`, face: 'neutral', visual: glyph('業', `적성 · ${sg}형`, R.CAREER[sg]) });
         b.push({ t: `마지막으로 ${mo.nextY}년 열두 달이에요. 추진해도 되는 달이 ${mo.push.length}개, 조심할 달이 ${mo.caution.length}개. 용신 쪽 기운이 들어오는 달은 ${mo.names(mo.focus)}이고, 새 습관·공부·관계 정리는 여기에 두세요.`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 용신 쪽 기운이 드는 달`) });
@@ -395,11 +398,11 @@
         const est = c.est, cmp = c.cmp, adv = c.adv; const AX = { EI: '에너지의 방향', SN: '정보를 받는 방식', TF: '결정하는 방식', JP: '세상을 대하는 자세' };
         const b = [
           { t: '사주판이 섰어요. 여기서 다섯 가지 힘의 비율을 보고 네 축으로 옮겨요. 사주와 MBTI 사이에 증명된 대응은 없지만, 자기 인식과 기질을 나란히 놓는 데는 충분해요.', face: 'neutral', visual: { type: 'pillars' } },
-          { t: `타고난 결이 가리키는 성향은 ${est.letters}예요. 검사로 아는 ${cmp.test}${adv ? `, 되고 싶은 ${adv.goal}` : ''}과 나란히 놓을게요. ${cmp.matches === 4 ? '검사와 네 축이 다 같네요. 환경이 기질을 잘 쓰고 있다는 뜻이에요.' : `검사와는 ${cmp.matches}축이 같고 ${4 - cmp.matches}축이 달라요. 다른 축이 평소 이유 없이 피곤한 자리일 가능성이 커요.`}`, face: cmp.matches >= 3 ? 'smile' : 'neutral', fx: 'flash', visual: { type: 'letters', items: [{ label: '내가 아는 나 · 검사', v: cmp.test }, { label: '타고난 나 · 명식', v: est.letters }].concat(adv ? [{ label: '되고 싶은 나 · 추구', v: adv.goal }] : []) } },
+          { t: `타고난 결이 가리키는 성향은 ${est.letters}예요. 검사로 아는 ${cmp.test}${adv ? `, 되고 싶은 ${adv.goal}` : ''}와 나란히 놓을게요. ${cmp.matches === 4 ? '검사와 네 축이 다 같네요. 환경이 기질을 잘 쓰고 있다는 뜻이에요.' : `검사와는 ${cmp.matches}축이 같고 ${4 - cmp.matches}축이 달라요. 다른 축이 평소 이유 없이 피곤한 자리일 가능성이 커요.`}`, face: cmp.matches >= 3 ? 'smile' : 'neutral', fx: 'flash', visual: { type: 'letters', items: [{ label: '내가 아는 나 · 검사', v: cmp.test }, { label: '타고난 나 · 명식', v: est.letters }].concat(adv ? [{ label: '되고 싶은 나 · 추구', v: adv.goal }] : []) } },
         ];
         est.axes.forEach((a, i) => {
           const x = cmp.axes[i];
-          b.push({ t: `${a.left}/${a.right}, ${AX[a.id]}이에요. 타고난 결은 ${a.letter}${a.letterPct < 56 ? ', 경계에 있어요' : a.letterPct >= 75 ? ', 뚜렷해요' : '예요'}. ${x.text}`, face: x.match ? 'smile' : 'serious', visual: { type: 'axis', a, test: x.test, goal: adv ? adv.goal[i] : null } });
+          b.push({ t: `${a.left}/${a.right}, ${jo(AX[a.id], '이에요', '예요')}. 타고난 결은 ${a.letter}${a.letterPct < 56 ? ', 경계에 있어요' : a.letterPct >= 75 ? ', 뚜렷해요' : '예요'}. ${x.text}`, face: x.match ? 'smile' : 'serious', visual: { type: 'axis', a, test: x.test, goal: adv ? adv.goal[i] : null } });
           if (adv) { const y = adv.axes[i]; b.push({ t: `되고 싶은 ${y.goal} 쪽은요, 한마디로 "${y.verdict}"이에요. ${y.text}`, face: y.kind === 'keep' || y.kind === 'return' ? 'smile' : 'serious', fx: y.kind === 'against' && y.chartPct >= 75 ? 'dim' : null }); }
         });
         if (adv) b.push({ t: adv.summary, face: 'smile', fx: 'glow', visual: { type: 'letters', items: [{ label: '되고 싶은 나', v: adv.goal }, { label: '사주가 권하는 흐름', v: adv.rec }] } });
