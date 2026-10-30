@@ -280,10 +280,10 @@
     let month;
     if (mc.length) {
       const dom = T.MD[mc[0].clashes[0]]; const after = good.filter(c => c.i > mc[mc.length - 1].i); const moveTo = after.length ? after[0] : good[0];
-      month = { src: 'month', time: `${nextY}년 ${mLabel}에는`, avoid: `${nextY}년 ${mLabel}에는 ${j(dom, '은')} 하지 마세요`, why: `그 달 글자가 내 ${POS_KO[mc[0].clashes[0]]} 자리와 정면으로 부딪혀요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${j(moveTo.label, '으로')} 옮기고 그때까진 정보만 모으세요. 부딪히는 달은 나쁜 달이 아니라 마음이 흔들리는 달일 뿐이에요. 결정만 옮기면 그 사이 모은 정보가 준비를 두 배 빠르게 해요.`, recap: `${j(dom, '은')} ${moveTo.label}에, 그 전엔 정보 수집만.`, fills: false, months: mc.map(c => c.solarMonth) };
+      month = { src: 'month', time: `${mc[0].yearLabel}년 ${mLabel}에는`, avoid: `${mc[0].yearLabel}년 ${mLabel}에는 ${j(dom, '은')} 하지 마세요`, why: `그 달 글자가 내 ${POS_KO[mc[0].clashes[0]]} 자리와 정면으로 부딪혀요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${j(moveTo.label, '으로')} 옮기고 그때까진 정보만 모으세요. 부딪히는 달은 나쁜 달이 아니라 마음이 흔들리는 달일 뿐이에요. 결정만 옮기면 그 사이 모은 정보가 준비를 두 배 빠르게 해요.`, recap: `${j(dom, '은')} ${moveTo.label}에, 그 전엔 정보 수집만.`, fills: false, months: mc.map(c => c.solarMonth) };
     } else {
       const fb = normal.find(c => c.branchGroup === '관성') || normal[0] || cal[0]; const dom = isChild ? '학원 추가' : (LZ && LZ.monthFallback) || MONTH_FALLBACK[fb.branchGroup] || '큰 지출';
-      month = { src: 'month', time: `${nextY}년 ${mlabel(fb)}에는`, avoid: `${nextY}년 ${mlabel(fb)}에는 ${j(dom, '을')} 새로 늘리지 마세요`, why: `부딪히는 달은 없지만 ${G[fb.branchGroup]} 주제가 몰리는 달이에요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${bestM.label}에 하나만 고르세요. 몰리는 달에는 더하기보다 고르는 쪽이 한 해 전체를 가볍게 만들어요.`, recap: `${j(dom, '은')} ${bestM.label}에 하나만.`, fills: false, months: [fb.solarMonth] };
+      month = { src: 'month', time: `${fb.yearLabel}년 ${mlabel(fb)}에는`, avoid: `${fb.yearLabel}년 ${mlabel(fb)}에는 ${j(dom, '을')} 새로 늘리지 마세요`, why: `부딪히는 달은 없지만 ${G[fb.branchGroup]} 주제가 몰리는 달이에요.`, whyId: 'l3-months', instead: `${j(dom, '은')} ${bestM.label}에 하나만 고르세요. 몰리는 달에는 더하기보다 고르는 쪽이 한 해 전체를 가볍게 만들어요.`, recap: `${j(dom, '은')} ${bestM.label}에 하나만.`, fills: false, months: [fb.solarMonth] };
     }
     const trio = [natal, seun, month];
 

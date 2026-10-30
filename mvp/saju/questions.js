@@ -97,7 +97,7 @@
     ['나는 월급형인가요, 사업형인가요?', F => { const biz = F.g['식상'] + F.g['재성'] > F.g['관성'] + 1; return sen(biz ? '사업형에 가까워요.' : F.g['관성'] > 0 ? '월급형에 가까워요.' : '둘 다 가능한 중간형이에요.', LT.MONEY_PATH[F.top[0]], biz ? '다만 울타리가 될 사람이나 규칙이 필요해요.' : '조직 안에서 부업으로 시험하는 순서가 맞아요.'); }],
     ['혼자 해야 하나요, 동업해야 하나요?', F => sen(lv(F, '비겁') === '과다' ? '혼자가 맞아요. 동업은 몫이 새요.' : lv(F, '비겁') === '부족' ? '동업은 되지만 내 몫을 먼저 말해야 해요.' : '역할만 나누면 동업도 괜찮아요.', has(F, '겁재') ? '나와 겨루는 힘이 있어 돈은 내 이름으로 두세요.' : '돈 거래는 문서로 하면 관계가 남아요.', '같이 하고 싶으면 돈 대신 시간과 일로 참여하세요.')],
     ['내가 돈 벌 때 쓰는 무기는 뭔가요?', F => sen(F.g['식상'] && F.g['재성'] ? '만들어서 파는 재주가 무기예요.' : F.g['식상'] ? '만드는 재주가 무기인데 파는 통로가 필요해요.' : F.g['재성'] ? '돈 냄새를 맡는 감각이 무기예요.' : `${G[F.top[0]]}이 무기예요.`, LT.MONEY_PATH[F.top[0]], `길게 보면 ${j(G[F.pick], '이')} 돈을 키워요.`)],
-    ['내 사주에서 큰돈이 들어오는 시기는 언제인가요?', F => { const d = F.dec('재성'); return sen(d.length ? `돈이 크게 움직이는 10년 계절은 ${F.ages(d)}예요.` : '돈이 크게 움직이는 10년 계절이 뚜렷하지 않아요.', F.st.label === '신약' ? '힘이 약한 편이라 그때 몸을 먼저 챙겨야 남아요.' : '힘이 받쳐 주는 편이라 그때 결과로 바꾸세요.', `올해 안으로는 ${F.ml(F.monthsWith('재성'))}에 돈이 움직여요.`); }],
+    ['내 사주에서 큰돈이 들어오는 시기는 언제인가요?', F => { const d = F.dec('재성'); return sen(d.length ? `돈이 크게 움직이는 10년 계절은 ${F.ages(d)}예요.` : '돈이 크게 움직이는 10년 계절이 뚜렷하지 않아요.', F.st.label === '신약' ? '힘이 약한 편이라 그때 몸을 먼저 챙겨야 남아요.' : '힘이 받쳐 주는 편이라 그때 결과로 바꾸세요.', `${F.nextY}년에는 ${F.ml(F.monthsWith('재성'))}에 돈이 움직여요.`); }],
     ['올해 돈이 새는 달은 언제인가요?', F => sen(`${F.nextY}년 ${j(F.ml(F.cal.filter(c => c.branchGroup === '비겁' || c.stemGroup === '비겁')), '이에요')}.`, '나와 같은 기운이 드는 달이라 빌려주고 보증 서기 쉬워요.', F.caution.length ? `${F.ml(F.caution)}은 부딪히는 달이라 큰 지출도 피하세요.` : '')],
     ['올해 큰 지출·투자를 해도 되는 달은?', F => sen(`${F.nextY}년 ${j(F.ml(F.monthsWith('재성')), '이에요')}.`, '손에 쥐는 힘이 들어오고 부딪힘이 없는 달이에요.', '그 달에도 금액 상한은 먼저 정하세요.')],
     ['올해 절대 하면 안 되는 돈 관련 행동은?', F => { const y = F.yClash ? T.YEAR.clash : T.YEAR[F.y1.branchTenGod.group]; return sen(`${F.nextY}년엔 ${y.avoid.replace(/지 마세요$/, '는 것이에요')}.`, F.yClash ? `내 ${POSK2[F.yClash.name]}와 부딪히는 해예요.` : `${G[F.y1.branchTenGod.group]} 주제가 짙어지는 해예요.`, y.instead.replace(/\{good\}/g, F.good[0] ? F.good[0].label : '좋은 달').replace(/\. [\s\S]*$/, '.')); }],
@@ -227,13 +227,17 @@
     mbti: F => `타고난 결로 보면 ${F.est ? F.est.letters : M.estimate(F.r).letters} 쪽이에요. 검사 결과와 맞대면 피곤한 축이 보여요.`,
   };
   function hooks(F, exceptId) { return Object.keys(HOOK).filter(id => id !== exceptId).map(id => ({ id, text: HOOK[id](F) })); }
+  function questionTitle(domain, n, F) {
+    const year = domain === 'master' && n === 21 ? F.nowY : domain === 'love' && n === 9 ? `${F.nowY}~${F.nextY}` : F.nextY;
+    return A[domain][n - 1][0].replace(/올해/g, `${year}년`);
+  }
   /** 영역의 질문 목록(잠금 여부 포함). */
   function list(domain, F) {
-    return (A[domain] || []).map((it, i) => { const need = it[2]; let locked = null; if (need === 'partner' && !F.compat) locked = '상대 생년월일을 넣으면 열려요'; if (need === 'parent' && !F.parent) locked = '부모 생년월일을 넣으면 열려요'; if (need === 'mbti' && !F.est) locked = '검사 MBTI를 넣으면 열려요'; if (domain === 'mbti' && [5, 6].includes(i + 1) && (!F.adv || !F.adv.goal)) locked = '추구하는 MBTI를 넣으면 열려요'; return { id: `${domain}-${String(i + 1).padStart(2, '0')}`, n: i + 1, q: it[0], locked, star: /^★/.test(it[0]) }; });
+    return (A[domain] || []).map((it, i) => { const need = it[2]; let locked = null; if (need === 'partner' && !F.compat) locked = '상대 생년월일을 넣으면 열려요'; if (need === 'parent' && !F.parent) locked = '부모 생년월일을 넣으면 열려요'; if (need === 'mbti' && !F.est) locked = '검사 MBTI를 넣으면 열려요'; if (domain === 'mbti' && [5, 6].includes(i + 1) && (!F.adv || !F.adv.goal)) locked = '추구하는 MBTI를 넣으면 열려요'; return { id: `${domain}-${String(i + 1).padStart(2, '0')}`, n: i + 1, q: questionTitle(domain, i + 1, F), locked, star: /^★/.test(it[0]) }; });
   }
   function answer(domain, n, F) {
     const it = A[domain][n - 1]; if (!it) return null;
-    try { const text = it[1](F); return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: it[0], text: String(text || '').replace(/\s+/g, ' ').trim() }; } catch (e) { return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: it[0], text: '이 질문은 입력이 더 필요해요.', error: String(e && e.message) }; }
+    try { const text = it[1](F); return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: questionTitle(domain, n, F), text: String(text || '').replace(/\s+/g, ' ').trim() }; } catch (e) { return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: questionTitle(domain, n, F), text: '이 질문은 입력이 더 필요해요.', error: String(e && e.message) }; }
   }
   function recommend(domain, F, k) { const open = list(domain, F).filter(x => !x.locked); const pri = { love: [1, 3, 4, 6, 9, 10, 11, 16, 18, 8], money: [20, 2, 1, 7, 8, 9, 4, 16, 6, 19], child: [18, 20, 2, 3, 4, 5, 8, 14, 16, 19], mbti: [1, 2, 3, 5, 6, 7, 10, 13, 19, 20], master: [1, 3, 5, 8, 9, 14, 17, 18, 23, 30], work: [1, 2, 6, 7, 3, 12, 10, 19, 14, 20] }[domain] || []; const ids = pri.map(n => open.find(x => x.n === n)).filter(Boolean).map(x => x.id); open.forEach(x => { if (ids.length < (k || 10) && !ids.includes(x.id)) ids.push(x.id); }); return ids.slice(0, k || 10); }
   return { DOMAIN_KO, PERSONA_DOMAIN, BANK: A, facts, list, answer, recommend, hooks };

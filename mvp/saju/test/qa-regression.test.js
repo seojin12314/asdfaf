@@ -3,6 +3,8 @@ const test = require('node:test');
 const S = require('../saju.js');
 const M = require('../mbti.js');
 const Q = require('../questions.js');
+const R2 = require('../report2.js');
+const P = require('../personas.js').SajuPersonas;
 const base = { year: 1991, month: 7, day: 18, hour: 17, minute: 10, gender: 'M', solarCorrectionMin: -30, now: '2026-10-30T03:00:00Z' };
 const r = S.compute(base), est = M.estimate(r);
 const facts = Q.facts(r, { est, cmp: M.compare('INFJ', est) });
@@ -43,6 +45,17 @@ test('money leakage answer does not erase a documented partnership risk', () => 
 });
 test('business timing includes a currently active suitable decade', () => {
   assert.match(Q.answer('money',13,facts).text,/34~43세/);
+});
+test('question titles explicitly name the year used by their answers', () => {
+  assert.match(Q.list('money',facts).find(q=>q.n===7).q,/2027년/);
+  assert.match(Q.answer('money',7,facts).q,/2027년/);
+  assert.match(Q.list('master',facts).find(q=>q.n===21).q,/2026년/);
+});
+test('January at the end of a solar-term year belongs to the next calendar year', () => {
+  const rep=R2.build(r,{persona:P.personas.sage,name:'테스트'});
+  const jan=rep.L1.calendar.find(c=>c.solarMonth===1);
+  assert.equal(jan.yearLabel,2028);
+  assert.match(rep.L1.trio.find(t=>t.src==='month').avoid,/2028년 1월/);
 });
 test('all question banks render without error for complete and incomplete inputs', () => {
   for(const input of [base,{...base,hourUnknown:true},{...base,year:2000,month:2,day:29,gender:'F'}]) {

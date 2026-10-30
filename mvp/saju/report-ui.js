@@ -16,6 +16,8 @@
   };
   const SRC_KO = { natal: '타고난 자리', seun: '올해 날씨', month: '멈출 달' };
   const GRADE_KO = { 추진: '추진', 보통: '보통', 주의: '주의' };
+  const calendarLabel = (c, rep) => c.yearLabel && c.yearLabel !== rep.nextY ? `${c.yearLabel}년 ${c.label}` : c.label;
+  const calendarPeriod = rep => `${rep.nextY}년 2월~${rep.nextY + 1}년 1월`;
   const sents = t => String(t).split(/(?<=[.!?])\s+/).filter(Boolean);
   const paras = arr => { const out = []; for (let i = 0; i < arr.length; i += 3) out.push(`<p>${arr.slice(i, i + 3).map(esc).join(' ')}</p>`); return out.join(''); };
 
@@ -25,14 +27,14 @@
     return `<div class="idcard el-${id.elem}"><div class="id-icon">${ICON[id.elem]}</div><div class="id-body"><div class="id-head">${esc(head)}</div><div class="id-tail">${esc(tail)}</div><div class="id-meta"><span class="chip">${esc(id.seasonBadge)}</span><span class="chip">${esc(id.name)}의 타고난 판</span></div>${compact ? '' : letters}</div></div>`;
   }
   function calendarHTML(rep, locked) {
-    return `<div class="cal12 ${locked ? 'locked' : ''}">${rep.L1.calendar.map((c, i) => `<button type="button" class="cell g-${c.grade}" data-cal="${i}" ${locked ? 'disabled' : ''}><b>${esc(c.label)}</b><small>${esc(c.range)}</small></button>`).join('')}</div><div class="cal-legend"><span class="g-추진">추진</span><span class="g-보통">보통</span><span class="g-주의">주의</span></div><div class="cal-tip" id="cal-tip" hidden></div>`;
+    return `<div class="cal12 ${locked ? 'locked' : ''}">${rep.L1.calendar.map((c, i) => `<button type="button" class="cell g-${c.grade}" data-cal="${i}" ${locked ? 'disabled' : ''}><b>${esc(calendarLabel(c, rep))}</b><small>${esc(c.range)}</small></button>`).join('')}</div><div class="cal-legend"><span class="g-추진">추진</span><span class="g-보통">보통</span><span class="g-주의">주의</span></div><div class="cal-tip" id="cal-tip" hidden></div>`;
   }
   function trioHTML(rep, locked, showWhy) {
-    return `<div class="trio">${rep.L1.trio.map((t, i) => { const lock = locked && i > 0; return `<div class="tcard ${lock ? 'lock' : ''}"><div class="tnum">${i + 1}</div><div class="tbody"><div class="tsrc">${SRC_KO[t.src]}</div><div class="tavoid">${lock ? esc(t.avoid.slice(0, 10)) + '…' : esc(t.avoid)}</div>${!lock && showWhy ? `<div class="twhy">${esc(t.why)} <a class="why-link" data-l3="${t.whyId}">왜?</a></div>` : ''}</div>${lock ? '<div class="tlock" aria-label="잠김">🔒</div>' : ''}</div>`; }).join('')}</div>`;
+    return `<div class="trio">${rep.L1.trio.map((t, i) => { const lock = locked && i > 0; return `<div class="tcard ${lock ? 'lock' : ''}"><div class="tnum">${i + 1}</div><div class="tbody"><div class="tsrc">${t.src === 'seun' ? rep.nextY + '년 흐름' : SRC_KO[t.src]}</div><div class="tavoid">${lock ? esc(t.avoid.slice(0, 10)) + '…' : esc(t.avoid)}</div>${!lock && showWhy ? `<div class="twhy">${esc(t.why)} <a class="why-link" data-l3="${t.whyId}">왜?</a></div>` : ''}</div>${lock ? '<div class="tlock" aria-label="잠김">🔒</div>' : ''}</div>`; }).join('')}</div>`;
   }
   /** 결제 전: 정체성 + 제목 + 1번 공개 + 2·3번 블러 + 달력 블러 */
   function teaserHTML(rep) {
-    return `<div class="l1 teaser-l1">${identityHTML(rep, true)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, true, false)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, true)}<div class="l1-entries locked">${rep.L1.entries.map(e => `<span class="chip">${esc(e.label)}</span>`).join('')}<span class="chip">왜 그런가요? 근거</span></div></div>`;
+    return `<div class="l1 teaser-l1">${identityHTML(rep, true)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, true, false)}<div class="l1-sub">${esc(calendarPeriod(rep))} 미니맵</div>${calendarHTML(rep, true)}<div class="l1-entries locked">${rep.L1.entries.map(e => `<span class="chip">${esc(e.label)}</span>`).join('')}<span class="chip">왜 그런가요? 근거</span></div></div>`;
   }
   function barsHTML(viz) {
     const row = x => `<div class="brow lv-${x.level}"><span class="bname">${esc(x.name)}</span><span class="bar"><i style="width:${Math.round(x.n / x.tot * 100)}%"></i>${x.n === 0 ? '<em class="empty"></em>' : ''}</span><span class="blv">${esc(x.level)}</span></div>`;
@@ -81,11 +83,11 @@
   function fullHTML(rep, opts) {
     opts = opts || {}; const face = opts.personaFace || '';
     const l2 = `<div class="l2">${rep.L2.map((s, i) => sectionHTML(s, i, rep, face)).join('')}${endHTML(rep, opts.planKey || 'plan')}</div>`;
-    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(rep.nextY)}년 열두 달 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${crossHTML(opts.cross)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
+    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(calendarPeriod(rep))} 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${crossHTML(opts.cross)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
   }
   /** 이벤트: 달력 탭 지침, 진입점 스크롤, 왜? 링크 → L3 펼침, 4주 체크 저장 */
   function bind(rootEl, rep) {
-    const tipFor = (cellBtn) => { const i = +cellBtn.dataset.cal; const c = rep.L1.calendar[i]; const sec = rep.L2.find(s => s.viz && s.viz.type === 'calendar'); const tip = sec && sec.viz.cells[i] ? sec.viz.cells[i].tip : ''; const box = cellBtn.closest('.l1, .l2sec, .teaser-l1'); const t = box && box.querySelector('.cal-tip'); if (t) { t.hidden = false; t.textContent = `${c.label}(${c.range}) · ${GRADE_KO[c.grade]} — ${tip}`; } box && box.querySelectorAll('.cell.sel').forEach(x => x.classList.remove('sel')); cellBtn.classList.add('sel'); };
+    const tipFor = (cellBtn) => { const i = +cellBtn.dataset.cal; const c = rep.L1.calendar[i]; const sec = rep.L2.find(s => s.viz && s.viz.type === 'calendar'); const tip = sec && sec.viz.cells[i] ? sec.viz.cells[i].tip : ''; const box = cellBtn.closest('.l1, .l2sec, .teaser-l1'); const t = box && box.querySelector('.cal-tip'); if (t) { t.hidden = false; t.textContent = `${calendarLabel(c, rep)}(${c.range}) · ${GRADE_KO[c.grade]} — ${tip}`; } box && box.querySelectorAll('.cell.sel').forEach(x => x.classList.remove('sel')); cellBtn.classList.add('sel'); };
     rootEl.querySelectorAll('.cal12 .cell:not([disabled])').forEach(b => b.addEventListener('click', () => tipFor(b)));
     rootEl.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => { const t = rootEl.querySelector('#' + a.dataset.go); if (!t) return; const d = t.closest('details'); if (d) d.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     rootEl.querySelectorAll('[data-l3]').forEach(a => a.addEventListener('click', () => { const d = rootEl.querySelector('#' + a.dataset.l3); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
