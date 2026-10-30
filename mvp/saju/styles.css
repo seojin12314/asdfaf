@@ -325,3 +325,7 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 
 .hero .hint-top { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
 .topbar { padding-bottom: 10px; }
+
+.resume .resume-row + .resume-row { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; }
+.resume small em { font-style: normal; color: var(--accent); }
+.qcount small { display: block; font-size: 10.5px; color: var(--ink-3); font-weight: 400; letter-spacing: 0; }

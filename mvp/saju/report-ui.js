@@ -27,7 +27,7 @@
     return `<div class="idcard el-${id.elem}"><div class="id-icon">${ICON[id.elem]}</div><div class="id-body"><div class="id-head">${esc(head)}</div><div class="id-tail">${esc(tail)}</div><div class="id-meta"><span class="chip">${esc(id.seasonBadge)}</span><span class="chip">${esc(id.name)}의 타고난 판</span></div>${compact ? '' : letters}</div></div>`;
   }
   function calendarHTML(rep, locked) {
-    return `<div class="cal12 ${locked ? 'locked' : ''}">${rep.L1.calendar.map((c, i) => `<button type="button" class="cell g-${c.grade}" data-cal="${i}" ${locked ? 'disabled' : ''}><b>${esc(calendarLabel(c, rep))}</b><small>${esc(c.range)}</small></button>`).join('')}</div><div class="cal-legend"><span class="g-추진">추진</span><span class="g-보통">보통</span><span class="g-주의">주의</span></div><div class="cal-tip" id="cal-tip" hidden></div>`;
+    return `<div class="cal12 ${locked ? 'locked' : ''}">${rep.L1.calendar.map((c, i) => `<button type="button" class="cell g-${c.grade}" data-cal="${i}" ${locked ? 'disabled' : ''}><b>${esc(c.label)}</b><small>${c.yearLabel && c.yearLabel !== rep.nextY ? `'${String(c.yearLabel).slice(2)} ` : ''}${esc(c.range)}</small></button>`).join('')}</div><div class="cal-legend"><span class="g-추진">추진</span><span class="g-보통">보통</span><span class="g-주의">주의</span></div><div class="cal-tip" id="cal-tip" hidden></div>`;
   }
   function trioHTML(rep, locked, showWhy) {
     return `<div class="trio">${rep.L1.trio.map((t, i) => { const lock = locked && i > 0; return `<div class="tcard ${lock ? 'lock' : ''}"><div class="tnum">${i + 1}</div><div class="tbody"><div class="tsrc">${t.src === 'seun' ? rep.nextY + '년 흐름' : SRC_KO[t.src]}</div><div class="tavoid">${lock ? esc(t.avoid.slice(0, 10)) + '…' : esc(t.avoid)}</div>${!lock && showWhy ? `<div class="twhy">${esc(t.why)} <a class="why-link" data-l3="${t.whyId}">왜?</a></div>` : ''}</div>${lock ? '<div class="tlock" aria-label="잠김">🔒</div>' : ''}</div>`; }).join('')}</div>`;
@@ -69,11 +69,21 @@
     return `<div class="l3"><div class="l3-h">왜 이렇게 나왔나요? <small>근거 · 전문용어는 여기서만</small></div>${rep.L3.map(s => `<details class="l3d" id="${s.id}"><summary>${esc(s.title)}</summary><div class="l3b">${s.html}</div></details>`).join('')}<details class="l3d" id="l3-glossary"><summary>용어집</summary><div class="l3b"><dl class="gloss">${rep.glossary.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl></div></details></div>`;
   }
   /** 결제 후 전체 */
+  function qaCard(a) { return `<div class="qa"><div class="qq"><span class="qn">Q${String(a.n).padStart(2, '0')}</span><b>${esc(a.q.replace(/^★\s*/, ''))}</b></div><div class="qa-a">${(a.text.match(/[^.!?]+[.!?]?/g) || [a.text]).map(x => `<p>${esc(x.trim())}</p>`).join('')}</div></div>`; }
+  /** 결제한 답(고른 질문)만. 나머지·추가 판매는 qaRestHTML 로 맨 뒤에. */
   function qaHTML(qa) {
     if (!qa) return '';
-    const card = a => `<div class="qa"><div class="qq"><span class="qn">Q${String(a.n).padStart(2, '0')}</span><b>${esc(a.q.replace(/^★\s*/, ''))}</b></div><div class="qa-a">${(a.text.match(/[^.!?]+[.!?]?/g) || [a.text]).map(x => `<p>${esc(x.trim())}</p>`).join('')}</div></div>`;
+    return `<section class="l2sec qa-sec" id="sec-qa"><div class="l2head"><span class="l2num">Q</span><h4>${esc(qa.title)}</h4><span class="chip accent">${qa.expert && qa.all ? `전 문항 ${qa.answers.length + qa.rest.length}` : `${qa.answers.length}문항`}</span></div><p class="l2concl">${esc(qa.lead)}</p>${qa.evidence || ''}${qa.answers.map(qaCard).join('')}</section>`;
+  }
+  function qaRestHTML(qa) {
+    if (!qa) return '';
     const lockRow = x => `<div class="qlock ${x.locked ? 'need' : ''}"><span class="qn">Q${String(x.n).padStart(2, '0')}</span><span>${esc(x.q.replace(/^★\s*/, ''))}</span>${x.locked ? `<small>${esc(x.locked)}</small>` : '<small>🔒</small>'}</div>`;
-    return `<section class="l2sec qa-sec" id="sec-qa"><div class="l2head"><span class="l2num">Q</span><h4>${esc(qa.title)}</h4><span class="chip accent">${qa.expert && qa.all ? `전 문항 ${qa.answers.length + qa.rest.length}` : `${qa.answers.length}문항`}</span></div><p class="l2concl">${esc(qa.lead)}</p>${qa.evidence || ''}${qa.answers.map(card).join('')}${qa.rest.length ? `<div class="qrest"><div class="qrest-h">${qa.all ? '열린 나머지 문항' : `아직 안 본 질문 ${qa.rest.length}개`}</div>${qa.all ? qa.rest.map(card).join('') : qa.rest.map(lockRow).join('') + `<button type="button" class="btn primary block" id="btn-unlock">+₩5,000으로 ${qa.rest.filter(x => !x.locked).length}문항 전부 열기</button>`}</div>` : ''}${(qa.extra || []).map(x => `<details class="qx"><summary><b>${esc(x.ko)}</b><span>${x.answers.length}문항 답${x.locked ? ` · 추가 정보 필요 ${x.locked}` : ''}</span></summary>${x.answers.map(card).join('')}</details>`).join('')}${qa.gloss ? `<details class="qgloss"><summary><b>전문가 용어표</b><span>${qa.gloss.length}개 · 원어 ↔ 쉬운 말</span></summary><table><tbody>${qa.gloss.map(g => `<tr><th>${esc(g[0])}</th><td>${esc(g[1])}</td><td>${esc(g[2])}</td></tr>`).join('')}</tbody></table></details>` : ''}</section>`;
+    const openRest = qa.rest.filter(x => !x.locked).length;
+    const rest = qa.rest.length ? `<div class="qrest"><div class="qrest-h">${qa.all ? `열린 나머지 문항 ${qa.rest.length}개` : `아직 안 본 질문 ${qa.rest.length}개`}</div>${qa.all ? qa.rest.map(qaCard).join('') : qa.rest.map(lockRow).join('') + (openRest ? `<button type="button" class="btn primary block" id="btn-unlock">+₩5,000으로 ${openRest}문항 전부 열기</button>` : '')}</div>` : '';
+    const extra = (qa.extra || []).map(x => `<details class="qx"><summary><b>${esc(x.ko)}</b><span>${x.answers.length}문항 답${x.locked ? ` · 추가 정보 필요 ${x.locked}` : ''}</span></summary>${x.answers.map(qaCard).join('')}</details>`).join('');
+    const gloss = qa.gloss ? `<details class="qgloss"><summary><b>전문가 용어표</b><span>${qa.gloss.length}개 · 원어 ↔ 쉬운 말</span></summary><table><tbody>${qa.gloss.map(g => `<tr><th>${esc(g[0])}</th><td>${esc(g[1])}</td><td>${esc(g[2])}</td></tr>`).join('')}</tbody></table></details>` : '';
+    if (!rest && !extra && !gloss) return '';
+    return `<section class="l2sec qa-sec qa-rest" id="sec-qa-rest"><div class="l2head"><span class="l2num">+</span><h4>${qa.expert ? '함께 열린 답과 용어표' : '더 볼 수 있는 질문'}</h4></div>${rest}${extra}${gloss}</section>`;
   }
   function crossHTML(cross) {
     if (!cross || !cross.length) return '';
@@ -83,7 +93,7 @@
   function fullHTML(rep, opts) {
     opts = opts || {}; const face = opts.personaFace || '';
     const l2 = `<div class="l2">${rep.L2.map((s, i) => sectionHTML(s, i, rep, face)).join('')}${endHTML(rep, opts.planKey || 'plan')}</div>`;
-    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(calendarPeriod(rep))} 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${crossHTML(opts.cross)}${opts.qa ? `<details class="l2wrap" id="l2wrap"><summary>전체 흐름 ${rep.L2.length}장 펼치기 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주</small></summary>${l2}</details>` : l2}<div id="l3-top"></div>${l3HTML(rep)}`;
+    return `<div class="l1">${identityHTML(rep, false)}<h3 class="l1-title">${esc(rep.L1.avoidTitle)}</h3>${trioHTML(rep, false, true)}<div class="l1-sub">${esc(calendarPeriod(rep))} 미니맵</div>${calendarHTML(rep, false)}<div class="l1-entries">${opts.qa ? '<a class="chip accent" data-go="sec-qa">내가 고른 질문</a>' : ''}${rep.L1.entries.map(e => `<a class="chip" data-go="sec-${e.id}">${esc(e.label)}</a>`).join('')}<a class="chip" data-go="l3-top">왜 그런가요?</a></div></div>${qaHTML(opts.qa)}${opts.qa ? `<details class="l2wrap" id="l2wrap" open><summary>전체 흐름 ${rep.L2.length}장 <small>결론 → 쉬운 설명 → 대신 이렇게 → 4주 실행표</small></summary>${l2}</details>` : l2}${qaRestHTML(opts.qa)}${crossHTML(opts.cross)}<div id="l3-top"></div>${l3HTML(rep)}`;
   }
   /** 이벤트: 달력 탭 지침, 진입점 스크롤, 왜? 링크 → L3 펼침, 4주 체크 저장 */
   function bind(rootEl, rep) {

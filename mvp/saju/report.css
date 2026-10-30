@@ -226,3 +226,9 @@
 .qx summary::after, .qgloss summary::after { content: '▾'; color: var(--ink-3); } .qx[open] summary::after, .qgloss[open] summary::after { transform: rotate(180deg); }
 .qgloss table { width: 100%; border-collapse: collapse; font-size: 13px; } .qgloss th, .qgloss td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; } .qgloss th { color: var(--accent); white-space: nowrap; font-weight: 600; } .qgloss td:nth-child(2) { white-space: nowrap; } .qgloss td:last-child { color: var(--ink-2); }
 .pcard .pprice small { display: block; font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+
+/* 캐릭터 메모: 얼굴 칩이 없으면 한 칸으로(세로 꺾임 방지) */
+.memo:not(:has(.face-chip)) { grid-template-columns: 1fr; }
+.memo q { min-width: 0; overflow-wrap: anywhere; }
+.qa-rest .l2num { background: var(--bg-3); color: var(--ink-2); border: 1px solid var(--line-2); box-shadow: none; }
+.l2wrap[open] > summary { margin-bottom: 10px; }

@@ -111,7 +111,7 @@
     인성: { avoid: '준비만 하며 시작을 미루지 마세요', instead: '시작은 {good}로 날짜를 박아 두세요. 배우기 좋은 해라 준비와 시작을 반반으로 나누면 돼요.', recap: '시작 날짜는 {good}로 미리 박아 두기.' },
     clash: { avoid: '이사·이직·결혼 중 둘을 같은 분기에 하지 마세요', instead: '바꿀 일이 여럿이면 한 분기에 하나씩, {good}부터 순서를 정하세요. 변동이 큰 해는 막는 해가 아니라 방향을 내가 정하는 해예요.', recap: '바꿀 일은 {good}부터 한 분기에 하나씩.' },
   };
-  const MONTH_DOMAIN = { 일주: '결혼·이사 결정', 월주: '이직·이동 결정', 년주: '집안 돈거래·보증', 시주: '아이와 얽힌 큰 약속' };
+  const MONTH_DOMAIN = { 일주: '결혼·이사 결정', 월주: '이직·이동 결정', 년주: '집안 큰돈 결정', 시주: '아이와 얽힌 큰 약속' };
   const MONTH_FALLBACK = { 관성: '기한 없는 새 책임', 재성: '큰 지출', 식상: '즉석 발표와 즉흥 계약', 비겁: '돈이 얽힌 부탁', 인성: '혼자 내리는 큰 결정' };
   const REL = {
     비겁: { body: '가장 가까운 자리에 나와 같은 힘이 앉아 친구 같은 관계예요.', avoid: '다툰 날 주도권을 가리려고 끝까지 밀어붙이지 마세요', instead: '서로의 영역을 하나씩 정해 두세요. 같은 힘끼리는 역할이 나뉠 때 오래 가고, 그 선이 곧 애정 표현이에요.' },
@@ -375,13 +375,14 @@
     if (opts.compat && opts.compat.section) {
       const cp = opts.compat; const target = cp.kind === 'love' ? 'rel' : (kind === 'mbti' ? 'relwork' : 'work'); const idx = L2.findIndex(x => x.id === target);
       const sec2 = Object.assign({}, cp.section, { memo: memo.pair || '', focus: true, replaced: target });
-      if (idx >= 0) L2.splice(idx, 1, sec2); else L2.push(sec2);
+      if (idx >= 0) L2.splice(idx, 1); L2.splice(Math.min(1, L2.length), 0, sec2);
       L1.entries = L1.entries.map(e => e.id === target || e.id === 'rel' ? { id: 'pair', label: cp.kindKo } : e);
     }
     // 초점 섹션 표시
     L2.forEach(s => { s.focus = s.focus || P.focus === s.id; });
 
     // ── L2 마무리: 대신 3개 + 4주 + 맺음 ──
+    if (kind === 'mbti') { const pri = ['who', 'axes', 'goal']; L2.sort((a, b) => (pri.indexOf(a.id) < 0 ? 9 : pri.indexOf(a.id)) - (pri.indexOf(b.id) < 0 ? 9 : pri.indexOf(b.id))); }
     const mismAll = kind === 'mbti' && opts.cmp ? opts.cmp.axes.filter(x => !x.match) : [];
     const plan = (kind === 'mbti' && mismAll.length) ? mismAll.slice(0, 4).map((x, k) => `${k + 1}주: ${EXP[x.id]}`).concat(T.PLAN[pickG].slice(mismAll.length)).slice(0, 4) : T.PLAN[pickG];
     const end = { title: '대신 이렇게 하면 잘 풀려요', insteads: trio.map(t => ({ src: t.src, text: t.recap, fills: t.fills })), planTitle: LZ && LZ.planTitle ? LZ.planTitle(G[pickG]) : `${j(G[pickG], '을')} ${rx.dir === 'drain' ? '쓰는' : '채우는'} 4주`, plan, closing: ['여기까지 읽었다면 이미 절반은 했어요.', '4주 뒤 같은 자리에서 다른 선택을 한 번 했다면 충분해요.', `${bestM.label}에 시작할 일 하나만 적어 두고 덮으세요.`] };
