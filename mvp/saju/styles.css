@@ -435,3 +435,14 @@ body[data-screen="home"] footer.foot { text-shadow: 0 0 6px var(--bg), 0 0 12px 
 .hs-cta .btn.primary.prem { background: linear-gradient(100deg, #8a6a1a, #e9c76a 40%, #fff1bf 50%, #e9c76a 60%, #8a6a1a); background-size: 220% 100%; color: #2a1d05; animation: hsSheen 3s linear infinite; box-shadow: 0 10px 34px rgba(233,199,106,.45); }
 .hs-hint { text-align: center; color: var(--ink-3); font-size: 11px; margin-top: 10px; text-shadow: 0 0 6px var(--bg); }
 @media (prefers-reduced-motion: reduce) { .hs-char img, .hs-tag, .hs-aura, .hs-rays, .hs-spark, .hs-cta .btn.primary.prem { animation: none !important; } }
+
+
+/* ═════════ 넓은 화면(PC): 미연시 무대처럼 560px 폰 기둥 안에만 그린다 — 바깥은 어두운 여백 ═════════ */
+@media (min-width: 561px) {
+  body { background: #05070e; }
+  body::after { content: ""; position: fixed; top: 0; bottom: 0; left: 50%; width: 560px; transform: translateX(-50%); z-index: -1; pointer-events: none;
+    background: var(--bg) radial-gradient(1200px 600px at 50% -10%, var(--accent-2) 0%, transparent 60%) no-repeat; box-shadow: 0 0 0 1px var(--line), 0 0 120px rgba(0, 0, 0, .8); transition: background .6s ease; }
+  #homebg { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
+  #stars { clip-path: inset(0 calc(50% - 280px)); }
+  body::before { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
+}
