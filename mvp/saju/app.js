@@ -291,6 +291,7 @@
     if (pb) pb.addEventListener('click', () => { if (!PL()) return; PL().set(!PL().on); syncPlain(); if (!$('#s-result').hidden && state.result) { const wasUnlocked = state.unlocked; renderResult(); if (wasUnlocked) renderReport(); } });
     $('#mbti-pick').innerHTML = mbtiPickHTML('mbti'); $('#goal-pick').innerHTML = mbtiPickHTML('goal');
     $$('.mbti-pick .mbti-clear').forEach(b => b.addEventListener('click', () => setMBTI($('#birth'), b.dataset.prefix, null)));
+    $('#btn-love-product').addEventListener('click', () => { state.mode = 'persona'; setPersona('flame'); if (window.SajuVN) { window.SajuVN.start('flame', { concern: 'match' }); return; } renderPersonaIntro(); show('persona'); });
     $('#btn-pair-product').addEventListener('click', () => { state.mode = 'persona'; setPersona('sage'); if (window.SajuVN) { window.SajuVN.start('sage', { concern: 'pair' }); return; } renderPersonaIntro(); show('persona'); });
     $('#btn-mbti-product').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } renderMbtiIntro(); show('persona'); });
     $('#btn-sample').addEventListener('click', () => { state.mode = 'persona'; setPersona('master'); prepForm(); fillSample(); show('form'); });

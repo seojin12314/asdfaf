@@ -131,3 +131,5 @@
 .cfacts li { padding-left: 16px; position: relative; } .cfacts li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); }
 .cfacts li.t-good::before { background: var(--accent); } .cfacts li.t-bad::before { background: #e86a5a; }
 .product.pair { margin-top: 10px; } .product .pairglyph { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-display); font-size: 30px; } .product .pairglyph i { font-style: normal; font-size: 16px; color: var(--accent); }
+
+.product.love { margin-top: 10px; } .product.love .pairglyph i { color: #e86a5a; }

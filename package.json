@@ -4,6 +4,6 @@
   "type": "commonjs",
   "scripts": {
     "test": "node mvp/saju/test/saju.test.js",
-    "serve": "python -m http.server 3195 --directory mvp/saju --bind 127.0.0.1"
+    "serve": "python tools/serve.py 3195"
   }
 }
