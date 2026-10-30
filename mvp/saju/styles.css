@@ -235,10 +235,11 @@ details.why { margin-top: 12px; } details.why summary { cursor: pointer; color: 
 details.why ul { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--ink-2); } details.why li { margin: 4px 0; }
 
 /* 유료 미리보기 */
-.teaser { position: relative; overflow: hidden; padding-bottom: 180px; }
-.teaser .blur { filter: blur(6px); user-select: none; pointer-events: none; color: var(--ink-2); display: grid; gap: 8px; margin-top: 10px; } .teaser .blur p { margin: 0; }
-.paywall { position: absolute; inset: auto 0 0; padding: 44px 16px 16px; background: linear-gradient(transparent, var(--bg-2) 40%); display: grid; gap: 8px; }
-.price { font-family: var(--font-display); font-size: 26px; } .price small { font-family: var(--font-body); font-size: 13px; color: var(--ink-3); margin-left: 6px; }
+.teaser { position: relative; }
+/* 미리보기 본문: 흐리게 + 아래로 사라지게 잘라서, 가격 박스는 그 아래 일반 흐름에 둔다(겹침 없음) */
+.teaser .blur { filter: blur(5px); user-select: none; pointer-events: none; color: var(--ink-2); display: grid; gap: 8px; margin-top: 12px; max-height: 104px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 0%, rgba(0,0,0,.6) 55%, transparent 100%); mask-image: linear-gradient(#000 0%, rgba(0,0,0,.6) 55%, transparent 100%); } .teaser .blur p { margin: 0; }
+.paywall { position: relative; margin-top: 14px; padding: 16px; border-radius: 14px; background: var(--bg-3); border: 1px solid var(--line-2); display: grid; gap: 10px; } .paywall .muted { margin: 0; line-height: 1.55; }
+.price { font-family: var(--font-display); font-size: 26px; line-height: 1.1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; } .price small { font-family: var(--font-body); font-size: 13px; color: var(--ink-3); margin-left: 0; }
 .chapters { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; } .chapters li { margin: 3px 0; }
 
 /* ───── 심층 리포트(장문) ───── */
