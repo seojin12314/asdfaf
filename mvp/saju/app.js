@@ -43,7 +43,7 @@
   function show(id) {
     SCREENS.forEach(s => { const el = $('#s-' + s); if (el) el.hidden = s !== id; });
     const idx = SCREENS.indexOf(id);
-    $('#steps').innerHTML = STEPS[state.mode].map((t, i) => `<li class="${i === idx ? 'on' : i < idx ? 'done' : ''}">${t}</li>`).join('');
+    const stepsEl = $('#steps'); if (stepsEl) stepsEl.innerHTML = STEPS[state.mode].map((t, i) => `<li class="${i === idx ? 'on' : i < idx ? 'done' : ''}">${t}</li>`).join('');
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   }
   function setMode(mode) { state.mode = mode; if (mode === 'mbti') { state.persona = null; document.documentElement.dataset.persona = 'mbti'; $('#app').dataset.persona = 'mbti'; } }
@@ -69,7 +69,7 @@
           <div class="pname">${p.name}</div>
           <div class="prole">${p.role}${p.org ? ' · ' + p.org : ''}</div>
           <div class="ptag">${p.tagline}</div>
-          <div class="pprice">무료 3줄 · 심층 <b>${won(p.report.price)}</b></div>
+          <div class="pprice">무료 3줄 · ${expert ? '종합' : '심층'} <b>${won(p.report.price)}</b>${expert ? '<br><small>정통 30 + 연인·재물·이직 60, 질문 90개 답 전부</small>' : ''}</div>
         </div>
       </button>`; }).join('');
     $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { state.mode = 'persona'; setPersona(b.dataset.id); if (window.SajuVN) { window.SajuVN.start(b.dataset.id); return; } renderPersonaIntro(); show('persona'); }));
@@ -124,7 +124,7 @@
           <h3>이 캐릭터가 보는 명식</h3>
           <ul>${p.sees.map(s => `<li>${s}</li>`).join('')}</ul>
           <div class="formula small"><span><b>${p.name}</b><small>캐릭터 하나</small></span><i>×</i><span><b>내 명식</b><small>하나</small></span><i>×</i><span><b>리포트</b><small>하나</small></span></div>
-          <div class="pricebox"><div>무료 · 3줄 결과 + 캐릭터 시트 + 오행·십신</div><div>심층 · ${P.fill(p.report.title, { seunNext: new Date().getFullYear() + 1 })} <b>${won(p.report.price)}</b> · 결론 1화면 + 쉬운 설명 7장 + 근거</div></div>
+          <div class="pricebox"><div>무료 · 3줄 결과 + 캐릭터 시트 + 오행·십신</div><div>심층 · ${P.fill(p.report.title, { seunNext: new Date().getFullYear() + 1 })} <b>${won(p.report.price)}</b> · 결론 1화면 + 쉬운 설명 7장 + 근거${p.tier === 'expert' ? ' + 질문 90개 답 전부 + 근거 카드 + 용어표' : ''}</div></div>
           <div class="actions"><button type="button" class="btn primary block" id="btn-persona-next">${p.name}에게 보이기</button><button type="button" class="btn ghost block" data-back="home">← 다른 캐릭터 보기</button></div>
         </div>
       </div>`;
@@ -318,7 +318,7 @@
     const row = it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`;
     const concern = state.concernLabel ? `<span class="chip accent">${state.concernLabel}</span>` : '';
     box.hidden = false;
-    box.innerHTML = `<div class="eyebrow">내 질문 · ${domainKo(domain)}</div><div class="qpick-head"><h3>${concern ? `고민 ${concern}<br>핵심 질문 ${core.length}개를 먼저 골라 뒀어요` : `핵심 질문 ${core.length}개를 먼저 골라 뒀어요`}</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">이대로 열어도 되고, 아래에서 더 고르거나 바꿔도 돼요. 고른 질문의 답을 내 사주로 풀어 드리고, 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ''}<div class="qlist qcore">${core.map(row).join('')}</div><details class="qmore" ${moreOpen ? 'open' : ''}><summary><b>더 고르기</b><span id="qmore-sub">남은 자리 ${Math.max(0, available - sel.size)}개 · 질문 ${rest.length}개 더</span></summary><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qcore">핵심만</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div><div class="qlist">${rest.map(row).join('')}</div></details>`;
+    box.innerHTML = `<div class="eyebrow">내 질문 · ${domainKo(domain)}</div><div class="qpick-head"><h3>${concern ? `고민 ${concern}<br>핵심 질문 ${core.length}개를 먼저 골라 뒀어요` : `핵심 질문 ${core.length}개를 먼저 골라 뒀어요`}</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">${isExpert() ? '정경진 종합 풀이는 결제하면 30개 전부 답하고, 연인·재물·이직 질문 60개까지 함께 열려요(추가 결제 없음). 먼저 읽고 싶은 질문만 골라 두세요.' : '이대로 열어도 되고, 아래에서 더 고르거나 바꿔도 돼요. 고른 질문의 답을 내 사주로 풀어 드리고, 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.'}</p>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ''}<div class="qlist qcore">${core.map(row).join('')}</div><details class="qmore" ${moreOpen ? 'open' : ''}><summary><b>더 고르기</b><span id="qmore-sub">남은 자리 ${Math.max(0, available - sel.size)}개 · 질문 ${rest.length}개 더</span></summary><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qcore">핵심만</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div><div class="qlist">${rest.map(row).join('')}</div></details>`;
     const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; const ms = $('#qmore-sub'); if (ms) ms.textContent = `남은 자리 ${Math.max(0, available - n)}개 · 질문 ${rest.length}개 더`; renderQSample(); saveSnap(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
     $$('#qpick input[data-q]').forEach(cb => cb.addEventListener('change', () => { const id = cb.dataset.q; if (cb.checked) { if (state.qsel.length >= 10) { cb.checked = false; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); return; } state.qsel.push(id); } else state.qsel = state.qsel.filter(x => x !== id); state.report = null; sync(); }));
     $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, F, 10); state.report = null; renderQPick(); });
@@ -334,14 +334,28 @@
   }
   function crossBlock() {
     if (!QB) return []; const me = state.mode === 'mbti' ? 'mbti' : state.persona.id; const F = qFacts();
-    const pri = { flame: ['sage', 'master', 'mbti'], sage: ['hunter', 'flame', 'master'], hunter: ['sage', 'mbti', 'master'], granny: ['master', 'sage', 'flame'], child: ['master', 'granny', 'flame'], master: ['flame', 'sage', 'hunter'], mbti: ['flame', 'hunter', 'master'] }[me] || ['master'];
+    const pri = { flame: ['sage', 'master', 'mbti'], sage: ['hunter', 'flame', 'master'], hunter: ['sage', 'mbti', 'master'], granny: ['master', 'sage', 'flame'], child: ['master', 'granny', 'flame'], master: ['child', 'mbti', 'granny'], mbti: ['flame', 'hunter', 'master'] }[me] || ['master'];
     return QB.hooks(F, me).filter(h => pri.includes(h.id)).sort((a, b) => pri.indexOf(a.id) - pri.indexOf(b.id)).slice(0, 3).map(h => { const p = P.personas[h.id]; return Object.assign(h, p ? { name: p.name, role: p.role, accent: p.palette.accent, face: artHTML(p, 'face') } : { name: '도윤 선생님', role: 'MBTI 사주', accent: '#66d6c5', face: `<img src="${ART}mbti/face.png" alt="">` }); });
   }
+  // ───── 전문가(정경진) 상품: 전 영역 질문 답 + 근거 카드 + 용어표 ─────
+  const GLOSS = [['비겁', '나 자신의 힘', '나와 같은 기운. 자립·경쟁·고집'], ['식상', '내보내는 힘', '말·손·아이디어로 꺼내는 기운'], ['재성', '손에 쥐는 힘', '돈·결과·현실을 다루는 기운'], ['관성', '나를 누르는 힘', '규칙·책임·직책·압박'], ['인성', '쉬고 배우는 힘', '배움·보호·휴식·어른 복'], ['신강·신약', '힘이 센 편·약한 편', '일간을 받치는 기운이 많은지 적은지'], ['용신', '채울 기운', '명식의 균형을 맞춰 주는 기운'], ['기신', '피할 기운', '넘치거나 균형을 깨는 기운'], ['격', '인생 무대', '태어난 달의 기운이 정하는 큰 무대'], ['대운', '10년 계절', '열 해마다 바뀌는 큰 흐름'], ['세운', '올해 날씨', '해마다 들어오는 기운'], ['충', '부딪힘', '글자끼리 정면으로 맞서는 관계'], ['합', '끌림', '글자끼리 묶이는 관계'], ['공망', '빈 자리', '힘이 덜 실리는 자리'], ['신살', '특수 표식', '역마·도화·화개 같은 표식'], ['지장간', '숨은 글자', '땅 글자 안에 숨은 하늘 글자'], ['조후', '계절 온도', '태어난 계절의 춥고 더움']];
+  function isExpert() { return state.mode === 'persona' && !!state.persona && state.persona.tier === 'expert'; }
+  function evidenceHTML(F) {
+    const r = F.r; const yong = F.st && F.st.yongshin ? F.st.yongshin.pick : null; const why = F.st && F.st.why ? String(F.st.why[0] || '') : '';
+    const cell = (k, v, s) => `<div class="qev-c"><small>${k}</small><b>${v}</b>${s ? `<span>${s}</span>` : ''}</div>`;
+    return `<div class="qev"><div class="qev-h">이 답들의 근거 · 원국 한 장</div><div class="qev-grid">${cell('여덟 글자', r.pillars.map(p => `${p.name.replace('주', '')} ${p.hanja}`).join(' · '))}${cell('일간(나)', `${r.day.stem} ${r.day.stemKo}${r.dayMaster.elementKo}`, `${r.dayMaster.polarity}${r.dayMaster.elementKo} · ${F.season}생`)}${cell('판정', `${F.st.label}(${F.st.label === '신강' ? '힘이 센 편' : F.st.label === '신약' ? '힘이 약한 편' : '중간'})`, why)}${cell('격(인생 무대)', F.gyeok)}${cell('용신 후보(채울 기운)', yong ? `${yong} · ${R2.G[yong] || ''}` : '뚜렷하지 않음')}${cell('기신(피할 기운)', `${F.gisin} · ${R2.G[F.gisin] || ''}`)}${cell('다섯 힘 개수', ['비겁', '식상', '재성', '관성', '인성'].map(k => `${k} ${F.g[k]}`).join(' · '))}${cell('신살 · 공망', `${F.sinsal.length ? F.sinsal.map(s => `${s.k}(${s.at})`).join(' · ') : '신살 없음'} · 공망 ${F.gongmang.branches.join('')}`)}</div></div>`;
+  }
+  function expertExtras(F) {
+    const domains = ['love', 'money', 'work'].concat(F.est ? ['mbti'] : []);
+    return domains.map(d => { const all = QB.list(d, F); const open = all.filter(x => !x.locked); return { domain: d, ko: QB.DOMAIN_KO[d], answers: open.map(x => QB.answer(d, x.n, F)), locked: all.length - open.length }; }).filter(x => x.answers.length);
+  }
   function qaBlock() {
-    if (!QB) return null; const domain = qDomain(), F = qFacts(), items = qList();
+    if (!QB) return null; const domain = qDomain(), F = qFacts(), items = qList(); const expert = isExpert();
+    if (expert && state.unlocked) state.qall = true;
     const order = items.filter(it => state.qsel.includes(it.id) && !it.locked); const answers = order.map(it => QB.answer(domain, it.n, F));
     const rest = items.filter(it => !state.qsel.includes(it.id)).map(it => state.qall && !it.locked ? QB.answer(domain, it.n, F) : it);
-    return { title: `${domainKo(domain)} · 내가 고른 질문`, lead: `${state.input.name || '당신'}의 명식으로 ${answers.length}개 질문에 답해요.`, answers, rest, all: state.qall };
+    const extra = expert && state.qall ? expertExtras(F) : null; const extraN = extra ? extra.reduce((n, x) => n + x.answers.length, 0) : 0;
+    return { title: expert ? `${domainKo(domain)} · 질문 전부` : `${domainKo(domain)} · 내가 고른 질문`, lead: expert && state.qall ? `먼저 고른 ${answers.length}개부터 답하고, 나머지 ${rest.length}개와 다른 영역 ${extraN}개 답도 아래에 전부 열려 있어요.` : `${state.input.name || '당신'}의 명식으로 ${answers.length}개 질문에 답해요.`, answers, rest, all: state.qall, expert, evidence: expert ? evidenceHTML(F) : null, extra, gloss: expert ? GLOSS : null };
   }
   function compatResult() { const c = state.compat; if (!c || !c.pr || !CP || !state.result) return null; if (!c.res) c.res = CP.analyze(state.result, c.pr, { kind: c.kind, nameA: state.input.name || '나', nameB: c.nameB || '상대' }); return c.res; }
   function compatCardHTML(cp) {
@@ -354,7 +368,7 @@
   }
   function planKey() { const i = state.input; return `${i.year}${i.month}${i.day}-${state.mode === 'mbti' ? 'mbti' : state.persona.id}`; }
   function renderReport() {
-    const rep = state.report || (state.report = buildReport()); const p = state.persona; state.unlocked = true; saveSnap();
+    const rep = state.report || (state.report = buildReport()); const p = state.persona; state.unlocked = true; if (isExpert()) state.qall = true; saveSnap();
     const face = p ? `<span class="face-chip">${artHTML(p, 'face')}</span>` : '';
     $('#report').innerHTML = `
       <div class="rtop">
@@ -418,7 +432,7 @@
     $('#hourUnknown').addEventListener('change', e => { ['#time', '#bh', '#bmi'].forEach(id => { $(id).disabled = e.target.checked; }); });
     bindYMD($('#birth')); bindEntryToggle($('#birth'));
     $('#btn-fill-sample').addEventListener('click', fillSample);
-    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `고른 질문 ${state.qsel.length}개 답 + 결론 화면 + 근거`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
+    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = isExpert() ? `정통 질문 30개 전부 + 연인·재물·이직 60개 답 + 근거 카드 + 결론·7장·근거(추가 결제 없음)` : `고른 질문 ${state.qsel.length}개 답 + 결론 화면 + 근거`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
     $('#btn-pay-confirm').addEventListener('click', () => { $('#m-pay').hidden = true; renderReport(); });
     $('#btn-unlock-confirm').addEventListener('click', () => { $('#m-unlock').hidden = true; state.qall = true; renderReport(); setTimeout(() => { const t = $('#sec-qa .qrest'); if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); }, 50); });
     $('#btn-share').addEventListener('click', () => { state.shareBg = null; if (state.mode !== 'mbti' && state.persona) { const im = new Image(); im.onload = () => { state.shareBg = im; shareCard(); }; im.onerror = () => shareCard(); im.src = `${ART}${state.persona.id}/bg_card.png`; } else shareCard(); });
