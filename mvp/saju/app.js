@@ -70,7 +70,6 @@
           <div class="prole">${p.role}${p.org ? ' · ' + p.org : ''}</div>
           <div class="ptag">${p.tagline}</div>
           <div class="pprice">무료 3줄 · 심층 <b>${won(p.report.price)}</b></div>
-          ${p.consentNote ? `<span class="consent">${p.consentNote}</span>` : ''}
         </div>
       </button>`; }).join('');
     $$('#roster .pcard').forEach(b => b.addEventListener('click', () => { state.mode = 'persona'; setPersona(b.dataset.id); if (window.SajuVN) { window.SajuVN.start(b.dataset.id); return; } renderPersonaIntro(); show('persona'); }));
@@ -94,7 +93,6 @@
           <h3>이 캐릭터가 보는 명식</h3>
           <ul>${p.sees.map(s => `<li>${s}</li>`).join('')}</ul>
           <div class="pricebox"><div>무료 · 3줄 결과 + 캐릭터 시트 + 오행·십신</div><div>심층 · ${P.fill(p.report.title, { seunNext: new Date().getFullYear() + 1 })} <b>${won(p.report.price)}</b> · 모바일 15화면 이상</div></div>
-          ${p.consentNote ? `<p class="note">${p.consentNote}</p>` : ''}
           <div class="actions"><button type="button" class="btn primary block" id="btn-persona-next">${p.name}에게 보이기</button><button type="button" class="btn ghost block" data-back="home">← 다른 캐릭터 보기</button></div>
         </div>
       </div>`;
@@ -107,11 +105,11 @@
         <div class="pintro-body">
           <div class="eyebrow">별도 상품</div>
           <h2>MBTI 사주</h2>
-          <p class="hero tagline" style="padding:0">내가 아는 나(검사), 타고난 나(명식), 되고 싶은 나(추구)를 네 축으로 나란히 놓습니다.</p>
+          <p class="hero tagline" style="padding:0">내가 아는 나(검사), 타고난 나(타고난 결), 되고 싶은 나(추구)를 네 축으로 나란히 놓아요.</p>
           <h3>이 상품이 보는 것</h3>
-          <ul><li>명식(십신·오행 비율)이 가리키는 성향 네 글자와 축별 강도</li><li>검사 결과와 축별 일치·불일치, 그 간격의 의미</li><li>추구하는 MBTI까지 넣으면: 축별로 유지·회복·역행 판정과 <b>사주가 권하는 흐름</b>, 그쪽으로 가려면 명식의 어떤 기운을 쓰는지</li><li>환경이 만든 모습과 기질을 구분하는 4주 실험</li></ul>
+          <ul><li>타고난 결(다섯 힘·다섯 기운 비율)이 가리키는 성향 네 글자와 축별 강도</li><li>검사 결과와 축별 일치·불일치, 그 간격의 의미</li><li>추구하는 MBTI까지 넣으면: 축별로 유지·회복·역행 판정과 <b>사주가 권하는 흐름</b>, 그쪽으로 가려면 명식의 어떤 기운을 쓰는지</li><li>환경이 만든 모습과 기질을 구분하는 4주 실험</li></ul>
           <div class="pricebox"><div>무료 · 축별 비교 카드 + 명식 추정 근거</div><div>심층 · ${MBTI_PRODUCT.title} <b>${won(MBTI_PRODUCT.price)}</b></div></div>
-          <p class="note">사주와 MBTI 사이에 검증된 대응 관계는 없습니다. 오행·십신 비율을 네 축에 매핑한 공개 규칙으로 자기 인식과 기질을 나란히 보는 도구입니다.</p>
+          <p class="note">사주와 MBTI 사이에 검증된 대응 관계는 없어요. 다섯 힘과 다섯 기운의 비율을 네 축에 옮긴 공개 규칙으로, 자기 인식과 타고난 결을 나란히 보는 도구예요.</p>
           <div class="actions"><button type="button" class="btn primary block" id="btn-persona-next">내 명식으로 비교하기</button><button type="button" class="btn ghost block" data-back="home">← 처음으로</button></div>
         </div>
       </div>`;
@@ -212,13 +210,15 @@
   // ───── 4-B. MBTI 사주 결과 ─────
   function mbtiCardHTML(est, cmp, test, adv) {
     const letters = (type, other) => type.split('').map((ch, i) => `<span class="${other && other[i] !== ch ? 'miss' : ''}">${ch}</span>`).join('');
-    const axisRow = (a, i) => { const t = test ? test[i] : null; const g = adv ? adv.goal[i] : null; const w = Math.abs(a.pct - 50); const fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`; return `<div class="axis"><div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}<small>${a.leftKo}</small></div><div class="track"><div class="fill" style="${fill}"></div>${t ? `<div class="test" style="left:${t === a.left ? '5%' : '95%'}" title="검사 ${t}">${t}</div>` : ''}${g ? `<div class="goal" style="left:${g === a.left ? '18%' : '82%'}" title="추구 ${g}">★</div>` : ''}</div><div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}<small>${a.rightKo}</small></div><div class="meta"><span>명식 <b>${a.letter}</b> ${a.letterPct}%${a.letterPct < 56 ? ' · 경계' : ''}</span>${t ? `<span class="${t === a.letter ? 'ok' : 'ng'}">검사 ${t} · ${t === a.letter ? '일치' : '불일치'}</span>` : ''}${g ? `<span class="${g === a.letter ? 'ok' : 'ng'}">추구 ${g} · ${adv.axes[i].verdict}</span>` : ''}</div></div>`; };
-    return `<div class="eyebrow">${adv ? '검사 · 명식 · 추구, 세 글자 맞대기' : '네 축 비교'}</div><div class="mbti-head">${test ? `<div class="mbti-type">${letters(test, est.letters)}<small>내가 아는 나 · 검사</small></div><div class="mbti-vs">vs</div>` : ''}<div class="mbti-type">${letters(est.letters, test)}<small>타고난 나 · 명식</small></div>${adv ? `<div class="mbti-vs">vs</div><div class="mbti-type goal">${letters(adv.goal, est.letters)}<small>되고 싶은 나 · 추구</small></div>` : ''}${test ? `<div class="chip accent">검사·명식 ${cmp.matches}/4 일치</div>` : ''}${adv ? `<div class="chip accent">추구·명식 ${adv.same}/4 일치</div>` : ''}</div><div class="axes">${est.axes.map(axisRow).join('')}</div>${adv ? `<div class="advice"><div class="rec">사주가 권하는 흐름 <b>${adv.rec}</b></div><p class="sum">${adv.summary}</p>${adv.axes.map(x => `<div class="row-a"><b class="v">${x.left}/${x.right} · ${x.verdict}</b> <span class="muted">검사 ${x.test || '-'} · 명식 ${x.chart} ${x.chartPct}% · 추구 ${x.goal}</span><br>${x.text}</div>`).join('')}</div>` : ''}${cmp ? `<div class="mbti-lines"><p><b>${cmp.summary}</b></p>${cmp.axes.map(x => `<p><b>${x.test}→${x.chart}</b> ${x.text}</p>`).join('')}</div>` : ''}<details class="why"><summary>추정 근거 보기</summary><ul>${est.axes.map(a => `<li><b>${a.left}/${a.right}</b> → ${a.letter} ${a.letterPct}%. ${a.factors.map(f => `${f.label}→${f.v > 0 ? a.left : a.right}`).join(', ')}. <span class="muted">${a.note}</span></li>`).join('')}</ul><p class="muted">사주와 MBTI 사이에 검증된 대응 관계는 없습니다. 위 규칙은 오행·십신 비율을 네 축에 매핑한 공개 휴리스틱(mbti.js)이며, 검사(자기 인식)와 명식(기질)을 나란히 놓고 보는 도구입니다.</p></details>`;
+    const strengthWord = pct => pct < 56 ? '경계' : pct >= 75 ? '뚜렷' : '보통';
+    const axisRow = (a, i) => { const t = test ? test[i] : null; const g = adv ? adv.goal[i] : null; const w = Math.abs(a.pct - 50); const fill = a.pct >= 50 ? `left:${50 - w}%;width:${w}%` : `left:50%;width:${w}%`; return `<div class="axis"><div class="l ${a.letter === a.left ? 'on' : ''}">${a.left}<small>${a.leftKo}</small></div><div class="track"><div class="fill" style="${fill}"></div>${t ? `<div class="test" style="left:${t === a.left ? '5%' : '95%'}" title="검사 ${t}">${t}</div>` : ''}${g ? `<div class="goal" style="left:${g === a.left ? '18%' : '82%'}" title="추구 ${g}">★</div>` : ''}</div><div class="r ${a.letter === a.right ? 'on' : ''}">${a.right}<small>${a.rightKo}</small></div><div class="meta"><span>타고난 결 <b>${a.letter}</b> · ${strengthWord(a.letterPct)}</span>${t ? `<span class="${t === a.letter ? 'ok' : 'ng'}">검사 ${t} · ${t === a.letter ? '같은 방향' : '다른 방향'}</span>` : ''}${g ? `<span class="${g === a.letter ? 'ok' : 'ng'}">추구 ${g} · ${adv.axes[i].verdict}</span>` : ''}</div></div>`; };
+    const sameWord = n => n === 4 ? '네 축 모두 같은 방향' : n === 0 ? '네 축 모두 다른 방향' : `네 축 중 ${n}축 같은 방향`;
+    return `<div class="eyebrow">${adv ? '검사 · 타고난 결 · 추구, 세 글자 맞대기' : '네 축 비교'}</div><div class="mbti-head">${test ? `<div class="mbti-type">${letters(test, est.letters)}<small>내가 아는 나 · 검사</small></div><div class="mbti-vs">vs</div>` : ''}<div class="mbti-type">${letters(est.letters, test)}<small>타고난 나 · 타고난 결</small></div>${adv ? `<div class="mbti-vs">vs</div><div class="mbti-type goal">${letters(adv.goal, est.letters)}<small>되고 싶은 나 · 추구</small></div>` : ''}${test ? `<div class="chip accent">검사와 ${sameWord(cmp.matches)}</div>` : ''}${adv ? `<div class="chip accent">추구와 ${sameWord(adv.same)}</div>` : ''}</div><div class="axes">${est.axes.map(axisRow).join('')}</div>${adv ? `<div class="advice"><div class="rec">사주가 권하는 흐름 <b>${adv.rec}</b></div><p class="sum">${adv.summary}</p>${adv.axes.map(x => `<div class="row-a"><b class="v">${x.left}/${x.right} · ${x.verdict}</b> <span class="muted">검사 ${x.test || '-'} · 타고난 결 ${x.chart}(${strengthWord(x.chartPct)}) · 추구 ${x.goal}</span><br>${x.text}</div>`).join('')}</div>` : ''}${cmp ? `<div class="mbti-lines"><p><b>${cmp.summary}</b></p>${cmp.axes.map(x => `<p><b>${x.test}→${x.chart}</b> ${x.text}</p>`).join('')}</div>` : ''}<details class="why"><summary>왜 이렇게 나왔나요?</summary><ul>${est.axes.map(a => `<li><b>${a.left}/${a.right}</b> → ${a.letter}(${strengthWord(a.letterPct)}). ${a.factors.map(f => `${f.label}은 ${f.v > 0 ? a.left : a.right} 쪽`).join(', ')}. <span class="muted">${a.note}</span></li>`).join('')}</ul><p class="muted">사주와 MBTI 사이에 검증된 대응 관계는 없어요. 위 규칙은 다섯 힘과 다섯 기운의 비율을 네 축에 옮긴 공개 규칙이에요. 검사(자기 인식)와 타고난 결(기질)을 나란히 놓고 보는 도구예요.</p></details>`;
   }
   function renderMbtiResult() {
     const r = state.result; const est = M.estimate(r); const cmp = M.compare(state.input.mbti, est); const adv = M.advise(est, state.input.mbti, state.input.goal); state.est = est; state.cmp = cmp; state.adv = adv;
-    $('#result-eyebrow').textContent = 'MBTI 사주 · 결과'; $('#lines-card').hidden = true; $('#btn-cross').hidden = true; $('#btn-again').textContent = '캐릭터에게 같은 명식 보이기';
-    $('#sheet-head').innerHTML = `<div class="mbti-hero"><div class="mbti-type" style="font-size:34px">${cmp.test}<small>검사</small></div><div class="mbti-vs">vs</div><div class="mbti-type" style="font-size:34px">${est.letters}<small>명식</small></div>${adv ? `<div class="mbti-vs">vs</div><div class="mbti-type goal" style="font-size:34px">${adv.goal}<small>추구</small></div>` : ''}<div class="chip accent">${adv ? `사주가 권하는 흐름 ${adv.rec}` : `4축 중 ${cmp.matches}축 일치`}</div></div><div class="bubble" id="bubble">${plainT(adv ? adv.summary : cmp.summary, new Set())}</div>`;
+    $('#result-eyebrow').textContent = 'MBTI 사주 · 결과'; $('#lines-card').hidden = true; $('#btn-cross').hidden = true; $('#btn-again').textContent = '캐릭터에게 같은 사주 보이기';
+    $('#sheet-head').innerHTML = `<div class="mbti-hero"><div class="mbti-type" style="font-size:34px">${cmp.test}<small>검사</small></div><div class="mbti-vs">vs</div><div class="mbti-type" style="font-size:34px">${est.letters}<small>타고난 결</small></div>${adv ? `<div class="mbti-vs">vs</div><div class="mbti-type goal" style="font-size:34px">${adv.goal}<small>추구</small></div>` : ''}<div class="chip accent">${adv ? `사주가 권하는 흐름 ${adv.rec}` : `네 축 중 ${cmp.matches}축 같은 방향`}</div></div><div class="bubble" id="bubble">${plainT(adv ? adv.summary : cmp.summary, new Set())}</div>`;
     $('#mbti-card').hidden = false; $('#mbti-card').innerHTML = plainH(mbtiCardHTML(est, cmp, cmp.test, adv), new Set());
     const rep = state.report || (state.report = buildReport());
     $('#teaser-title').textContent = MBTI_PRODUCT.title; $('#teaser-meta').textContent = (adv ? '추구 MBTI로 가는 길 + ' : '') + `세 글자 맞대기 · 결론 1화면 + 쉬운 설명 ${rep.L2.length}장 + 근거`;
@@ -238,7 +238,7 @@
     $('#report').innerHTML = `
       <div class="rtop">
         ${p ? `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()">` : ''}
-        <div class="row"><span class="chip accent">${state.mode === 'mbti' ? 'MBTI 사주' : p.name}</span><span class="chip">결론 1화면 · 쉬운 설명 ${rep.L2.length}장 · 근거 ${rep.L3.length}장</span>${p && p.consentNote ? '<span class="chip dev">본인 감수 전 템플릿</span>' : ''}</div>
+        <div class="row"><span class="chip accent">${state.mode === 'mbti' ? 'MBTI 사주' : p.name}</span><span class="chip">결론 1화면 · 쉬운 설명 ${rep.L2.length}장 · 근거 ${rep.L3.length}장</span></div>
         <h3 class="rtitle">${rep.title}</h3>
         <p class="muted">${state.input.name || '당신'} · ${birthString()}</p>
       </div>

@@ -348,16 +348,16 @@
       beats(c) {
         const est = c.est, cmp = c.cmp, adv = c.adv; const AX = { EI: '에너지의 방향', SN: '정보를 받는 방식', TF: '결정하는 방식', JP: '세상을 대하는 자세' };
         const b = [
-          { t: '명식이 섰어요. 여기서 다섯 가지 기운의 비율을 보고 네 축으로 옮겨요. 사주와 MBTI 사이에 증명된 대응은 없지만, 자기 인식과 기질을 나란히 놓는 데는 충분해요.', face: 'neutral', visual: { type: 'pillars' } },
-          { t: `명식이 가리키는 성향은 ${est.letters}예요. 검사로 아는 ${cmp.test}${adv ? `, 되고 싶은 ${adv.goal}` : ''}과 나란히 놓을게요. ${cmp.matches === 4 ? '검사와 네 축이 다 같네요. 환경이 기질을 잘 쓰고 있다는 뜻이에요.' : `검사와는 ${cmp.matches}축이 같고 ${4 - cmp.matches}축이 달라요. 다른 축이 평소 이유 없이 피곤한 자리일 가능성이 커요.`}`, face: cmp.matches >= 3 ? 'smile' : 'neutral', fx: 'flash', visual: { type: 'letters', items: [{ label: '내가 아는 나 · 검사', v: cmp.test }, { label: '타고난 나 · 명식', v: est.letters }].concat(adv ? [{ label: '되고 싶은 나 · 추구', v: adv.goal }] : []) } },
+          { t: '사주판이 섰어요. 여기서 다섯 가지 힘의 비율을 보고 네 축으로 옮겨요. 사주와 MBTI 사이에 증명된 대응은 없지만, 자기 인식과 기질을 나란히 놓는 데는 충분해요.', face: 'neutral', visual: { type: 'pillars' } },
+          { t: `타고난 결이 가리키는 성향은 ${est.letters}예요. 검사로 아는 ${cmp.test}${adv ? `, 되고 싶은 ${adv.goal}` : ''}과 나란히 놓을게요. ${cmp.matches === 4 ? '검사와 네 축이 다 같네요. 환경이 기질을 잘 쓰고 있다는 뜻이에요.' : `검사와는 ${cmp.matches}축이 같고 ${4 - cmp.matches}축이 달라요. 다른 축이 평소 이유 없이 피곤한 자리일 가능성이 커요.`}`, face: cmp.matches >= 3 ? 'smile' : 'neutral', fx: 'flash', visual: { type: 'letters', items: [{ label: '내가 아는 나 · 검사', v: cmp.test }, { label: '타고난 나 · 명식', v: est.letters }].concat(adv ? [{ label: '되고 싶은 나 · 추구', v: adv.goal }] : []) } },
         ];
         est.axes.forEach((a, i) => {
           const x = cmp.axes[i];
-          b.push({ t: `${a.left}/${a.right}, ${AX[a.id]}이에요. 명식은 ${a.letter} ${a.letterPct}%${a.letterPct < 56 ? '라 경계에 있어요' : a.letterPct >= 75 ? '로 뚜렷해요' : '예요'}. ${x.text}`, face: x.match ? 'smile' : 'serious', visual: { type: 'axis', a, test: x.test, goal: adv ? adv.goal[i] : null } });
+          b.push({ t: `${a.left}/${a.right}, ${AX[a.id]}이에요. 타고난 결은 ${a.letter}${a.letterPct < 56 ? ', 경계에 있어요' : a.letterPct >= 75 ? ', 뚜렷해요' : '예요'}. ${x.text}`, face: x.match ? 'smile' : 'serious', visual: { type: 'axis', a, test: x.test, goal: adv ? adv.goal[i] : null } });
           if (adv) { const y = adv.axes[i]; b.push({ t: `되고 싶은 ${y.goal} 쪽은요, 한마디로 "${y.verdict}"이에요. ${y.text}`, face: y.kind === 'keep' || y.kind === 'return' ? 'smile' : 'serious', fx: y.kind === 'against' && y.chartPct >= 75 ? 'dim' : null }); }
         });
         if (adv) b.push({ t: adv.summary, face: 'smile', fx: 'glow', visual: { type: 'letters', items: [{ label: '되고 싶은 나', v: adv.goal }, { label: '사주가 권하는 흐름', v: adv.rec }] } });
-        b.push({ t: '여기까지가 무료 상담이에요. 기억할 건 하나예요. 검사와 명식 중 무엇이 맞느냐가 아니라, 어느 상황에서 어느 쪽 내가 나오는지예요.', face: 'smile', visual: null });
+        b.push({ t: '여기까지가 무료 상담이에요. 기억할 건 하나예요. 검사와 타고난 결 중 무엇이 맞느냐가 아니라, 어느 상황에서 어느 쪽 내가 나오는지예요.', face: 'smile', visual: null });
         return b;
       },
       ending: { lines: [{ t: '결과 화면에 네 축을 전부 정리해 뒀어요. 심층에서는 축마다 왜 그렇게 기울었는지, 되고 싶은 쪽으로 가려면 명식의 어떤 기운을 쓰면 되는지, 4주 실험까지 드려요.', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '결과 화면 보여 주세요', again: '다른 캐릭터에게 가 볼게요' },

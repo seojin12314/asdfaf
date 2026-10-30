@@ -188,7 +188,7 @@ form.birth { display: grid; gap: 14px; }
 .radar .lbl { fill: var(--ink-2); font-size: 11px; font-family: var(--font-body); } .radar .lbl.hz { fill: var(--ink); font-size: 15px; font-family: var(--font-display); font-weight: 700; }
 .radar .val { fill: var(--ink); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stats { display: grid; gap: 10px; }
-.stat { display: grid; grid-template-columns: 64px 1fr 34px; gap: 10px; align-items: center; font-size: 13px; }
+.stat { display: grid; grid-template-columns: 92px 1fr 30px; gap: 10px; align-items: center; font-size: 13px; }
 .stat .nm b { display: block; font-weight: 600; } .stat .nm small { color: var(--ink-3); }
 .stat .bar { height: 8px; background: var(--bg-3); border-radius: 4px; overflow: hidden; }
 .stat .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 0 4px 4px 0; transition: width .9s cubic-bezier(.2,.8,.2,1); }

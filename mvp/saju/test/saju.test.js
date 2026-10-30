@@ -134,7 +134,7 @@ let n3 = 0; function t3(name, fn) { fn(); n3++; console.log('ok -', name); }
 t3('캐릭터 6인: lead 12개 이상, special 완비, 전문가 1인', () => {
   const ids = Object.keys(PP.personas); assert.strictEqual(ids.length, 6);
   ids.forEach(id => { const p = PP.personas[id]; assert.ok(Object.keys(p.lead).length >= 12, id + ' lead'); ['byElem', 'byStrong', 'byWeak'].forEach(k => assert.strictEqual(Object.keys(p.special[k]).length, 5, id + ' ' + k)); assert.ok(p.report.price > 0); });
-  assert.strictEqual(PP.personas.master.tier, 'expert'); assert.strictEqual(PP.personas.master.report.price, 39900); assert.ok(PP.personas.master.consentNote);
+  assert.strictEqual(PP.personas.master.tier, 'expert'); assert.strictEqual(PP.personas.master.report.price, 39900); assert.ok(!PP.personas.master.consentNote);
 });
 t3('월운: 2027(丁未)년 寅월 = 壬寅, 丑월 = 癸丑, 절입일 존재', () => {
   const ms = RR.monthPillarsOfYear(2027); assert.strictEqual(ms[0].hanja, '壬寅'); assert.strictEqual(ms[11].hanja, '癸丑'); assert.ok(ms.every(m => m.startKST));
