@@ -26,10 +26,13 @@
 .vn-flash.white { background: #fff7ef; }
 
 /* 캐릭터 스프라이트 */
-.vn-sprite { --sx: -50%; position: absolute; left: 50%; top: 5%; height: 190%; width: 205%; transform: translateX(var(--sx)); transform-origin: 50% 18%; transition: transform .7s cubic-bezier(.2,.8,.2,1), filter .6s ease, opacity .6s; will-change: transform, filter; }
+.vn-sprite { --sx: -50%; position: absolute; left: 50%; top: 4%; height: 250%; width: 270%; transform: translateX(var(--sx)); transform-origin: 50% 5%; transition: transform .7s cubic-bezier(.2,.8,.2,1), filter .6s ease, opacity .6s; will-change: transform, filter; }
 .vn-sprite img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center top; filter: drop-shadow(0 30px 40px rgba(0,0,0,.55)); }
 .vn-sprite .breath { position: absolute; inset: 0; animation: vnBreathe 5s ease-in-out infinite; transform-origin: 50% 12%; }
-.vn-stage.has-float .vn-sprite { transform: translateX(calc(var(--sx) - 7%)) translateY(6%) scale(.9); filter: brightness(.8); }
+.vn-stage.has-float .vn-sprite { transform: translateX(calc(var(--sx) - 6%)) translateY(4%) scale(.92); filter: brightness(.8); }
+/* 질문(입력) 중엔 한 걸음 더 다가온다 */
+.vn-stage.near .vn-sprite { transform: translateX(var(--sx)) translateY(-2%) scale(1.12); }
+.vn-stage.near.has-float .vn-sprite { transform: translateX(calc(var(--sx) - 6%)) translateY(2%) scale(.96); }
 .vn-stage.mood-serious .vn-sprite { filter: brightness(.82) saturate(.85); }
 .vn-stage.has-float.mood-serious .vn-sprite { filter: brightness(.7) saturate(.8); }
 .vn-sprite.bump { animation: vnBump .45s ease; }
@@ -140,5 +143,5 @@
 @keyframes vnChoiceIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
 @keyframes vnBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 
-@media (max-height: 640px) { .vn-sprite { height: 170%; width: 185%; } .vn-float { max-height: 40%; } .vn-text { font-size: 15px; } }
+@media (max-height: 640px) { .vn-sprite { height: 230%; width: 250%; } .vn-float { max-height: 40%; } .vn-text { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .vn-sprite, .vn-bg img, .vn-halo, .vn-port, .vn-next { animation: none !important; } }

@@ -156,7 +156,7 @@
   }
   async function ask(kind, prompt, o) {
     o = o || {}; if (!st.open) return null;
-    setMood('neutral'); el.box.classList.add('input-mode'); el.input.hidden = true;
+    setMood('neutral'); el.box.classList.add('input-mode'); el.input.hidden = true; el.stage.classList.add('near');
     await type(plain(prompt, new Set())); if (!st.open) return null;
     const html = kind === 'mbti' ? `<div class="mbti-pick">${M.AXES.map(x => `<div class="seg mini"><label><input type="radio" name="vn-m_${x.id}" value="${x.left}"><span>${x.left} <small>${x.leftKo}</small></span></label><label><input type="radio" name="vn-m_${x.id}" value="${x.right}"><span>${x.right} <small>${x.rightKo}</small></span></label></div>`).join('')}</div><div class="rowb"><span class="hint">네 축을 모두 골라 주세요</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거예요')}</button></div><div class="err" id="vn-err" hidden></div>`
       : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
@@ -166,7 +166,7 @@
     el.input.innerHTML = html; el.input.hidden = false;
     const f = $('#vn-f', el.input); if (f) setTimeout(() => f.focus(), 50);
     return new Promise(res => {
-      const done = v => { el.input.hidden = true; el.input.innerHTML = ''; el.box.classList.remove('input-mode'); res(v); };
+      const done = v => { el.input.hidden = true; el.input.innerHTML = ''; el.box.classList.remove('input-mode'); el.stage.classList.remove('near'); res(v); };
       const err = m => { const e = $('#vn-err', el.input); if (e) { e.textContent = m; e.hidden = false; } };
       $('#vn-ok', el.input).addEventListener('click', e => {
         e.stopPropagation();
@@ -199,7 +199,7 @@
 
   // ───── 흐름 ─────
   async function enter(kind) {
-    el.sprite.classList.remove('hidden'); el.sprite.classList.add('enter-' + kind);
+    el.sprite.classList.remove('hidden'); el.sprite.classList.add('enter-' + kind); el.sprite.addEventListener('animationend', () => el.sprite.classList.remove('enter-' + kind), { once: true });
     if (kind === 'flame' || kind === 'hunter') fx('flash'); if (kind === 'master' || kind === 'child') fx('burst');
     await sleep(kind === 'sage' ? 1500 : kind === 'master' ? 1300 : 1000); el.name.classList.add('on'); await sleep(350);
   }
