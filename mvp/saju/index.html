@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="report.css">
 <link rel="stylesheet" href="vn.css">
 </head>
 <body>
@@ -117,8 +118,8 @@
           <div class="eyebrow">심층 리포트</div>
           <h3 id="teaser-title"></h3>
           <p class="muted" id="teaser-meta"></p>
-          <ol class="chapters" id="chapters"></ol>
-          <div class="blur"><p>일간을 중심으로 본 원국의 구조는 다음과 같다. 월지에 자리한 기운이 전체의 흐름을 주도하며, 시주의 글자가 이를 보조한다. 특히 두 번째 대운에서 들어오는 기운은 현재의 고민과 직접 연결된다.</p><p>다음 해 세운이 들어오는 자리는 재성과 관성이 교차하는 지점으로, 상반기와 하반기의 체감이 크게 달라진다. 구체적으로는</p></div>
+          <div id="teaser-l1"></div>
+          <div class="blur" hidden><p>일간을 중심으로 본 원국의 구조는 다음과 같다. 월지에 자리한 기운이 전체의 흐름을 주도하며, 시주의 글자가 이를 보조한다. 특히 두 번째 대운에서 들어오는 기운은 현재의 고민과 직접 연결된다.</p><p>다음 해 세운이 들어오는 자리는 재성과 관성이 교차하는 지점으로, 상반기와 하반기의 체감이 크게 달라진다. 구체적으로는</p></div>
           <div class="paywall"><div class="price" id="price"></div><button type="button" class="btn primary block" id="btn-pay">심층 리포트 열기</button><p class="muted">결제 즉시 발행 · 디지털 콘텐츠는 발행 후 청약철회가 제한됩니다</p></div>
         </div>
         <div class="card report" id="report" hidden></div>
@@ -170,6 +171,8 @@
 <script src="personas.js"></script>
 <script src="mbti.js"></script>
 <script src="report.js"></script>
+<script src="report2.js"></script>
+<script src="report-ui.js"></script>
 <script src="plain.js"></script>
 <script src="app.js"></script>
 <script src="vn-scripts.js"></script>

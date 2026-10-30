@@ -31,7 +31,7 @@
 
   const personas = {
     flame: {
-      id: 'flame', name: '홍염의 여신', role: '연애·재회·궁합', tier: 'character',
+      id: 'flame', name: '윤슬', role: '연애·재회·궁합', tier: 'character',
       palette: { accent: '#ff6f5e', accent2: '#8e2a22', glow: 'rgba(255,111,94,.38)' }, emblem: EMBLEMS.flame,
       tagline: '당신의 사랑이 번번이 같은 자리에서 꼬이는 이유.', voice: '"기다리지 마. 그 사람 일주를 가져와. 내가 읽어 줄게."',
       sees: ['배우자성이 원국 어디에 앉았는지, 몇 개인지', '연애가 반복적으로 꼬이는 십신의 자리', '내년 인연이 들어오는 달과 피할 달'],
@@ -73,7 +73,7 @@
     },
 
     sage: {
-      id: 'sage', name: '도사님', role: '돈·사업·직업', tier: 'character',
+      id: 'sage', name: '백운 도사', role: '돈·사업·직업', tier: 'character',
       palette: { accent: '#e2b74f', accent2: '#6e4f12', glow: 'rgba(226,183,79,.35)' }, emblem: EMBLEMS.sage,
       tagline: '돈이 새는 구멍은 늘 같은 자리에 있다.', voice: '"허허, 벌 재주와 지킬 재주는 다른 것이니라."',
       sees: ['재성이 들어오고 나가는 자리', '대운이 재물과 만나는 10년', '동업·투자·독립 중 네 명에 맞는 길'],
@@ -115,7 +115,7 @@
     },
 
     granny: {
-      id: 'granny', name: '할머니', role: '한 해·가족·인생 흐름', tier: 'character',
+      id: 'granny', name: '복순 할머니', role: '한 해·가족·인생 흐름', tier: 'character',
       palette: { accent: '#b9a3ff', accent2: '#4a3a8c', glow: 'rgba(185,163,255,.35)' }, emblem: EMBLEMS.granny,
       tagline: '올해 네가 힘들었던 건 네 탓이 아니라 계절 탓이야.', voice: '"아이고, 얘야. 어디 손 좀 줘 봐라."',
       sees: ['내년 열두 달의 흐름과 조심할 달', '대운이 바뀌는 전환기인지', '가족 사이에서 네가 서 있는 자리'],
@@ -157,7 +157,7 @@
     },
 
     child: {
-      id: 'child', name: '애기동자', role: '자녀·기질', tier: 'character',
+      id: 'child', name: '초롱 동자', role: '자녀·기질', tier: 'character',
       palette: { accent: '#ff9ab5', accent2: '#8c3a5a', glow: 'rgba(255,154,181,.35)' }, emblem: EMBLEMS.child,
       tagline: '아이는 고치는 게 아니라 읽는 거예요.', voice: '"저는 다 보여요! 이 아이는 물 같은 아이예요."',
       sees: ['아이의 타고난 기질(일간·오행)', '칭찬이 통하는 아이인지 규칙이 통하는 아이인지', '내년에 아이가 만나는 기운'],
@@ -199,7 +199,7 @@
     },
 
     hunter: {
-      id: 'hunter', name: '냉철한 헤드헌터', role: '커리어·이직', tier: 'character',
+      id: 'hunter', name: '서지안', role: '커리어·이직', tier: 'character',
       palette: { accent: '#5fb0ff', accent2: '#1f4a80', glow: 'rgba(95,176,255,.35)' }, emblem: EMBLEMS.hunter,
       tagline: '이직은 횟수가 아니라 타이밍입니다.', voice: '"결론부터 드리겠습니다. 지금은 아닙니다."',
       sees: ['시장에서 평가받는 당신의 유형(격·십신)', '이직 적기 분기와 피해야 할 분기', '적합 직무와 부적합 환경'],

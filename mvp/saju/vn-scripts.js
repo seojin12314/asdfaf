@@ -57,7 +57,7 @@
       entrance: 'flame', particles: 'ember',
       intro: [
         { t: '…왔네. 불씨가 흔들리는 걸 보니, 마음에 걸린 사람이 있구나.', face: 'smile', fx: 'flash' },
-        { t: '난 홍염의 여신. 인연의 실이 어디서 꼬였는지, 어디서 끊어야 하는지만 봐. 돈? 일? 그런 건 다른 애들한테 가.', face: 'neutral' },
+        { t: '난 윤슬. 인연의 실이 어디서 꼬였는지, 어디서 끊어야 하는지만 봐. 돈? 일? 그런 건 다른 애들한테 가.', face: 'neutral' },
         { t: '돌려 말하지 않을 거야. 듣기 싫은 말도 할 거고. 그래도 괜찮아?', face: 'serious', sprite: 'bump' },
       ],
       concern: {
@@ -104,7 +104,7 @@
       entrance: 'sage', particles: 'coin',
       intro: [
         { t: '허허… 안개 걷히는 소리에 눈을 떴더니, 손님이 와 있구나.', face: 'smile' },
-        { t: '나는 도사라 불리지. 산에서 엽전 소리만 듣고 산 지 오래라, 돈이 들어오는 길과 새는 구멍은 눈 감고도 본다.', face: 'neutral' },
+        { t: '백운이라 하네. 사람들은 도사라 부르지. 산에서 엽전 소리만 듣고 산 지 오래라, 돈이 들어오는 길과 새는 구멍은 눈 감고도 본다.', face: 'neutral' },
         { t: '연애나 아이 얘기는 아랫마을 아이들에게 가거라. 여기서는 재물 얘기만 한다. 그래도 좋으냐?', face: 'serious', sprite: 'nod' },
       ],
       concern: {
@@ -192,7 +192,7 @@
       entrance: 'child', particles: 'petal',
       intro: [
         { t: '어? 어! 누가 왔다! 연못에 꽃잎이 떨어지길래 봤더니, 손님이에요!', face: 'smile', fx: 'burst' },
-        { t: '저는 애기동자예요! 어른 사주는 몰라요. 대신 아이는 다 보여요. 물 같은 아이, 불 같은 아이, 다요!', face: 'smile', sprite: 'bump' },
+        { t: '저는 초롱 동자예요! 어른 사주는 몰라요. 대신 아이는 다 보여요. 물 같은 아이, 불 같은 아이, 다요!', face: 'smile', sprite: 'bump' },
         { t: '아이는 고치는 게 아니라 읽는 거예요. 읽히는 아이는 편안해져요. 오늘은 아이 얘기만 해요, 네?', face: 'neutral' },
       ],
       concern: {
@@ -236,7 +236,7 @@
       entrance: 'hunter', particles: 'grid',
       intro: [
         { t: '앉으시죠. 시간은 15분입니다.', face: 'neutral', fx: 'flash' },
-        { t: '헤드헌터입니다. 저는 시장이 당신을 어떻게 평가하는지, 그리고 언제 움직여야 하는지만 봅니다. 연애나 가족 문제는 제 분야가 아닙니다.', face: 'neutral' },
+        { t: '서지안입니다. 헤드헌터죠. 저는 시장이 당신을 어떻게 평가하는지, 그리고 언제 움직여야 하는지만 봅니다. 연애나 가족 문제는 제 분야가 아닙니다.', face: 'neutral' },
         { t: '결론부터 말하는 편입니다. 듣기 좋은 말은 기대하지 마십시오. 진행할까요?', face: 'serious', sprite: 'bump' },
       ],
       concern: {
@@ -321,11 +321,11 @@
 
     // ─────────────────────────── MBTI 상담사 · 검사·명식·추구 세 글자 (친절한 과외 선생님 톤) ───────────────────────────
     mbti: {
-      persona: { id: 'mbti', name: '상담사', role: 'MBTI 사주 · 성향 상담', tier: 'character', palette: { accent: '#66d6c5', accent2: '#1f4f52', glow: 'rgba(102,214,197,.35)' }, emblem: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="16" y="16" width="30" height="30" rx="9" fill="currentColor"/><rect x="54" y="16" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="16" y="54" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="54" y="54" width="30" height="30" rx="9" fill="currentColor"/></svg>' },
+      persona: { id: 'mbti', name: '도윤 선생님', role: 'MBTI 사주 · 성향 상담', tier: 'character', palette: { accent: '#66d6c5', accent2: '#1f4f52', glow: 'rgba(102,214,197,.35)' }, emblem: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="16" y="16" width="30" height="30" rx="9" fill="currentColor"/><rect x="54" y="16" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="16" y="54" width="30" height="30" rx="9" fill="currentColor" opacity=".7"/><rect x="54" y="54" width="30" height="30" rx="9" fill="currentColor"/></svg>' },
       mbti: true, entrance: 'master', particles: 'moon',
       intro: [
         { t: '어서 오세요. 편한 자리에 앉으세요. 오늘은 제가 과외 선생님처럼 옆에 앉아서 같이 볼게요.', face: 'smile' },
-        { t: 'MBTI 상담을 맡고 있어요. 보통은 검사 결과 하나만 보는데, 저는 세 글자를 나란히 놓아요. 내가 아는 나, 타고난 나, 되고 싶은 나.', face: 'neutral' },
+        { t: '도윤이에요. MBTI 상담을 맡고 있어요. 보통은 검사 결과 하나만 보는데, 저는 세 글자를 나란히 놓아요. 내가 아는 나, 타고난 나, 되고 싶은 나.', face: 'neutral' },
         { t: '타고난 나는 사주 명식에서 꺼내요. 어려운 말은 제가 다 풀어서 설명할 테니 걱정 마세요. 시작해 볼까요?', face: 'smile', sprite: 'nod' },
       ],
       concern: {

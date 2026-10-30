@@ -1,7 +1,7 @@
 /* app.js — 화면 흐름(콘티)과 렌더링. 계산 Saju, 캐릭터 SajuPersonas, MBTI SajuMBTI, 장문 풀이 SajuReport. */
 (function () {
   'use strict';
-  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport;
+  const S = window.Saju, P = window.SajuPersonas, M = window.SajuMBTI, R = window.SajuReport, R2 = window.SajuReport2, UI = window.SajuReportUI;
   const $ = (sel, el) => (el || document).querySelector(sel);
   const $$ = (sel, el) => Array.from((el || document).querySelectorAll(sel));
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -201,9 +201,10 @@
     $('#sheet-head').innerHTML = `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()"><div class="portrait" id="portrait">${artHTML(p, 'face')}</div><div><div class="who">${p.name} · ${state.input.name || '당신'}의 명식</div><div class="cls">${cls}</div><div class="sub">${plainT(`${r.day.stemKo}${r.dayMaster.elementKo}(${r.day.stem}) 일간`, new Set())} · ${r.dayMaster.polarity}${S.ELEM_KO[r.dayMaster.element]} · ${P.elementWords[r.dayMaster.element]}</div></div><div class="bubble" id="bubble"></div>`;
     const lines = $('#lines'); lines.innerHTML = '';
     const title = P.fill(p.report.title, { seunNext: r.seun[1].year });
-    $('#teaser-title').textContent = title; $('#teaser-meta').textContent = `${p.name}의 ${p.tier === 'expert' ? '전문가 종합' : '고민 특화'} 풀이 · 17장 · 모바일 15화면 이상`;
+    const rep = state.report || (state.report = buildReport());
+    $('#teaser-title').textContent = title; $('#teaser-meta').textContent = `${p.name}의 ${p.tier === 'expert' ? '전문가 종합' : '고민 특화'} 풀이 · 결론 1화면 + 쉬운 설명 ${rep.L2.length}장 + 근거`;
     $('#price').innerHTML = `${won(p.report.price)}<small>1회 · 즉시 발행</small>`;
-    $('#chapters').innerHTML = p.report.chapters.map(c => `<li>${plainT(P.fill(c, { seunNext: r.seun[1].year }), new Set())}</li>`).join('');
+    $('#teaser-l1').innerHTML = UI.teaserHTML(rep);
     const faces = ['neutral', 'smile', 'serious']; const seen = new Set();
     typewrite($('#bubble'), plainT(rd.greeting, seen), () => { rd.lines.forEach((t, i) => setTimeout(() => { setFace(faces[i]); const d = document.createElement('div'); d.className = 'line appear'; d.innerHTML = `<span class="n">${i + 1}</span><span>${plainT(t, seen)}</span>`; lines.appendChild(d); if (i === rd.lines.length - 1) setTimeout(() => { const d2 = document.createElement('p'); d2.className = 'muted'; d2.textContent = plainT(rd.close, seen); lines.appendChild(d2); setFace('neutral'); }, reduced ? 0 : 500); }, reduced ? 0 : 420 * (i + 1))); });
   }
@@ -219,40 +220,30 @@
     $('#result-eyebrow').textContent = 'MBTI 사주 · 결과'; $('#lines-card').hidden = true; $('#btn-cross').hidden = true; $('#btn-again').textContent = '캐릭터에게 같은 명식 보이기';
     $('#sheet-head').innerHTML = `<div class="mbti-hero"><div class="mbti-type" style="font-size:34px">${cmp.test}<small>검사</small></div><div class="mbti-vs">vs</div><div class="mbti-type" style="font-size:34px">${est.letters}<small>명식</small></div>${adv ? `<div class="mbti-vs">vs</div><div class="mbti-type goal" style="font-size:34px">${adv.goal}<small>추구</small></div>` : ''}<div class="chip accent">${adv ? `사주가 권하는 흐름 ${adv.rec}` : `4축 중 ${cmp.matches}축 일치`}</div></div><div class="bubble" id="bubble">${plainT(adv ? adv.summary : cmp.summary, new Set())}</div>`;
     $('#mbti-card').hidden = false; $('#mbti-card').innerHTML = plainH(mbtiCardHTML(est, cmp, cmp.test, adv), new Set());
-    $('#teaser-title').textContent = MBTI_PRODUCT.title; $('#teaser-meta').textContent = (adv ? '추구 MBTI로 가는 길 + ' : '') + '축별 심층 + 일간·오행·십신 + 4주 실험';
-    $('#price').innerHTML = `${won(MBTI_PRODUCT.price)}<small>1회 · 즉시 발행</small>`; $('#chapters').innerHTML = MBTI_PRODUCT.chapters.map(c => `<li>${c}</li>`).join('');
+    const rep = state.report || (state.report = buildReport());
+    $('#teaser-title').textContent = MBTI_PRODUCT.title; $('#teaser-meta').textContent = (adv ? '추구 MBTI로 가는 길 + ' : '') + `세 글자 맞대기 · 결론 1화면 + 쉬운 설명 ${rep.L2.length}장 + 근거`;
+    $('#price').innerHTML = `${won(MBTI_PRODUCT.price)}<small>1회 · 즉시 발행</small>`; $('#teaser-l1').innerHTML = UI.teaserHTML(rep);
   }
 
   // ───── 5. 심층 리포트(장문) ─────
   function buildReport() {
     const r = state.result, name = state.input.name || '당신';
-    if (state.mode === 'mbti') {
-      const mb = M.buildSections(r, state.est, state.cmp, { name, adv: state.adv });
-      const gen = R.build(r, null, { name }).sections.filter(s => ['daymaster', 'elements', 'tengods', 'strength'].includes(s.id));
-      const sections = mb.head.concat(gen, mb.tail);
-      const chars = sections.map(s => s.title + ' ' + s.html.replace(/<[^>]+>/g, ' ')).join(' ').replace(/\s/g, '').length;
-      return { title: MBTI_PRODUCT.title, sections, chars, screens: Math.round(chars / 450) };
-    }
-    const p = state.persona; const rep = R.build(r, p, { name, className: P.classNames[r.day.stem] });
-    rep.title = P.fill(p.report.title, { seunNext: r.seun[1].year }); return rep;
+    if (state.mode === 'mbti') { const est = state.est || M.estimate(r); const cmp = state.cmp || M.compare(state.input.mbti, est); const adv = state.adv || M.advise(est, state.input.mbti, state.input.goal); return R2.build(r, { kind: 'mbti', name, est, cmp, adv, title: MBTI_PRODUCT.title }); }
+    const p = state.persona; return R2.build(r, { persona: p, name, title: P.fill(p.report.title, { seunNext: r.seun[1].year }) });
   }
+  function planKey() { const i = state.input; return `${i.year}${i.month}${i.day}-${state.mode === 'mbti' ? 'mbti' : state.persona.id}`; }
   function renderReport() {
-    const rep = state.report || (state.report = buildReport()); const p = state.persona; const total = rep.sections.length;
-    const nn = i => String(i + 1).padStart(2, '0');
+    const rep = state.report || (state.report = buildReport()); const p = state.persona;
+    const face = p ? `<span class="face-chip">${artHTML(p, 'face')}</span>` : '';
     $('#report').innerHTML = `
       <div class="rtop">
         ${p ? `<img class="head-bg" src="${ART}${p.id}/bg_header.png" alt="" onerror="this.remove()">` : ''}
-        <div class="row"><span class="chip accent">${state.mode === 'mbti' ? 'MBTI 사주' : p.name}</span><span class="chip">총 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면 · ${total}장</span>${p && p.consentNote ? '<span class="chip dev">본인 감수 전 템플릿</span>' : ''}</div>
+        <div class="row"><span class="chip accent">${state.mode === 'mbti' ? 'MBTI 사주' : p.name}</span><span class="chip">결론 1화면 · 쉬운 설명 ${rep.L2.length}장 · 근거 ${rep.L3.length}장</span>${p && p.consentNote ? '<span class="chip dev">본인 감수 전 템플릿</span>' : ''}</div>
         <h3 class="rtitle">${rep.title}</h3>
-        <p class="muted">${state.input.name || '당신'} · ${birthString()} · ${state.result.pillars.map(x => x.ko).join(' ')}</p>
-        <ol class="toc">${rep.sections.map((s, i) => `<li><a data-to="rs-${s.id}"><span class="n">${nn(i)}</span><span>${plainT(s.title, new Set())}</span></a></li>`).join('')}</ol>
-        <p class="muted" style="margin:0"><span class="chip dev">MVP: 데이터 기반 템플릿 · 운영: 같은 골격을 ${state.mode === 'mbti' ? '분석' : p.name} 말투로 LLM 생성</span></p>
+        <p class="muted">${state.input.name || '당신'} · ${birthString()}</p>
       </div>
-      <div class="rprogress" id="rprogress"><span class="idx" id="rp-idx">01/${total}</span><span class="t" id="rp-title">${rep.sections[0].title}</span><i id="rp-bar"></i></div>
-      ${rep.sections.map((s, i) => { const seen = new Set(); return `<section class="rsec" id="rs-${s.id}" data-n="${i + 1}"><div class="rhead"><span class="rnum">${nn(i)}</span><h4>${plainT(s.title, seen)}</h4></div><div class="rbody">${plainH(s.html, seen)}</div></section>`; }).join('')}`;
-    if (p) $$('#report .lead-in').forEach(el => { const chip = document.createElement('span'); chip.className = 'face-chip'; chip.innerHTML = artHTML(p, 'face'); el.prepend(chip); });
-    $$('#report .toc a').forEach(a => a.addEventListener('click', () => { const t = $('#' + a.dataset.to); if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); }));
-    if ('IntersectionObserver' in window) { const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) { const n = +e.target.dataset.n; $('#rp-idx').textContent = `${nn(n - 1)}/${total}`; $('#rp-title').textContent = e.target.querySelector('h4').textContent; $('#rp-bar').style.width = Math.round(n / total * 100) + '%'; } }); }, { rootMargin: '-40% 0px -55% 0px' }); $$('#report .rsec').forEach(s => io.observe(s)); }
+      <div class="rwrap">${UI.fullHTML(rep, { personaFace: face, planKey: planKey() })}</div>`;
+    UI.bind($('#report'), rep);
     $('#teaser').hidden = true; $('#report').hidden = false; state.unlocked = true;
     $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   }
@@ -300,7 +291,7 @@
     $('#birth').addEventListener('submit', e => { e.preventDefault(); const input = readForm(); if (!input || !compute(input)) return; show('reading'); runReading(() => { show('result'); renderResult(); }); });
     $('#hourUnknown').addEventListener('change', e => { $('#time').disabled = e.target.checked; });
     $('#btn-fill-sample').addEventListener('click', fillSample);
-    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `${rep.sections.length}장 심층 리포트 1회`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `약 ${rep.chars.toLocaleString()}자 · 모바일 ${rep.screens}화면`; $('#m-pay').hidden = false; });
+    $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `결론 + 쉬운 설명 ${rep.L2.length}장 + 근거 ${rep.L3.length}장`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
     $('#btn-pay-confirm').addEventListener('click', () => { $('#m-pay').hidden = true; renderReport(); });
     $('#btn-share').addEventListener('click', () => { state.shareBg = null; if (state.mode !== 'mbti' && state.persona) { const im = new Image(); im.onload = () => { state.shareBg = im; shareCard(); }; im.onerror = () => shareCard(); im.src = `${ART}${state.persona.id}/bg_card.png`; } else shareCard(); });
     $$('[data-close]').forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.close).hidden = true; }));
