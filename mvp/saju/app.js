@@ -84,7 +84,7 @@
   const SNAP_KEY = 'saju.last';
   function saveSnap() {
     if (!state.input || !state.result) return;
-    try { localStorage.setItem(SNAP_KEY, JSON.stringify({ v: 1, at: Date.now(), mode: state.mode, persona: state.persona ? state.persona.id : null, input: state.input, compatIn: state.compatIn || null, parentIn: state.parentIn || null, qsel: state.qsel, qall: state.qall, paid: !!state.unlocked })); } catch (e) { /* 저장 공간 없음·차단 */ }
+    try { localStorage.setItem(SNAP_KEY, JSON.stringify({ v: 1, at: Date.now(), mode: state.mode, persona: state.persona ? state.persona.id : null, input: state.input, compatIn: state.compatIn || null, parentIn: state.parentIn || null, concern: state.concern || null, concernLabel: state.concernLabel || null, qsel: state.qsel, qall: state.qall, paid: !!state.unlocked })); } catch (e) { /* 저장 공간 없음·차단 */ }
   }
   function clearSnap() { try { localStorage.removeItem(SNAP_KEY); } catch (e) { /* 무시 */ } }
   function loadSnap() { try { const s = JSON.parse(localStorage.getItem(SNAP_KEY) || 'null'); return s && s.v === 1 && s.input ? s : null; } catch (e) { return null; } }
@@ -100,6 +100,7 @@
     if (s.mode === 'mbti') setMode('mbti'); else { state.mode = 'persona'; setPersona(s.persona); }
     if (!compute(s.input)) { clearSnap(); renderResume(); return; }
     const sub = x => { try { return S.compute({ year: x.year, month: x.month, day: x.day, hour: 12, minute: 0, hourUnknown: true, gender: x.gender, solarCorrectionMin: 0 }); } catch (e) { return null; } };
+    state.concern = s.concern || null; state.concernLabel = s.concernLabel || null;
     if (s.compatIn) { const pr = sub(s.compatIn); state.compatIn = s.compatIn; state.compat = pr ? { pr, kind: s.compatIn.kind || 'love', nameB: s.compatIn.nameB || '상대' } : null; }
     if (s.parentIn) { state.parentIn = s.parentIn; state.parent = sub(s.parentIn); }
     if (Array.isArray(s.qsel) && s.qsel.length) { state.qsel = s.qsel.slice(); state.qinitialized = true; }
@@ -288,15 +289,20 @@
   }
   function qList() { return QB.list(qDomain(), qFacts()); }
   function renderQPick() {
-    const box = $('#qpick'); if (!box || !QB) return; const domain = qDomain(); const items = qList();
+    const box = $('#qpick'); if (!box || !QB) return; const domain = qDomain(); const items = qList(); const F = qFacts();
     const available = Math.min(10, items.filter(it => !it.locked).length);
-    if (!state.qinitialized) { state.qsel = QB.recommend(domain, qFacts(), 10); state.qinitialized = true; }
-    const sel = new Set(state.qsel);
+    const coreIds = QB.core(domain, state.concern, F);
+    if (!state.qinitialized) { state.qsel = coreIds.slice(); state.qinitialized = true; }
+    const sel = new Set(state.qsel); const core = items.filter(it => coreIds.includes(it.id)); const rest = items.filter(it => !coreIds.includes(it.id));
+    const moreOpen = rest.some(it => sel.has(it.id));
+    const row = it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`;
+    const concern = state.concernLabel ? `<span class="chip accent">${state.concernLabel}</span>` : '';
     box.hidden = false;
-    box.innerHTML = `<div class="eyebrow">질문 고르기 · ${domainKo(domain)}</div><div class="qpick-head"><h3>궁금한 질문을 최대 ${available}개 고르세요</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">고른 질문의 답을 내 사주로 풀어 드려요. 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ""}<div class="qlist">${items.map(it => `<label class="qitem ${it.locked ? 'locked' : ''} ${sel.has(it.id) ? 'on' : ''}"><input type="checkbox" data-q="${it.id}" ${sel.has(it.id) ? 'checked' : ''} ${it.locked ? 'disabled' : ''}><span class="qn">${String(it.n).padStart(2, '0')}</span><span class="qt">${it.q.replace(/^★\s*/, '')}${it.star ? ' <i class="star">★</i>' : ''}${it.locked ? `<small>${it.locked}</small>` : ''}</span></label>`).join('')}</div>`;
-    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; renderQSample(); saveSnap(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
+    box.innerHTML = `<div class="eyebrow">내 질문 · ${domainKo(domain)}</div><div class="qpick-head"><h3>${concern ? `고민 ${concern}<br>핵심 질문 ${core.length}개를 먼저 골라 뒀어요` : `핵심 질문 ${core.length}개를 먼저 골라 뒀어요`}</h3><span class="qcount"><b id="qcount">${sel.size}</b>/${available}</span></div><p class="muted">이대로 열어도 되고, 아래에서 더 고르거나 바꿔도 돼요. 고른 질문의 답을 내 사주로 풀어 드리고, 나머지는 리포트 안에서 +₩5,000에 전부 열 수 있어요.</p>${available < 10 ? `<p class="note" role="status">현재 입력으로 답할 수 있는 질문은 ${available}개예요. 잠긴 질문은 추가 정보가 필요해요. 표시된 상품 가격은 동일하므로 제공 범위를 확인해 주세요.</p>` : ''}<div class="qlist qcore">${core.map(row).join('')}</div><details class="qmore" ${moreOpen ? 'open' : ''}><summary><b>더 고르기</b><span id="qmore-sub">남은 자리 ${Math.max(0, available - sel.size)}개 · 질문 ${rest.length}개 더</span></summary><div class="qtools"><button type="button" class="btn" id="btn-qauto">추천 ${available}개로 채우기</button><button type="button" class="btn ghost" id="btn-qcore">핵심만</button><button type="button" class="btn ghost" id="btn-qclear">비우기</button></div><div class="qlist">${rest.map(row).join('')}</div></details>`;
+    const sync = () => { const n = state.qsel.length; $('#qcount').textContent = n; const ms = $('#qmore-sub'); if (ms) ms.textContent = `남은 자리 ${Math.max(0, available - n)}개 · 질문 ${rest.length}개 더`; renderQSample(); saveSnap(); $$('#qpick .qitem').forEach(l => l.classList.toggle('on', state.qsel.includes(l.querySelector('input').dataset.q))); const pay = $('#btn-pay'); if (pay) { pay.disabled = n === 0; pay.textContent = n ? `고른 질문 ${n}개 답 보기` : '질문을 골라 주세요'; } };
     $$('#qpick input[data-q]').forEach(cb => cb.addEventListener('change', () => { const id = cb.dataset.q; if (cb.checked) { if (state.qsel.length >= 10) { cb.checked = false; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); return; } state.qsel.push(id); } else state.qsel = state.qsel.filter(x => x !== id); state.report = null; sync(); }));
-    $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, qFacts(), 10); state.report = null; renderQPick(); });
+    $('#btn-qauto').addEventListener('click', () => { state.qsel = QB.recommend(domain, F, 10); state.report = null; renderQPick(); });
+    $('#btn-qcore').addEventListener('click', () => { state.qsel = coreIds.slice(); state.report = null; renderQPick(); });
     $('#btn-qclear').addEventListener('click', () => { state.qsel = []; state.report = null; renderQPick(); });
     sync();
   }
@@ -373,7 +379,7 @@
 
   // ───── 흐름 연결 ─────
   function compute(input) {
-    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.compatIn = null; state.parentIn = null; state.qsel = []; state.qinitialized = false; state.qall = false; state.qfacts = null;
+    state.input = input; state.report = null; state.est = null; state.cmp = null; state.adv = null; state.compat = null; state.parent = null; state.compatIn = null; state.parentIn = null; state.concern = null; state.concernLabel = null; state.qsel = []; state.qinitialized = false; state.qall = false; state.qfacts = null;
     try { state.result = S.compute(input); } catch (err) { $('#form-error').textContent = '계산에 실패했습니다: ' + err.message; $('#form-error').hidden = false; return false; }
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;

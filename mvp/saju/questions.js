@@ -240,6 +240,22 @@
     const it = A[domain][n - 1]; if (!it) return null;
     try { const text = it[1](F); return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: questionTitle(domain, n, F), text: String(text || '').replace(/\s+/g, ' ').trim() }; } catch (e) { return { id: `${domain}-${String(n).padStart(2, '0')}`, n, q: questionTitle(domain, n, F), text: '이 질문은 입력이 더 필요해요.', error: String(e && e.message) }; }
   }
+  /** 고민(대화 첫 선택지) → 먼저 골라 둘 핵심 질문 3~5개. 잠긴 질문은 빼고, 3개가 안 되면 추천 순서로 채운다. */
+  const CORE = {
+    love: { reunion: [19, 11, 4, 7, 20], new: [9, 10, 6, 3, 17], match: [19, 20, 11, 6, 7], _: [1, 3, 6, 9, 10] },
+    money: { business: [3, 13, 12, 14, 4], invest: [10, 2, 9, 8, 17], save: [11, 2, 1, 7, 20], pair: [4, 15, 16, 14, 9], biz: [4, 15, 16, 14, 9], friend: [15, 16, 4, 9, 2], _: [20, 2, 1, 7, 6] },
+    child: { temper: [18, 20, 19, 14, 3], discipline: [20, 18, 3, 8, 5], next: [18, 20, 15, 16, 7], _: [18, 20, 19, 2, 3] },
+    mbti: { gap: [2, 3, 1, 18, 7], goal: [5, 6, 20, 14, 1], who: [1, 7, 8, 9, 10], _: [1, 2, 3, 5, 6] },
+    master: { all: [3, 5, 4, 18, 30], why: [28, 6, 8, 14, 18], who: [1, 2, 4, 14, 29], year: [21, 22, 18, 28, 23], family: [24, 25, 8, 22, 26], next: [22, 23, 21, 19, 20], _: [1, 3, 5, 18, 30] },
+    work: { move: [6, 7, 5, 9, 8], promo: [11, 4, 12, 10, 19], burnout: [16, 15, 1, 3, 17], _: [1, 2, 6, 7, 3] },
+  };
+  function core(domain, concern, F) {
+    const open = list(domain, F).filter(x => !x.locked); const byN = n => open.find(x => x.n === n);
+    const tbl = CORE[domain] || {}; const ns = tbl[concern] || tbl._ || [];
+    const ids = ns.map(byN).filter(Boolean).map(x => x.id);
+    if (ids.length < 3) recommend(domain, F, 10).forEach(id => { if (ids.length < 3 && !ids.includes(id)) ids.push(id); });
+    return ids.slice(0, 5);
+  }
   function recommend(domain, F, k) { const open = list(domain, F).filter(x => !x.locked); const pri = { love: [1, 3, 4, 6, 9, 10, 11, 16, 18, 8], money: [20, 2, 1, 7, 8, 9, 4, 16, 6, 19], child: [18, 20, 2, 3, 4, 5, 8, 14, 16, 19], mbti: [1, 2, 3, 5, 6, 7, 10, 13, 19, 20], master: [1, 3, 5, 8, 9, 14, 17, 18, 23, 30], work: [1, 2, 6, 7, 3, 12, 10, 19, 14, 20] }[domain] || []; const ids = pri.map(n => open.find(x => x.n === n)).filter(Boolean).map(x => x.id); open.forEach(x => { if (ids.length < (k || 10) && !ids.includes(x.id)) ids.push(x.id); }); return ids.slice(0, k || 10); }
-  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, hooks };
+  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, core, CORE, hooks };
 });

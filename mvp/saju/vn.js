@@ -289,7 +289,7 @@
     for (const l of sc.ask.done) { await say(P.fill(l.t, { name }), l); if (!st.open) return; }
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
-    const r = A.state.result;
+    const r = A.state.result; A.state.concern = concern; A.state.concernLabel = (opt.label || '').replace(/[?!.]+$/, '');
     const nameB = prName || (sc.ask.partner && sc.ask.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
     if (sc.parentMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
     await summon(sc.summon); if (!st.open) return;
