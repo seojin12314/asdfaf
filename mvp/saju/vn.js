@@ -165,11 +165,11 @@
     const html = kind === 'mbti' ? `<div class="mbti-pick">${M.AXES.map(x => `<div class="seg mini"><label><input type="radio" name="vn-m_${x.id}" value="${x.left}"><span>${x.left} <small>${x.leftKo}</small></span></label><label><input type="radio" name="vn-m_${x.id}" value="${x.right}"><span>${x.right} <small>${x.rightKo}</small></span></label></div>`).join('')}</div><div class="rowb"><span class="hint">네 축을 모두 골라 주세요</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거예요')}</button></div><div class="err" id="vn-err" hidden></div>`
       : kind === 'text' ? `<input type="text" id="vn-f" maxlength="12" placeholder="${esc(o.placeholder || '')}" autocomplete="off"><div class="rowb"><span class="hint">${o.optional ? '비워 두면 "당신"으로 불러요' : ''}</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이거야')}</button></div>`
       : kind === 'gender' ? `<div class="seg"><label><input type="radio" name="vn-g" value="F" checked><span>여성</span></label><label><input type="radio" name="vn-g" value="M"><span>남성</span></label></div><div class="rowb"><span></span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '맞아')}</button></div>`
-      : kind === 'date' ? `<div class="ymd"><input type="tel" id="vn-y" inputmode="numeric" maxlength="4" placeholder="1991" autocomplete="off"><span>년</span><input type="tel" id="vn-m" inputmode="numeric" maxlength="2" placeholder="07" autocomplete="off"><span>월</span><input type="tel" id="vn-d" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off"><span>일</span></div><div class="rowb"><span class="hint">양력 · 숫자만</span><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><div class="err" id="vn-err" hidden></div>`
-      : `<div class="ymd"><input type="tel" id="vn-h" inputmode="numeric" maxlength="2" placeholder="17" autocomplete="off"><span>시</span><input type="tel" id="vn-mi" inputmode="numeric" maxlength="2" placeholder="10" autocomplete="off"><span>분</span></div><p class="hint">24시간 기준 · 오후 5시 10분 → 17시 10분</p><label class="hint"><input type="checkbox" id="vn-solar" checked> 출생 시각 −30분 근사 보정(서울 기준)</label><div class="rowb"><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
+      : kind === 'date' ? `<div class="pick" data-kind="date"><input type="date" id="vn-f" min="1900-01-01" max="2030-12-31" aria-label="생년월일"></div><div class="ymd" data-kind="date" hidden><input type="tel" id="vn-y" inputmode="numeric" maxlength="4" placeholder="1991" autocomplete="off"><span>년</span><input type="tel" id="vn-m" inputmode="numeric" maxlength="2" placeholder="07" autocomplete="off"><span>월</span><input type="tel" id="vn-d" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off"><span>일</span></div><div class="rowb"><button type="button" class="linkbtn" data-entry="date">직접 입력하기</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 날이야')}</button></div><p class="hint">양력 기준</p><div class="err" id="vn-err" hidden></div>`
+      : `<div class="pick" data-kind="time"><input type="time" id="vn-f" aria-label="출생 시각"></div><div class="ymd" data-kind="time" hidden><input type="tel" id="vn-h" inputmode="numeric" maxlength="2" placeholder="17" autocomplete="off"><span>시</span><input type="tel" id="vn-mi" inputmode="numeric" maxlength="2" placeholder="10" autocomplete="off"><span>분</span></div><p class="hint">24시간 기준 · 오후 5시 10분 → 17:10</p><label class="hint"><input type="checkbox" id="vn-solar" checked> 출생 시각 −30분 근사 보정(서울 기준)</label><div class="rowb three"><button type="button" class="linkbtn" data-entry="time">직접 입력하기</button><button type="button" class="btn ghost" id="vn-unk">몰라요</button><button type="button" class="btn primary" id="vn-ok">${esc(o.ok || '이 시각이야')}</button></div><div class="err" id="vn-err" hidden></div>`;
     el.input.innerHTML = html; el.input.hidden = false;
-    const f = $('#vn-f', el.input) || el.input.querySelector('.ymd input'); if (f) setTimeout(() => f.focus(), 50);
-    BF().bindYMD(el.input);
+    const f = $('#vn-f', el.input) || el.input.querySelector('.ymd input'); if (f && kind === 'text') setTimeout(() => f.focus(), 50);
+    BF().bindYMD(el.input); BF().bindEntryToggle(el.input);
     return new Promise(res => {
       const done = v => { st.record.push(v); syncBack(); el.input.hidden = true; el.input.innerHTML = ''; el.box.classList.remove('input-mode'); el.stage.classList.remove('near'); res(v); };
       const err = m => { const e = $('#vn-err', el.input); if (e) { e.textContent = m; e.hidden = false; } };
@@ -231,13 +231,14 @@
     if (mode === 'silent') { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.innerHTML = ''; st.closing = false; return; }
     if (mode === 'sheet') { A.show('result'); A.renderResult(); } else { A.state.mode = 'persona'; A.show('home'); }
     el.root.classList.add('closing');
-    setTimeout(() => { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.hidden = true; el.root.innerHTML = ''; st.closing = false; }, reduced ? 0 : 450);
+    const g = st.gen; st.hideTimer = setTimeout(() => { st.hideTimer = null; if (st.gen !== g) return; if (st.fx) { st.fx.stop(); st.fx = null; } el.root.hidden = true; el.root.innerHTML = ''; st.closing = false; }, reduced ? 0 : 450);
   }
 
   async function run(id, opts) {
     opts = opts || {}; const A = root.SajuApp, SC = root.SajuVNScripts; const sc = SC && SC.SCRIPTS[id]; const p = P.personas[id] || (sc && sc.persona);
     if (!p || !sc || !A) return false;
-    if (st.open) finish('home');
+    if (st.open) finish('silent');
+    if (st.hideTimer) { clearTimeout(st.hideTimer); st.hideTimer = null; }
     st.open = true; st.closing = false; st.persona = p; st.script = sc; st.auto = false;
     st.gen = (st.gen || 0) + 1; st.opts = opts; st.record = []; st.replay = Array.isArray(opts.replay) && opts.replay.length ? opts.replay.slice() : null;
     if (sc.mbti) { A.setMode('mbti'); } else { A.setPersona(id); A.state.mode = 'persona'; }
@@ -289,6 +290,7 @@
     for (const l of sc.ask.done) { await say(P.fill(l.t, { name }), l); if (!st.open) return; }
 
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
+    if (sc.adultNote && (new Date().getFullYear() - input.year) >= 19) { await say(P.fill(sc.adultNote, { name }), { face: 'smile' }); if (!st.open) return; }
     const r = A.state.result; A.state.concern = concern; A.state.concernLabel = (opt.label || '').replace(/[?!.]+$/, '');
     const nameB = prName || (sc.ask.partner && sc.ask.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
     if (sc.parentMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
@@ -299,8 +301,7 @@
     for (const b of beats) { if ('visual' in b) visual(b.visual, c); await say(P.fill(b.t, c), b); if (!st.open) return; }
     visual(null, c);
     for (const l of sc.ending.lines) { await say(P.fill(l.t, c), l); if (!st.open) return; }
-    const end = await choose(sc.ending.prompt, [{ label: sc.ending.sheet, value: 'sheet' }, { label: sc.ending.again, value: 'home' }]); if (!st.open) return;
-    finish(end);
+    finish('sheet'); // 맺음말 뒤 선택지 없이 바로 시트로(사용자 지시)
     return true;
   }
 

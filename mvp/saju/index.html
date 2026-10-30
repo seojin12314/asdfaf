@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261031g">
-<link rel="stylesheet" href="report.css?v=20261031g">
-<link rel="stylesheet" href="vn.css?v=20261031g">
+<link rel="stylesheet" href="styles.css?v=20261031i">
+<link rel="stylesheet" href="report.css?v=20261031i">
+<link rel="stylesheet" href="vn.css?v=20261031i">
 </head>
 <body>
 <!--BODY-START-->
@@ -85,8 +85,8 @@
               <label><input type="radio" name="gender" value="M"><span>남성</span></label>
             </div>
           </div>
-          <div class="field"><label for="by">생년월일 (양력 · 숫자만)</label><div class="ymd"><input type="tel" id="by" name="by" inputmode="numeric" maxlength="4" placeholder="1991" autocomplete="off" required><span>년</span><input type="tel" id="bm" name="bm" inputmode="numeric" maxlength="2" placeholder="07" autocomplete="off" required><span>월</span><input type="tel" id="bd" name="bd" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off" required><span>일</span></div></div>
-          <div class="field"><label for="bh">출생 시각 (24시간 · 오후 5시 10분 → 17시 10분)</label><div class="ymd"><input type="tel" id="bh" name="bh" inputmode="numeric" maxlength="2" placeholder="17" autocomplete="off"><span>시</span><input type="tel" id="bmi" name="bmi" inputmode="numeric" maxlength="2" placeholder="10" autocomplete="off"><span>분</span></div></div>
+          <div class="field"><label for="date">생년월일 (양력)</label><div class="pick" data-kind="date"><input type="date" id="date" name="date" min="1900-01-01" max="2030-12-31"></div><div class="ymd" data-kind="date" hidden><input type="tel" id="by" name="by" inputmode="numeric" maxlength="4" placeholder="1991" autocomplete="off"><span>년</span><input type="tel" id="bm" name="bm" inputmode="numeric" maxlength="2" placeholder="07" autocomplete="off"><span>월</span><input type="tel" id="bd" name="bd" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off"><span>일</span></div><button type="button" class="linkbtn" data-entry="date">직접 입력하기</button></div>
+          <div class="field"><label for="time">출생 시각 (24시간 · 오후 5시 10분 → 17:10)</label><div class="pick" data-kind="time"><input type="time" id="time" name="time"></div><div class="ymd" data-kind="time" hidden><input type="tel" id="bh" name="bh" inputmode="numeric" maxlength="2" placeholder="17" autocomplete="off"><span>시</span><input type="tel" id="bmi" name="bmi" inputmode="numeric" maxlength="2" placeholder="10" autocomplete="off"><span>분</span></div><button type="button" class="linkbtn" data-entry="time">직접 입력하기</button></div>
           <label class="toggle"><input type="checkbox" id="hourUnknown" name="hourUnknown"><span>출생 시간을 모릅니다 (시주 생략)</span></label>
           <label class="toggle"><input type="checkbox" id="solar" name="solar" checked><span>진태양시 보정 −30분 (서울 기준. 표준시 자오선 135°E와 실제 경도 차이)</span></label>
           <div class="field" id="mbti-field" hidden><span class="muted" id="mbti-field-label">평소 검사에서 나오는 MBTI</span>
@@ -198,19 +198,19 @@
   <div>콘티 흐름: 홈(캐릭터 선택 / MBTI 사주) → 캐릭터 소개 → 정보 → 리딩 → 캐릭터 시트 → 심층 리포트(결제 · 결론·질문 답·7장·근거) → 공유 카드</div>
   <div>계산: 만세력 결정론 엔진. 해석: 캐릭터 템플릿(운영 시 LLM). 신강신약·격·용신은 간이 판정. 참고용 콘텐츠이며 의학·법률·금융 조언이 아닙니다.</div>
 </footer>
-<script src="saju.js?v=20261031g"></script>
-<script src="personas.js?v=20261031g"></script>
-<script src="mbti.js?v=20261031g"></script>
-<script src="report.js?v=20261031g"></script>
-<script src="report-lenses.js?v=20261031g"></script>
-<script src="report2.js?v=20261031g"></script>
-<script src="compat.js?v=20261031g"></script>
-<script src="questions.js?v=20261031g"></script>
-<script src="report-ui.js?v=20261031g"></script>
-<script src="plain.js?v=20261031g"></script>
-<script src="app.js?v=20261031g"></script>
-<script src="vn-scripts.js?v=20261031g"></script>
-<script src="vn.js?v=20261031g"></script>
+<script src="saju.js?v=20261031i"></script>
+<script src="personas.js?v=20261031i"></script>
+<script src="mbti.js?v=20261031i"></script>
+<script src="report.js?v=20261031i"></script>
+<script src="report-lenses.js?v=20261031i"></script>
+<script src="report2.js?v=20261031i"></script>
+<script src="compat.js?v=20261031i"></script>
+<script src="questions.js?v=20261031i"></script>
+<script src="report-ui.js?v=20261031i"></script>
+<script src="plain.js?v=20261031i"></script>
+<script src="app.js?v=20261031i"></script>
+<script src="vn-scripts.js?v=20261031i"></script>
+<script src="vn.js?v=20261031i"></script>
 <!--BODY-END-->
 </body>
 </html>

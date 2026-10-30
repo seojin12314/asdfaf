@@ -169,36 +169,56 @@
   }
   function readForm() {
     const f = $('#birth'); const err = (m) => { $('#form-error').textContent = m; $('#form-error').hidden = false; return null; };
-    const v = readYMD(f); if (v.error) { f.by.focus(); return err(v.error); }
+    const v = readYMD(f); if (v.error) { if (v.el) v.el.focus(); return err(v.error); }
     const [y, m, d] = [v.year, v.month, v.day];
     const hourUnknown = f.hourUnknown.checked; let hour = 12, minute = 0;
-    if (!hourUnknown) { const t = readHM(f); if (t.error) { f.bh.focus(); return err(t.error); } hour = t.hour; minute = t.minute; }
+    if (!hourUnknown) { const t = readHM(f); if (t.error) { if (t.el) t.el.focus(); return err(t.error); } hour = t.hour; minute = t.minute; }
     const mbti = readMBTI(f, 'mbti'); const goal = readMBTI(f, 'goal');
     if (state.mode === 'mbti' && !mbti) return err('MBTI 네 축을 모두 선택해 주세요.');
     if (state.mode === 'mbti' && M.AXES.some(a => f.querySelector(`input[name="goal_${a.id}"]:checked`)) && !goal) return err('추구하는 MBTI는 네 축을 모두 고르거나, 전부 비워 주세요.');
     $('#form-error').hidden = true;
     return { name: f.name.value.trim(), year: y, month: m, day: d, hour, minute, hourUnknown, gender: f.gender.value, solarCorrectionMin: f.solar.checked ? -30 : 0, mbti, goal };
   }
-  function fillSample() { const f = $('#birth'); f.name.value = '지민'; f.by.value = '1991'; f.bm.value = '11'; f.bd.value = '03'; f.bh.value = '06'; f.bmi.value = '20'; f.hourUnknown.checked = false; f.bh.disabled = f.bmi.disabled = false; $$('input[name=gender]', f).forEach(r => r.checked = r.value === 'F'); f.solar.checked = true; setMBTI(f, 'mbti', 'INFJ'); setMBTI(f, 'goal', 'ENTJ'); }
+  function fillSample() { const f = $('#birth'); f.name.value = '지민'; f.date.value = '1991-11-03'; f.time.value = '06:20'; f.by.value = '1991'; f.bm.value = '11'; f.bd.value = '03'; f.bh.value = '06'; f.bmi.value = '20'; f.hourUnknown.checked = false; f.time.disabled = f.bh.disabled = f.bmi.disabled = false; $$('input[name=gender]', f).forEach(r => r.checked = r.value === 'F'); f.solar.checked = true; setMBTI(f, 'mbti', 'INFJ'); setMBTI(f, 'goal', 'ENTJ'); }
 
   /** 년/월/일·시/분 숫자칸: 다 채우면 다음 칸으로 */
   function bindYMD(rootEl) { rootEl.querySelectorAll('.ymd').forEach(g => { const ins = [...g.querySelectorAll('input')]; ins.forEach((inp, i) => { inp.addEventListener('input', () => { const v = inp.value.replace(/\D/g, ''), max = +inp.maxLength || 4; inp.value = v.slice(0, max); let rest = v.slice(max), j = i; while (rest && ins[j + 1]) { j++; const mx = +ins[j].maxLength || 2; ins[j].value = rest.slice(0, mx); rest = rest.slice(mx); } if (v.length >= max && ins[i + 1]) ins[Math.min(j + 1, ins.length - 1)].focus(); }); inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && ins[i - 1]) ins[i - 1].focus(); }); }); }); }
+  /** 달력/시계 선택(기본)과 숫자 직접 입력 사이 전환. 한 번 고른 방식은 기기에 기억한다. */
+  function entryManual(rootEl, kind) { const y = rootEl.querySelector(`.ymd[data-kind="${kind}"]`); return !!(y && !y.hidden); }
+  function bindEntryToggle(rootEl) {
+    rootEl.querySelectorAll('[data-entry]').forEach(btn => {
+      const kind = btn.dataset.entry;
+      const apply = (manual, focus) => { const y = rootEl.querySelector(`.ymd[data-kind="${kind}"]`), p = rootEl.querySelector(`.pick[data-kind="${kind}"]`); if (!y || !p) return; y.hidden = !manual; p.hidden = manual; btn.textContent = manual ? (kind === 'date' ? '달력으로 고르기' : '시계로 고르기') : '직접 입력하기'; try { localStorage.setItem('saju.entry.' + kind, manual ? 'manual' : 'picker'); } catch (e) { /* 무시 */ } if (focus) { const f = (manual ? y : p).querySelector('input'); if (f) setTimeout(() => f.focus(), 30); } };
+      let pref = null; try { pref = localStorage.getItem('saju.entry.' + kind); } catch (e) { /* 무시 */ }
+      apply(pref === 'manual', false);
+      btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); apply(!entryManual(rootEl, kind), true); });
+    });
+  }
   function readYMD(rootEl) {
-    const y = +rootEl.querySelector('#vn-y, #by').value, m = +rootEl.querySelector('#vn-m, #bm').value, d = +rootEl.querySelector('#vn-d, #bd').value;
-    if (!y || !m || !d) return { error: '년, 월, 일을 모두 숫자로 넣어 주세요.' };
+    if (!entryManual(rootEl, 'date')) {
+      const f = rootEl.querySelector('.pick[data-kind="date"] input'); if (!f || !f.value) return { error: '생년월일을 골라 주세요. 달력이 불편하면 "직접 입력하기"를 눌러 주세요.', el: f };
+      if (!f.validity.valid) return { error: '1900~2030년의 올바른 양력 날짜를 골라 주세요.', el: f };
+      const [y, m, d] = f.value.split('-').map(Number); return { year: y, month: m, day: d };
+    }
+    const yEl = rootEl.querySelector('#vn-y, #by'); const y = +yEl.value, m = +rootEl.querySelector('#vn-m, #bm').value, d = +rootEl.querySelector('#vn-d, #bd').value;
+    if (!y || !m || !d) return { error: '년, 월, 일을 모두 숫자로 넣어 주세요.', el: yEl };
     const dt = new Date(Date.UTC(y, m - 1, d));
-    if (y < 1900 || y > 2030 || dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return { error: '1900~2030년의 실제 있는 양력 날짜를 넣어 주세요.' };
+    if (y < 1900 || y > 2030 || dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return { error: '1900~2030년의 실제 있는 양력 날짜를 넣어 주세요.', el: yEl };
     return { year: y, month: m, day: d };
   }
   function readHM(rootEl) {
+    if (!entryManual(rootEl, 'time')) {
+      const f = rootEl.querySelector('.pick[data-kind="time"] input'); if (!f || !f.value || !f.validity.valid) return { error: '시각을 고르거나 "몰라요"를 눌러 주세요. 불편하면 "직접 입력하기"로 숫자를 넣어도 돼요.', el: f };
+      const [hh, mm] = f.value.split(':').map(Number); return { hour: hh, minute: mm };
+    }
     const hEl = rootEl.querySelector('#vn-h, #bh'), mEl = rootEl.querySelector('#vn-mi, #bmi'); const h = hEl.value.trim(), mi = mEl.value.trim();
-    if (h === '') return { error: '시각을 넣거나 "몰라요"를 눌러 주세요.' };
+    if (h === '') return { error: '시각을 넣거나 "몰라요"를 눌러 주세요.', el: hEl };
     const hour = +h, minute = mi === '' ? 0 : +mi;
-    if (!Number.isInteger(hour) || hour < 0 || hour > 23) return { error: '시는 0~23 사이로 넣어 주세요(오후 5시 → 17).' };
-    if (!Number.isInteger(minute) || minute < 0 || minute > 59) return { error: '분은 0~59 사이로 넣어 주세요.' };
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23) return { error: '시는 0~23 사이로 넣어 주세요(오후 5시 → 17).', el: hEl };
+    if (!Number.isInteger(minute) || minute < 0 || minute > 59) return { error: '분은 0~59 사이로 넣어 주세요.', el: mEl };
     return { hour, minute };
   }
-  const birthFields = { bindYMD, readYMD, readHM };
+  const birthFields = { bindYMD, readYMD, readHM, bindEntryToggle, entryManual };
 
   // ───── 3. 리딩 ─────
   function runReading(done) {
@@ -395,8 +415,8 @@
     $('#btn-mbti-product').addEventListener('click', () => { setMode('mbti'); if (window.SajuVN) { window.SajuVN.start('mbti'); return; } renderMbtiIntro(); show('persona'); });
     $('#btn-sample').addEventListener('click', () => { state.mode = 'persona'; setPersona('master'); prepForm(); fillSample(); show('form'); });
     $('#birth').addEventListener('submit', e => { e.preventDefault(); const input = readForm(); if (!input || !compute(input)) return; show('reading'); runReading(() => { show('result'); renderResult(); }); });
-    $('#hourUnknown').addEventListener('change', e => { ['#bh', '#bmi'].forEach(id => { $(id).disabled = e.target.checked; }); });
-    bindYMD($('#birth'));
+    $('#hourUnknown').addEventListener('change', e => { ['#time', '#bh', '#bmi'].forEach(id => { $(id).disabled = e.target.checked; }); });
+    bindYMD($('#birth')); bindEntryToggle($('#birth'));
     $('#btn-fill-sample').addEventListener('click', fillSample);
     $('#btn-pay').addEventListener('click', () => { const rep = state.report || (state.report = buildReport()); const price = state.mode === 'mbti' ? MBTI_PRODUCT.price : state.persona.report.price; $('#pay-title').textContent = rep.title; $('#pay-what').textContent = `고른 질문 ${state.qsel.length}개 답 + 결론 화면 + 근거`; $('#pay-price').textContent = won(price); $('#pay-size').textContent = `핵심 ${rep.chars.toLocaleString()}자 · 모바일 약 ${rep.screens}화면`; $('#m-pay').hidden = false; });
     $('#btn-pay-confirm').addEventListener('click', () => { $('#m-pay').hidden = true; renderReport(); });

@@ -316,3 +316,9 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 .resume { margin-bottom: 14px; border-color: color-mix(in oklab, var(--accent) 45%, transparent); }
 .resume .resume-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
 .resume b { display: block; font-size: 15px; } .resume small { color: var(--ink-3); font-size: 12px; }
+
+/* 달력 선택(기본) ↔ 직접 입력 */
+.ymd[hidden], .pick[hidden] { display: none !important; }
+.linkbtn { background: none; border: 0; padding: 4px 2px; min-height: 0; color: var(--accent); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; justify-self: start; }
+.field .linkbtn { margin-top: 6px; }
+.rowb.three { grid-template-columns: auto 1fr auto; }
