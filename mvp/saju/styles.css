@@ -456,8 +456,8 @@ html { -webkit-tap-highlight-color: transparent; }
    will-change 는 건드리지 않는다 — 전부 끄면 배경·대화창·스프라이트가 한 레이어로 합쳐져 글자 하나 바뀔 때마다 배경 타일을 다시 그리고, 그 사이 검은 바탕이 비친다. */
 html.lite *, html.lite *::before, html.lite *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; mix-blend-mode: normal !important; }
 html.lite body[data-screen="home"] .hero { background: color-mix(in srgb, var(--bg) 88%, transparent); }
-html.lite .hs-aura { opacity: .35; animation: none; filter: none; }
-html.lite .hs-rays, html.lite .hs-orbs, html.lite .hs-spark { display: none; }
+/* 정경진 프리미엄 오라·광선·불티는 transform/opacity 만 움직이는 합성기 애니메이션이라 lite 에서도 유지(사용자 요청). 궤도 글자(매 프레임 JS 갱신)만 끈다 */
+html.lite .hs-orbs { display: none; }
 html.lite .hs-spot { filter: none; }
 html.lite .hs-char img { filter: none; }
 html.lite .hs-char.front img { animation: none; }
