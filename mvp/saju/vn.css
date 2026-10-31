@@ -97,7 +97,9 @@
 .vn-box::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .7; }
 .vn-port { width: 72px; height: 72px; border-radius: 18px; overflow: hidden; background: var(--bg-3); border: 1px solid color-mix(in oklab, var(--accent) 50%, var(--line-2)); box-shadow: 0 0 20px var(--glow); animation: breathe 4s ease-in-out infinite; align-self: start; }
 .vn-port.talking { animation: talk .34s ease-in-out infinite alternate; }
-.vn-port img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; transition: opacity .15s; }
+.vn-port { position: relative; }
+.vn-port img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; opacity: 0; transition: opacity .12s; }
+.vn-port img.on { opacity: 1; }
 .vn-body { min-width: 0; position: relative; display: grid; align-content: start; gap: 4px; }
 .vn-who { font-family: var(--font-display); font-size: 13px; letter-spacing: .06em; color: var(--accent); }
 .vn-text { font-family: var(--font-display); font-size: 16px; line-height: 1.6; min-height: 3.2em; text-wrap: pretty; }
@@ -169,3 +171,14 @@ html.inapp .vn-flash.on { animation: vnFlashLite .5s ease-out; }
 html.inapp .vn-fx { opacity: .55; }
 html.inapp .vn-sprite { transition: transform .5s ease, opacity .5s; }
 @keyframes vnFlashLite { 0% { opacity: .28; } 100% { opacity: 0; } }
+
+/* 인앱 WebView: 거대 스프라이트 레이어의 필터(그림자·밝기·블러) 애니메이션과 배경 상시 애니메이션을 끈다 → 탭마다 재래스터로 검게 비는 프레임 방지 */
+html.inapp .vn-sprite { filter: none !important; transition: transform .5s ease, opacity .5s; }
+html.inapp .vn-sprite img { filter: none; }
+html.inapp .vn-sprite[class*="enter-"] { animation: vnEnterLite .9s ease both; }
+html.inapp .vn-sprite.wake { animation: vnEnterLite 1.2s ease both; }
+html.inapp .vn-bg .far, html.inapp .vn-bg .mid, html.inapp .vn-halo { animation: none; }
+html.inapp .vn-bg .mid.dup { display: none; }
+html.inapp .vn-bg .near { transition: none; }
+html.inapp .vn-port { box-shadow: none; }
+@keyframes vnEnterLite { from { opacity: 0; transform: translateX(var(--sx)) translateY(12px); } to { opacity: 1; transform: translateX(var(--sx)); } }

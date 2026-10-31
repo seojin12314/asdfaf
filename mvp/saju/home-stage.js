@@ -39,7 +39,7 @@
       d.addEventListener('click', () => { if (Math.abs(dragDx) < 6) { if (i === cur) onPick(p.id); else go(i); } });
       stage.appendChild(d); return d;
     });
-    const chipEls = P.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = p.prem ? 'prem' : ''; b.setAttribute('aria-label', p.name); b.innerHTML = `<img src="${ART}${p.id}/face.png" alt="">`; b.addEventListener('click', () => go(i)); chips.appendChild(b); return b; });
+    const chipEls = P.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = p.prem ? 'prem' : ''; b.setAttribute('aria-label', p.name); b.innerHTML = `<img src="${ART}${p.id}/sm_face.png" alt="" decoding="async">`; b.addEventListener('click', () => go(i)); chips.appendChild(b); return b; });
     const orbEls = Array.from(stage.querySelectorAll('.hs-char.prem .hs-orb'));
 
     let pos = 0, tgt = 0, cur = -1, dragging = false, dragX = 0, dragDx = 0, dragStart = 0, vel = 0, lastT = 0;

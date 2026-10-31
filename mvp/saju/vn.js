@@ -44,12 +44,13 @@
         </div>
         <div class="vn-choices" id="vn-choices" hidden></div>
         <div class="vn-box" id="vn-box">
-          <div class="vn-port" id="vn-port"><img src="${ART}${p.id}/face.png" alt=""></div>
+          <div class="vn-port" id="vn-port"><img data-k="face" class="on" src="${ART}${p.id}/sm_face.png" alt="" decoding="async"></div>
           <div class="vn-body"><div class="vn-who" id="vn-who">${esc(p.name)}</div><div class="vn-text" id="vn-text"></div><div class="vn-next" id="vn-next">▼</div></div>
           <div class="vn-input" id="vn-input" hidden></div>
         </div>
       </div>`;
     ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'back', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
+    if (INAPP) { el.frame = root.querySelector('.vn-frame'); pinHeight(); if (!st.pinned) { st.pinned = true; window.addEventListener('orientationchange', () => setTimeout(pinHeight, 350)); } }
     el.root = root;
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
@@ -60,11 +61,13 @@
     bindParallax();
     document.addEventListener('keydown', onKey);
   }
+  const INAPP = document.documentElement.classList.contains('inapp');
+  function pinHeight() { if (el.frame && el.frame.isConnected) el.frame.style.height = window.innerHeight + 'px'; }
   function onKey(e) { if (!st.open) return; if (e.key === ' ' || e.key === 'Enter') { if (e.target && /INPUT|BUTTON|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); tap(); } if (e.key === 'Escape') finish('home'); }
   function bindParallax() {
     const near = el.stage.querySelector('.vn-bg .near'); if (!near || reduced) return;
     const move = (dx, dy) => { near.style.transform = `translate(${(dx * 14).toFixed(1)}px, ${(dy * 10).toFixed(1)}px) scale(1.05)`; };
-    const inapp = document.documentElement.classList.contains('inapp');
+    const inapp = INAPP;
     const fine = root.matchMedia && root.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (fine) { el.stage.addEventListener('pointermove', e => { const r = el.stage.getBoundingClientRect(); move((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); }); el.stage.addEventListener('pointerleave', () => move(0, 0)); }
     if (!inapp && root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
@@ -72,9 +75,12 @@
 
   // ───── 표정·분위기·효과 ─────
   function probe(url) { return new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = url; }); }
-  async function preloadFaces(p) { st.faces = {}; for (const k of ['face', 'face_smile', 'face_serious', 'face_talk']) st.faces[k] = await probe(`${ART}${p.id}/${k}.png`); }
-  function faceUrl(name) { const k = name === 'neutral' ? 'face' : `face_${name}`; return `${ART}${st.persona.id}/${st.faces[k] ? k : 'face'}.png`; }
-  function setFace(name) { const im = el.port.querySelector('img'); const u = faceUrl(name); if (im.getAttribute('src') !== u) im.src = u; }
+  async function preloadFaces(p) {
+    st.faces = { face: true };
+    const ks = ['face_smile', 'face_serious', 'face_talk']; const ok = await Promise.all(ks.map(k => probe(`${ART}${p.id}/sm_${k}.png`)));
+    ks.forEach((k, i) => { st.faces[k] = ok[i]; if (!ok[i] || !el.port) return; const im = document.createElement('img'); im.dataset.k = k; im.src = `${ART}${p.id}/sm_${k}.png`; im.alt = ''; im.decoding = 'async'; el.port.appendChild(im); });
+  }
+  function setFace(name) { const k = name === 'neutral' ? 'face' : `face_${name}`; const key = st.faces[k] ? k : 'face'; el.port.querySelectorAll('img').forEach(im => im.classList.toggle('on', im.dataset.k === key)); }
   function setMood(face) { st.mood = face; el.stage.classList.toggle('mood-serious', face === 'serious'); el.stage.classList.toggle('mood-smile', face === 'smile'); setFace(face); }
   function spriteAnim(name) { if (reduced) return; el.sprite.classList.remove('bump', 'nod'); void el.sprite.offsetWidth; el.sprite.classList.add(name); setTimeout(() => el.sprite.classList.remove(name), 700); }
   function fx(name) {
@@ -87,8 +93,8 @@
 
   // ───── 입자 시스템(캐릭터별 질감) ─────
   function particles(canvas, type, color) {
-    const ctx = canvas.getContext('2d'); const DPR = Math.min(root.devicePixelRatio || 1, 2); let w = 0, h = 0, ps = [], bursts = [], raf = 0, alive = true;
-    function size() { const r = canvas.getBoundingClientRect(); w = canvas.width = Math.max(1, r.width * DPR); h = canvas.height = Math.max(1, r.height * DPR); }
+    const ctx = canvas.getContext('2d'); const DPR = INAPP ? 1 : Math.min(root.devicePixelRatio || 1, 2); let w = 0, h = 0, ps = [], bursts = [], raf = 0, alive = true, lastW = 0, lastH = 0;
+    function size() { const r = canvas.getBoundingClientRect(); if (lastW && Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 160) return; lastW = r.width; lastH = r.height; w = canvas.width = Math.max(1, r.width * DPR); h = canvas.height = Math.max(1, r.height * DPR); }
     const N = { ember: 55, coin: 40, moon: 45, petal: 30, grid: 18, star: 60 }[type] || 50;
     function mk(init) {
       const p = { x: Math.random() * w, y: init ? Math.random() * h : h + 10 * DPR, r: (Math.random() * 2 + 1) * DPR, vx: (Math.random() - .5) * .3 * DPR, vy: -(Math.random() * .55 + .25) * DPR, a: Math.random() * Math.PI * 2, s: Math.random() * .04 + .01, rot: Math.random() * Math.PI };
