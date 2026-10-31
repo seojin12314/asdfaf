@@ -7,6 +7,7 @@
   const GLYPH = '甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥'.split('');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lite = () => document.documentElement.classList.contains('lite');
   let raf = 0;
 
   /** @param {HTMLElement} host  무대를 그릴 컨테이너(#roster)
@@ -53,7 +54,7 @@
         d.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`;
         d.style.zIndex = Math.round(depth * 100) + 1;
         d.style.opacity = (0.28 + 0.72 * depth).toFixed(3);
-        d.style.filter = `brightness(${(0.6 + 0.4 * depth).toFixed(3)}) saturate(${(0.65 + 0.35 * depth).toFixed(3)}) blur(${((1 - depth) * 2).toFixed(2)}px)`;
+        d.style.filter = lite() ? '' : `brightness(${(0.6 + 0.4 * depth).toFixed(3)}) saturate(${(0.65 + 0.35 * depth).toFixed(3)}) blur(${((1 - depth) * 2).toFixed(2)}px)`;
         d.classList.toggle('front', depth > 0.985);
       });
       const nearest = ((Math.round(pos) % N) + N) % N; if (Number.isFinite(nearest) && nearest !== cur) setInfo(nearest);
@@ -75,7 +76,7 @@
     function tick(t) {
       if (!Number.isFinite(pos) || !Number.isFinite(tgt)) { pos = tgt = Number.isFinite(tgt) ? tgt : 0; }
       if (!dragging) { const diff = tgt - pos; pos += diff * (reduced ? 1 : 0.14); if (Math.abs(diff) < 0.0005) pos = tgt; }
-      layout(); if (!reduced) orbit(t); raf = requestAnimationFrame(tick);
+      layout(); if (!reduced && !lite()) orbit(t); raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
 

@@ -55,7 +55,9 @@
 .vn-name small { display: block; font-size: 11px; letter-spacing: .14em; color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.8); }
 .vn-name::after { content: ""; display: block; height: 1px; width: 0; margin-top: 6px; background: linear-gradient(90deg, var(--accent), transparent); transition: width .9s .6s ease; }
 .vn-name.on::after { width: 140px; }
-.vn-ctl { display: flex; gap: 6px; pointer-events: auto; }
+.vn-ctl { display: flex; gap: 6px; pointer-events: auto; flex: none; }
+.vn-ctl button { white-space: nowrap; }
+.vn-name { flex: 1 1 auto; min-width: 0; padding-right: 8px; }
 .vn-ctl button { font-size: 11px; letter-spacing: .08em; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18); background: rgba(5,7,14,.55); color: var(--ink-2); backdrop-filter: blur(6px); cursor: pointer; min-height: 0; }
 .vn-ctl button.on { color: var(--accent); border-color: var(--accent); }
 
@@ -166,19 +168,31 @@
 /* 터치: 더블탭 확대·300ms 지연·하이라이트 제거 */
 #vn { -webkit-tap-highlight-color: transparent; }
 .vn-stage, .vn-box, .vn-choices button, .vn-ctl button { touch-action: manipulation; }
-/* 인앱 WebView: 블렌드가 꺼지므로 섬광은 옅게, 입자 캔버스는 반투명으로 */
-html.inapp .vn-flash.on { animation: vnFlashLite .5s ease-out; }
-html.inapp .vn-fx { opacity: .55; }
-html.inapp .vn-sprite { transition: transform .5s ease, opacity .5s; }
-@keyframes vnFlashLite { 0% { opacity: .28; } 100% { opacity: 0; } }
 
-/* 인앱 WebView: 거대 스프라이트 레이어의 필터(그림자·밝기·블러) 애니메이션과 배경 상시 애니메이션을 끈다 → 탭마다 재래스터로 검게 비는 프레임 방지 */
-html.inapp .vn-sprite { filter: none !important; transition: transform .5s ease, opacity .5s; }
-html.inapp .vn-sprite img { filter: none; }
-html.inapp .vn-sprite[class*="enter-"] { animation: vnEnterLite .9s ease both; }
-html.inapp .vn-sprite.wake { animation: vnEnterLite 1.2s ease both; }
-html.inapp .vn-bg .far, html.inapp .vn-bg .mid, html.inapp .vn-halo { animation: none; }
-html.inapp .vn-bg .mid.dup { display: none; }
-html.inapp .vn-bg .near { transition: none; }
-html.inapp .vn-port { box-shadow: none; }
-@keyframes vnEnterLite { from { opacity: 0; transform: translateX(var(--sx)) translateY(12px); } to { opacity: 1; transform: translateX(var(--sx)); } }
+/* ───── lite(연출 줄임) 모드 — 인앱 WebView(카카오톡 등) 기본, 상단 '연출' 버튼으로 토글 ─────
+   원칙 1) 큰 레이어는 전부 화면 크기 이하로, 2) 레이어는 만들어 두고 절대 없애지 않는다(만들고 없앨 때 검은 프레임), 3) 필터·블렌드·캔버스 없음.
+   배경·대화창·스프라이트·상단바·패널·선택지를 각자 고정 레이어로 → 타자 효과로 대화창이 다시 그려져도 배경 타일은 건드리지 않는다. */
+html.lite .vn-bg, html.lite .vn-vignette, html.lite .vn-box, html.lite .vn-top, html.lite .vn-float, html.lite .vn-choices { will-change: transform; }
+html.lite .vn-fx, html.lite .vn-halo, html.lite .vn-rings { display: none; }
+html.lite .vn-bg .far, html.lite .vn-bg .mid { animation: none; }
+html.lite .vn-bg .mid.dup { display: none; }
+html.lite .vn-bg .near { transition: none; }
+html.lite .vn-stage.mood-serious .vn-vignette { background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(5,7,14,.55) 100%); }
+html.lite .vn-flash.on { animation: vnFlashLite .5s ease-out; }
+@keyframes vnFlashLite { 0% { opacity: .28; } 100% { opacity: 0; } }
+/* 스프라이트: 래퍼를 화면 크기로 두고(overflow hidden) 그 안에서 큰 이미지를 잘라 보인다 → 레이어가 화면 2.7×2.5배에서 1배로.
+   보이는 구도는 기존(left 50% / top 4% / 270%×250% / contain / center top)과 동일 */
+html.lite .vn-sprite { --sx: 0%; inset: 0; width: auto; height: auto; overflow: hidden; transform: none; transform-origin: 50% 16%; will-change: transform, opacity; filter: none !important; transition: transform .5s ease, opacity .5s; }
+html.lite .vn-sprite .breath { animation: none; }
+html.lite .vn-sprite img { inset: auto; left: 50%; top: 4%; width: 270%; max-width: none; height: 250%; transform: translateX(-50%); filter: none; }
+@media (max-height: 640px) { html.lite .vn-sprite img { width: 250%; height: 230%; } }
+html.lite .vn-stage.has-float .vn-sprite { transform: translateX(-6%) translateY(4%) scale(.92); }
+html.lite .vn-stage.near .vn-sprite { transform: translateY(-2%) scale(1.12); }
+html.lite .vn-stage.near.has-float .vn-sprite { transform: translateX(-6%) translateY(2%) scale(.96); }
+html.lite .vn-sprite[class*="enter-"] { animation: vnEnterLite .9s ease both; }
+html.lite .vn-sprite.wake { animation: vnEnterLite 1.2s ease both; }
+@keyframes vnEnterLite { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* 대화창: 블러 그림자·글로우·호흡 애니메이션을 줄여 글자마다 다시 그리는 비용을 낮춘다 */
+html.lite .vn-box { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+html.lite .vn-port { box-shadow: none; animation: none; }
+html.lite .vn-panel, html.lite .vn-choices button { box-shadow: none; }

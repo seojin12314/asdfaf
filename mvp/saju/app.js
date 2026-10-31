@@ -428,12 +428,20 @@
     if (kind === 'kakao') href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
     else if (android) href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
     tip.innerHTML = href
-      ? `<span>앱 안 브라우저에선 화면이 깜빡일 수 있어요.</span><a href="${href}" rel="noopener">${kind === 'kakao' ? '크롬·사파리로 열기' : '브라우저로 열기'}</a>`
-      : '<span>앱 안 브라우저에선 화면이 깜빡일 수 있어요. 공유 메뉴에서 "브라우저로 열기"를 눌러 주세요.</span>';
+      ? `<span>앱 안 브라우저라 연출을 줄여서 보여 드려요.</span><a href="${href}" rel="noopener">${kind === 'kakao' ? '크롬·사파리로 열기' : '브라우저로 열기'}</a>`
+      : '<span>앱 안 브라우저라 연출을 줄여서 보여 드려요. 공유 메뉴의 "브라우저로 열기"를 누르면 전체 연출로 볼 수 있어요.</span>';
     tip.hidden = false;
   }
+  /* ?debug — 기기 진단 오버레이(lite/inapp 판정, 뷰포트, UA) */
+  function debugOverlay() {
+    if (!/[?&]debug\b/.test(location.search)) return;
+    const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:4px;bottom:4px;z-index:99999;font:10px/1.35 monospace;background:rgba(0,0,0,.75);color:#9f9;padding:4px 6px;max-width:92vw;word-break:break-all;pointer-events:none;border-radius:6px';
+    const h = document.documentElement, vv = window.visualViewport; let n = 0;
+    const upd = () => { d.textContent = `lite:${h.classList.contains('lite')} inapp:${h.dataset.inapp || '-'} dpr:${window.devicePixelRatio} win:${innerWidth}x${innerHeight} vv:${vv ? Math.round(vv.width) + 'x' + Math.round(vv.height) : '-'} resizes:${n} | ${navigator.userAgent}`; };
+    upd(); addEventListener('resize', () => { n++; upd(); }); if (vv) vv.addEventListener('resize', () => { n++; upd(); }); document.body.appendChild(d);
+  }
   function start() {
-    stars(); renderHome(); show('home'); inappTip();
+    stars(); renderHome(); show('home'); inappTip(); debugOverlay();
     const tb = $('#btn-theme'); const syncTheme = () => { const dark = document.documentElement.dataset.theme === 'dark'; if (tb) { tb.textContent = dark ? '☀ 라이트' : '☾ 다크'; tb.classList.toggle('on', dark); } };
     syncTheme(); if (tb) tb.addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; try { localStorage.setItem('saju.theme', next); } catch (e) { /* 저장 불가 */ } syncTheme(); if (!$('#s-home').hidden) renderHome(); });
     const pb = $('#btn-plain'); const syncPlain = () => { if (pb) { pb.textContent = PL() && PL().on ? '쉬운 말' : '전문 용어'; pb.classList.toggle('on', !!(PL() && PL().on)); } }; syncPlain();

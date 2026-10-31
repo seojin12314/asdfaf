@@ -40,7 +40,7 @@
         </div>
         <div class="vn-top">
           <div class="vn-name" id="vn-name"><b>${esc(p.name)}</b><small>${esc(p.role)}${p.org ? ' · ' + esc(p.org) : ''}</small></div>
-          <div class="vn-ctl"><button type="button" id="vn-back" title="이전 선택으로 돌아가기" disabled>← 이전</button><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-exit">나가기</button></div>
+          <div class="vn-ctl"><button type="button" id="vn-back" title="이전 선택으로 돌아가기" disabled>← 이전</button><button type="button" id="vn-auto" title="자동 진행">자동</button><button type="button" id="vn-lite" title="화면이 깜빡이거나 느리면 연출을 줄여 보세요">연출</button><button type="button" id="vn-exit">나가기</button></div>
         </div>
         <div class="vn-choices" id="vn-choices" hidden></div>
         <div class="vn-box" id="vn-box">
@@ -49,8 +49,9 @@
           <div class="vn-input" id="vn-input" hidden></div>
         </div>
       </div>`;
-    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'back', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input'].forEach(k => { el[k] = $('#vn-' + k); });
-    if (INAPP) { el.frame = root.querySelector('.vn-frame'); pinHeight(); if (!st.pinned) { st.pinned = true; window.addEventListener('orientationchange', () => setTimeout(pinHeight, 350)); } }
+    ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'back', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input', 'lite'].forEach(k => { el[k] = $('#vn-' + k); });
+    el.frame = root.querySelector('.vn-frame'); pinHeight(); if (!st.pinned) { st.pinned = true; window.addEventListener('orientationchange', () => setTimeout(pinHeight, 350)); }
+    el.lite.addEventListener('click', e => { e.stopPropagation(); setLite(!LITE()); }); syncLite();
     el.root = root;
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
@@ -61,13 +62,22 @@
     bindParallax();
     document.addEventListener('keydown', onKey);
   }
-  const INAPP = document.documentElement.classList.contains('inapp');
-  function pinHeight() { if (el.frame && el.frame.isConnected) el.frame.style.height = window.innerHeight + 'px'; }
+  const LITE = () => document.documentElement.classList.contains('lite');
+  /* lite 에선 프레임 높이를 px 로 고정 — 주소창·툴바가 숨었다 나타나며 100dvh 가 바뀔 때마다 전체 재배치되는 걸 막는다 */
+  function pinHeight() { if (!el.frame || !el.frame.isConnected) return; el.frame.style.height = LITE() ? window.innerHeight + 'px' : ''; }
+  function syncLite() { if (!el.lite) return; const on = LITE(); el.lite.textContent = on ? '연출 줄임' : '연출'; el.lite.classList.toggle('on', on); }
+  function setLite(on) {
+    document.documentElement.classList.toggle('lite', on); try { localStorage.setItem('saju.lite', on ? '1' : '0'); } catch (e) { /* 저장 불가 */ }
+    syncLite(); pinHeight();
+    if (on) { if (st.fx) { st.fx.stop(); st.fx = null; } }
+    else if (!st.fx && el.fx && st.script && st.open) st.fx = particles(el.fx, st.script.particles, accentOf());
+  }
+  function accentOf() { return getComputedStyle(document.documentElement).getPropertyValue('--p-accent').trim() || (st.persona && st.persona.palette.accent) || '#fff'; }
   function onKey(e) { if (!st.open) return; if (e.key === ' ' || e.key === 'Enter') { if (e.target && /INPUT|BUTTON|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); tap(); } if (e.key === 'Escape') finish('home'); }
   function bindParallax() {
     const near = el.stage.querySelector('.vn-bg .near'); if (!near || reduced) return;
     const move = (dx, dy) => { near.style.transform = `translate(${(dx * 14).toFixed(1)}px, ${(dy * 10).toFixed(1)}px) scale(1.05)`; };
-    const inapp = INAPP;
+    const inapp = LITE();
     const fine = root.matchMedia && root.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (fine) { el.stage.addEventListener('pointermove', e => { const r = el.stage.getBoundingClientRect(); move((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); }); el.stage.addEventListener('pointerleave', () => move(0, 0)); }
     if (!inapp && root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
@@ -93,7 +103,7 @@
 
   // ───── 입자 시스템(캐릭터별 질감) ─────
   function particles(canvas, type, color) {
-    const ctx = canvas.getContext('2d'); const DPR = INAPP ? 1 : Math.min(root.devicePixelRatio || 1, 2); let w = 0, h = 0, ps = [], bursts = [], raf = 0, alive = true, lastW = 0, lastH = 0;
+    const ctx = canvas.getContext('2d'); const DPR = Math.min(root.devicePixelRatio || 1, 2); let w = 0, h = 0, ps = [], bursts = [], raf = 0, alive = true, lastW = 0, lastH = 0;
     function size() { const r = canvas.getBoundingClientRect(); if (lastW && Math.abs(r.width - lastW) < 2 && Math.abs(r.height - lastH) < 160) return; lastW = r.width; lastH = r.height; w = canvas.width = Math.max(1, r.width * DPR); h = canvas.height = Math.max(1, r.height * DPR); }
     const N = { ember: 55, coin: 40, moon: 45, petal: 30, grid: 18, star: 60 }[type] || 50;
     function mk(init) {
@@ -251,8 +261,7 @@
     st.gen = (st.gen || 0) + 1; st.opts = opts; st.record = []; st.replay = Array.isArray(opts.replay) && opts.replay.length ? opts.replay.slice() : null;
     if (sc.mbti) { A.setMode('mbti'); } else { A.setPersona(id); A.state.mode = 'persona'; }
     build(p); await preloadFaces(p);
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--p-accent').trim() || p.palette.accent;
-    st.fx = particles(el.fx, sc.particles, accent);
+    st.fx = LITE() ? null : particles(el.fx, sc.particles, accentOf());
     if (!replaying()) await sleep(250);
     await enter(sc.entrance); if (!st.open) return;
     for (const l of sc.intro) { await say(l.t, l); if (!st.open) return; }
