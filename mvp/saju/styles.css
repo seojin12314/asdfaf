@@ -446,3 +446,14 @@ body[data-screen="home"] footer.foot { text-shadow: 0 0 6px var(--bg), 0 0 12px 
   #stars { clip-path: inset(0 calc(50% - 280px)); }
   body::before { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
 }
+
+/* ───── 터치 번쩍임 방지 + 인앱 브라우저(카카오톡 등) 경량 모드 ─────
+   안드로이드 WebView 는 탭할 때마다 클릭 가능한 요소 전체에 하이라이트를 칠한다(미연시 무대는 화면 전체).
+   backdrop-filter / mix-blend-mode / will-change 거대 레이어는 인앱 WebView 에서 노이즈·깜빡임을 일으키므로 끈다. */
+html { -webkit-tap-highlight-color: transparent; }
+.hstage, .hs-chips button, .hs-arrow { touch-action: manipulation; }
+html.inapp *, html.inapp *::before, html.inapp *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; mix-blend-mode: normal !important; will-change: auto !important; }
+html.inapp body[data-screen="home"] .hero { background: color-mix(in srgb, var(--bg) 88%, transparent); }
+html.inapp .hs-aura { opacity: .35; }
+.inapp-tip { margin: 10px auto 0; font-size: 12.5px; color: var(--ink-2); display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.inapp-tip a { color: var(--p-accent); font-weight: 700; text-decoration: none; border: 1px solid color-mix(in srgb, var(--p-accent) 50%, transparent); border-radius: 999px; padding: 4px 11px; background: color-mix(in srgb, var(--p-accent) 10%, transparent); }

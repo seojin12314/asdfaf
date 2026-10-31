@@ -421,8 +421,19 @@
     state.reading = state.mode === 'persona' ? P.generateReading(state.result, state.persona, { name: input.name || '당신' }) : null;
     return true;
   }
+  function inappTip() {
+    const kind = document.documentElement.dataset.inapp; const tip = $('#inapp-tip'); if (!kind || !tip) return;
+    const url = location.href.split('#')[0]; const android = /Android/i.test(navigator.userAgent);
+    let href = '';
+    if (kind === 'kakao') href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+    else if (android) href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+    tip.innerHTML = href
+      ? `<span>앱 안 브라우저에선 화면이 깜빡일 수 있어요.</span><a href="${href}" rel="noopener">${kind === 'kakao' ? '크롬·사파리로 열기' : '브라우저로 열기'}</a>`
+      : '<span>앱 안 브라우저에선 화면이 깜빡일 수 있어요. 공유 메뉴에서 "브라우저로 열기"를 눌러 주세요.</span>';
+    tip.hidden = false;
+  }
   function start() {
-    stars(); renderHome(); show('home');
+    stars(); renderHome(); show('home'); inappTip();
     const tb = $('#btn-theme'); const syncTheme = () => { const dark = document.documentElement.dataset.theme === 'dark'; if (tb) { tb.textContent = dark ? '☀ 라이트' : '☾ 다크'; tb.classList.toggle('on', dark); } };
     syncTheme(); if (tb) tb.addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; try { localStorage.setItem('saju.theme', next); } catch (e) { /* 저장 불가 */ } syncTheme(); if (!$('#s-home').hidden) renderHome(); });
     const pb = $('#btn-plain'); const syncPlain = () => { if (pb) { pb.textContent = PL() && PL().on ? '쉬운 말' : '전문 용어'; pb.classList.toggle('on', !!(PL() && PL().on)); } }; syncPlain();

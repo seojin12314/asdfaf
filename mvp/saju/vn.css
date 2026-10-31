@@ -160,3 +160,12 @@
 #vn[data-persona="hunter"] { --p-accent: #5fb0ff; --p-accent2: #1f4a80; --p-glow: rgba(95,176,255,.35); }
 #vn[data-persona="master"] { --p-accent: #d8b45f; --p-accent2: #2a2f5a; --p-glow: rgba(216,180,95,.35); }
 #vn[data-persona="mbti"]   { --p-accent: #66d6c5; --p-accent2: #1f4f52; --p-glow: rgba(102,214,197,.35); }
+
+/* 터치: 더블탭 확대·300ms 지연·하이라이트 제거 */
+#vn { -webkit-tap-highlight-color: transparent; }
+.vn-stage, .vn-box, .vn-choices button, .vn-ctl button { touch-action: manipulation; }
+/* 인앱 WebView: 블렌드가 꺼지므로 섬광은 옅게, 입자 캔버스는 반투명으로 */
+html.inapp .vn-flash.on { animation: vnFlashLite .5s ease-out; }
+html.inapp .vn-fx { opacity: .55; }
+html.inapp .vn-sprite { transition: transform .5s ease, opacity .5s; }
+@keyframes vnFlashLite { 0% { opacity: .28; } 100% { opacity: 0; } }

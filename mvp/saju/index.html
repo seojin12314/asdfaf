@@ -4,15 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>사주도감</title>
-<script>(function(){try{var t=localStorage.getItem('saju.theme');document.documentElement.dataset.theme=(t==='dark'||t==='light')?t:'light';}catch(e){document.documentElement.dataset.theme='light';}})();</script>
+<script>(function(){try{var t=localStorage.getItem('saju.theme');document.documentElement.dataset.theme=(t==='dark'||t==='light')?t:'light';}catch(e){document.documentElement.dataset.theme='light';}})();
+(function(){var u=navigator.userAgent||'';var k=/KAKAOTALK/i.test(u)?'kakao':/NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp/i.test(u)?'other':'';if(k){document.documentElement.classList.add('inapp');document.documentElement.dataset.inapp=k;}})();</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="캐릭터 하나, 명식 하나, 리포트 하나. 캐릭터가 읽어 주는 내 명식 — 베타">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261031s">
-<link rel="stylesheet" href="report.css?v=20261031s">
-<link rel="stylesheet" href="vn.css?v=20261031s">
+<link rel="stylesheet" href="styles.css?v=20261031t">
+<link rel="stylesheet" href="report.css?v=20261031t">
+<link rel="stylesheet" href="vn.css?v=20261031t">
 </head>
 <body>
 <!--BODY-START-->
@@ -30,6 +31,7 @@
         <h1>어떤 사람에게<br>내 사주를 볼까?</h1>
         <p class="tagline">사주를 볼 질문지, 상담자를 선택하세요.<br>상담자가 다르면 답변도 다릅니다.</p>
         <p class="tagline hint-top">우측 상단에서 전문용어로 볼지 쉬운 말로 볼지 선택하세요.</p>
+        <p class="inapp-tip" id="inapp-tip" hidden></p>
       </div>
       <div id="roster"></div>
     </section>
@@ -163,20 +165,20 @@
 <footer class="foot">
   <div>사주도감의 풀이는 참고용 콘텐츠이며 의학·법률·금융 조언이 아닙니다.</div>
 </footer>
-<script src="saju.js?v=20261031s"></script>
-<script src="personas.js?v=20261031s"></script>
-<script src="mbti.js?v=20261031s"></script>
-<script src="report.js?v=20261031s"></script>
-<script src="report-lenses.js?v=20261031s"></script>
-<script src="report2.js?v=20261031s"></script>
-<script src="compat.js?v=20261031s"></script>
-<script src="questions.js?v=20261031s"></script>
-<script src="report-ui.js?v=20261031s"></script>
-<script src="plain.js?v=20261031s"></script>
-<script src="home-stage.js?v=20261031s"></script>
-<script src="app.js?v=20261031s"></script>
-<script src="vn-scripts.js?v=20261031s"></script>
-<script src="vn.js?v=20261031s"></script>
+<script src="saju.js?v=20261031t"></script>
+<script src="personas.js?v=20261031t"></script>
+<script src="mbti.js?v=20261031t"></script>
+<script src="report.js?v=20261031t"></script>
+<script src="report-lenses.js?v=20261031t"></script>
+<script src="report2.js?v=20261031t"></script>
+<script src="compat.js?v=20261031t"></script>
+<script src="questions.js?v=20261031t"></script>
+<script src="report-ui.js?v=20261031t"></script>
+<script src="plain.js?v=20261031t"></script>
+<script src="home-stage.js?v=20261031t"></script>
+<script src="app.js?v=20261031t"></script>
+<script src="vn-scripts.js?v=20261031t"></script>
+<script src="vn.js?v=20261031t"></script>
 <!--BODY-END-->
 </body>
 </html>

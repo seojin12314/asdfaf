@@ -64,9 +64,10 @@
   function bindParallax() {
     const near = el.stage.querySelector('.vn-bg .near'); if (!near || reduced) return;
     const move = (dx, dy) => { near.style.transform = `translate(${(dx * 14).toFixed(1)}px, ${(dy * 10).toFixed(1)}px) scale(1.05)`; };
-    el.stage.addEventListener('pointermove', e => { const r = el.stage.getBoundingClientRect(); move((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); });
-    el.stage.addEventListener('pointerleave', () => move(0, 0));
-    if (root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
+    const inapp = document.documentElement.classList.contains('inapp');
+    const fine = root.matchMedia && root.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (fine) { el.stage.addEventListener('pointermove', e => { const r = el.stage.getBoundingClientRect(); move((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); }); el.stage.addEventListener('pointerleave', () => move(0, 0)); }
+    if (!inapp && root.DeviceOrientationEvent) root.addEventListener('deviceorientation', e => { if (!st.open || e.gamma == null) return; move(Math.max(-.5, Math.min(.5, e.gamma / 60)), Math.max(-.5, Math.min(.5, (e.beta - 45) / 90))); }, { passive: true });
   }
 
   // ───── 표정·분위기·효과 ─────
@@ -123,7 +124,8 @@
   }
 
   // ───── 대사·입력 ─────
-  function tap() { if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; r(); } }
+  let lastTap = 0;
+  function tap() { const now = performance.now(); if (now - lastTap < 180) return; lastTap = now; if (st.typing) { st.skipType = true; return; } if (st.tapResolve) { const r = st.tapResolve; st.tapResolve = null; r(); } }
   function waitTap(text) {
     return new Promise(res => {
       st.tapResolve = res; el.next.classList.add('on');
