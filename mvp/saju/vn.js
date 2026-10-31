@@ -52,7 +52,7 @@
     ['stage', 'fx', 'rings', 'sprite', 'float', 'flash', 'name', 'back', 'auto', 'exit', 'choices', 'box', 'port', 'who', 'text', 'next', 'input', 'lite'].forEach(k => { el[k] = $('#vn-' + k); });
     el.frame = root.querySelector('.vn-frame'); pinHeight(); if (!st.pinned) { st.pinned = true; window.addEventListener('orientationchange', () => setTimeout(pinHeight, 350)); }
     el.lite.addEventListener('click', e => { e.stopPropagation(); setLite(!LITE()); }); syncLite();
-    el.root = root;
+    el.root = root; document.documentElement.classList.add('vn-open');
     el.box.addEventListener('click', e => { if (e.target.closest('.vn-input')) return; tap(); });
     el.stage.addEventListener('click', tap);
     el.auto.addEventListener('click', e => { e.stopPropagation(); st.auto = !st.auto; el.auto.classList.toggle('on', st.auto); if (st.auto && st.tapResolve && !st.typing) tap(); });
@@ -244,7 +244,7 @@
   }
   function finish(mode) {
     if (!st.open || st.closing) return; st.closing = true; st.open = false; st.typing = false; st.tapResolve = null; clearTimeout(st.autoTimer);
-    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('keydown', onKey); document.documentElement.classList.remove('vn-open');
     const A = root.SajuApp;
     if (mode === 'silent') { if (st.fx) { st.fx.stop(); st.fx = null; } el.root.innerHTML = ''; st.closing = false; return; }
     if (mode === 'sheet') { A.show('result'); A.renderResult(); } else { A.state.mode = 'persona'; A.show('home'); }

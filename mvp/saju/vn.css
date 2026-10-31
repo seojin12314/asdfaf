@@ -186,9 +186,11 @@ html.lite .vn-sprite { --sx: 0%; inset: 0; width: auto; height: auto; overflow: 
 html.lite .vn-sprite .breath { animation: none; }
 html.lite .vn-sprite img { inset: auto; left: 50%; top: 4%; width: 270%; max-width: none; height: 250%; transform: translateX(-50%); filter: none; }
 @media (max-height: 640px) { html.lite .vn-sprite img { width: 250%; height: 230%; } }
-html.lite .vn-stage.has-float .vn-sprite { transform: translateX(-6%) translateY(4%) scale(.92); }
-html.lite .vn-stage.near .vn-sprite { transform: translateY(-2%) scale(1.12); }
-html.lite .vn-stage.near.has-float .vn-sprite { transform: translateX(-6%) translateY(2%) scale(.96); }
+/* 스케일은 쓰지 않는다 — 스케일이 바뀌면 레이어 전체를 새 배율로 다시 그린다(그 사이 검은 타일). 이동만 */
+html.lite .vn-stage.has-float .vn-sprite { transform: translateX(-6%) translateY(4%); }
+html.lite .vn-stage.near .vn-sprite { transform: translateY(-2%); }
+html.lite .vn-stage.near.has-float .vn-sprite { transform: translateX(-6%) translateY(2%); }
+html.lite .vn-sprite.bump, html.lite .vn-sprite.nod { animation: none; }
 html.lite .vn-sprite[class*="enter-"] { animation: vnEnterLite .9s ease both; }
 html.lite .vn-sprite.wake { animation: vnEnterLite 1.2s ease both; }
 @keyframes vnEnterLite { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -196,3 +198,18 @@ html.lite .vn-sprite.wake { animation: vnEnterLite 1.2s ease both; }
 html.lite .vn-box { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 html.lite .vn-port { box-shadow: none; animation: none; }
 html.lite .vn-panel, html.lite .vn-choices button { box-shadow: none; }
+/* 탭마다 레이어를 만들고 없애는 요소 전부 정지: 섬광 오버레이, 흔들림, 초상 투명도 전환, 캐럿 깜빡임, ▼ 표시, 선택지·패널·글리프 등장 애니메이션(블러 필터 포함) */
+html.lite #vn { place-items: start center; touch-action: none; }
+html.lite .vn-flash { display: none; }
+html.lite .vn-stage.shake { animation: none; }
+html.lite .vn-port img { transition: none; }
+html.lite .vn-text .caret { animation: none; }
+html.lite .vn-next { animation: none; }
+html.lite .vn-box { animation: none; }
+html.lite .vn-choices button { animation: none; transition: none; }
+html.lite .vn-choices button:hover { transform: none; }
+html.lite .vn-panel, html.lite .vn-glyph .big, html.lite .vn-letters b, html.lite .vn-months div { animation: none; }
+html.lite .vn-panel.out { display: none; }
+html.lite .vn-name, html.lite .vn-name::after { transition: none; }
+/* 미연시가 열려 있는 동안 뒤 페이지 스크롤 잠금 — 손가락이 조금만 밀려도 뒤 문서가 스크롤되며 브라우저 툴바가 숨었다 나타나고, 그때마다 전체 재배치가 일어난다 */
+html.vn-open, html.vn-open body { overflow: hidden; overscroll-behavior: none; }
