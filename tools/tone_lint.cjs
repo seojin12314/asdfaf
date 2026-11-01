@@ -1,7 +1,7 @@
 // 캐릭터 말투 일관성 검사: vn-scripts.js · personas.js 의 캐릭터별 문자열에서 문장 어미를 분류해 기대 말투와 다른 문장을 보고한다.
 // 사용: node tools/tone_lint.cjs [--all]
 const fs = require('fs'), path = require('path'); const dir = path.join(__dirname, '..', 'mvp', 'saju');
-const EXPECT = { flame: 'banmal', sage: 'hage', granny: 'banmal', child: 'haeyo', hunter: 'hamnida', master: 'haeyo', mbti: 'haeyo' };
+const EXPECT = { flame: 'banmal', sage: 'hage', granny: 'banmal', hunter: 'hamnida', master: 'haeyo', mbti: 'haeyo' };
 const KO = { banmal: '반말', hage: '하게/느니라', haeyo: '해요체', hamnida: '합니다체' };
 function classify(s) {
   const t = s.replace(/["'”’)\]…!?.\s]+$/g, '').trim(); if (!t) return null;
@@ -17,7 +17,7 @@ function strings(src) { src = src.replace(/(label|keep|fresh|sheet|again|yes|no
 function sentences(v) { return v.replace(/\$\{[^}]*\}/g, '○').split(/(?<=[.!?…])\s+|\n/).map(x => x.trim()).filter(x => x.length > 4); }
 const vn = fs.readFileSync(path.join(dir, 'vn-scripts.js'), 'utf8'), pe = fs.readFileSync(path.join(dir, 'personas.js'), 'utf8');
 function block(src, startRe, endRe) { const i = src.search(startRe); if (i < 0) return ''; const rest = src.slice(i + 1); const k = rest.search(endRe); return rest.slice(0, k < 0 ? undefined : k); }
-const IDS = ['flame', 'sage', 'granny', 'child', 'hunter', 'master', 'mbti'];
+const IDS = ['flame', 'sage', 'granny', 'hunter', 'master', 'mbti'];
 let total = 0, bad = 0; const report = [];
 IDS.forEach((id, i) => {
   const next = IDS[i + 1];

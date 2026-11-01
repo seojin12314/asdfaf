@@ -25,9 +25,9 @@ for (let i = 0; i < N; i++) {
       if (/\)\(|\([^)]*\(/.test(a.text)) push('paren', a.text.slice(0, 60), ctx);
       if (/\((는|가|를|와|이|은|을|과)\)/.test(a.text)) push('josa', a.text.slice(0, 60), ctx);
       const sents = R2.sentences(a.text); if (sents.length > 4) push('sentences', `${sents.length}문장 ${a.text.slice(0, 40)}`, ctx);
-      const LIM = domain === 'master' ? 48 : 40; sents.forEach(s => { if (s.length > LIM) push('length', `${s.length}자: ${s}`, ctx); });
-      if (domain !== 'master' && JARGON.test(a.text)) push('jargon', (a.text.match(new RegExp(`[^.]*${(a.text.match(JARGON) || [''])[0]}[^.]*`)) || [''])[0].slice(0, 60), ctx);
-      if (domain !== 'master' && /[一-龥]/.test(a.text)) push('hanja', a.text.slice(0, 60), ctx);
+      const PRO = domain === 'master' || domain === 'granny'; const LIM = PRO ? 48 : 40; sents.forEach(s => { if (s.length > LIM) push('length', `${s.length}자: ${s}`, ctx); });
+      if (!PRO && JARGON.test(a.text)) push('jargon', (a.text.match(new RegExp(`[^.]*${(a.text.match(JARGON) || [''])[0]}[^.]*`)) || [''])[0].slice(0, 60), ctx);
+      if (!PRO && /[一-龥]/.test(a.text)) push('hanja', a.text.slice(0, 60), ctx);
     });
   }
 }

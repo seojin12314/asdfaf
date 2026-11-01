@@ -1,5 +1,5 @@
 /*
- * questions.js — 질문 은행(6영역 130문항)과 명식 기반 답변 생성기.
+ * questions.js — 질문 은행(7영역 150문항)과 명식 기반 답변 생성기.
  *  사용자는 영역(캐릭터)별 질문 중 10개를 고르고, 고른 질문의 답을 받는다. 나머지는 +₩5,000으로 연다.
  *  ★ 문항은 상대(연인)·부모(자녀 영역)·검사 MBTI 입력이 있어야 열린다.
  *  답변 규칙: 쉬운 말 · 해요체 · 한 문장 40자 · 2~3문장. 정통(master) 영역만 전문용어를 독음·뜻과 함께 쓴다.
@@ -24,9 +24,10 @@
   const ELEM_SHADOW = { 木: '벌여 놓고 멈추지 못해요', 火: '말이 앞서고 기복이 커져요', 土: '미루고 쌓아 두기만 해요', 金: '자르는 말로 곁을 다치게 해요', 水: '생각이 많아져 불안으로 흘러요' };
   const ELEM_GIVE = { 木: '새로 시작할 용기', 火: '마음껏 표현할 자리', 土: '안정된 일상', 金: '분명한 기준', 水: '쉬고 생각할 여유' };
   const POSK = { 년주: '집안', 월주: '일터', 일주: '가장 가까운 자리', 시주: '아이·말년' }; const POSK2 = { 년주: '집안 자리', 월주: '일터 자리', 일주: '가장 가까운 자리', 시주: '아이·말년 자리' };
-  const DOMAIN_KO = { love: '연인·궁합', money: '재물·사업', child: '자녀', mbti: 'MBTI 사주', master: '심층 정통 사주', work: '이직·직장' };
-  const PERSONA_DOMAIN = { flame: 'love', sage: 'money', child: 'child', mbti: 'mbti', master: 'master', hunter: 'work', granny: 'master' };
-  const PERSONA_DOMAIN_KO = { granny: '한 해 흐름·가족' };
+  const DOMAIN_KO = { love: '연인·궁합', money: '재물·사업', child: '우리 아이 기질', granny: '자녀복·한 해·가족', mbti: 'MBTI 사주', master: '심층 정통 사주', work: '이직·직장' };
+  // 복순 할머니(삼신할머니)는 자기 은행(granny). '우리 아이 기질' 고민을 고르면 아이 명식으로 child 은행을 쓴다(app.js qDomain).
+  const PERSONA_DOMAIN = { flame: 'love', sage: 'money', mbti: 'mbti', master: 'master', hunter: 'work', granny: 'granny' };
+  const PERSONA_DOMAIN_KO = {};
   const GROUP_AXIS = { 식상: 'E·N·F·P', 관성: 'S·T·J', 인성: 'I·N·J', 재성: 'S·T', 비겁: 'E·P' };
 
   // ───── 사실 묶음 ─────
@@ -224,20 +225,63 @@
     ['커리어에서 내가 가장 빛나는 10년은 언제인가요?', F => { const best = F.dec('관성').concat(F.dec('식상')); return sen(best.length ? `${F.ages(best)}예요.` : '뚜렷한 10년이 없어 꾸준함이 무기예요.', '직책이나 결과물이 움직이는 계절이에요.', F.cur ? `지금은 ${F.cur.fromAge}~${F.cur.toAge}세, ${LT.WORK_DECADE[F.curG].body[0]}` : ''); }],
   ];
 
+
+  // ───── 복순 할머니(삼신할머니) · 자녀복 ─────
+  // 전통 셈: 자녀성 = 남 관성(편관 아들·정관 딸) / 여 식상(상관 아들·식신 딸). 자녀궁 = 시주. 수는 글자 개수로 범위만 말하고 "정해진 수"로 말하지 않는다.
+  const SON_DAU = { M: { son: '편관', dau: '정관' }, F: { son: '상관', dau: '식신' } };
+  const HOUR_SEAT = { 비겁: '자녀 자리에 나와 같은 기운이 앉아 자녀가 친구 같아요.', 식상: '자녀 자리에 내보내는 힘이 앉아 자녀가 내 표현의 출구가 돼요.', 재성: '자녀 자리에 손에 쥐는 힘이 앉아 말년에 자녀가 든든한 재산 같아요.', 관성: '자녀 자리에 나를 누르는 힘이 앉아 자녀가 책임이자 울타리가 돼요.', 인성: '자녀 자리에 쉬고 배우는 힘이 앉아 자녀에게서 배우고 위로받아요.' };
+  const POSK_S = { 년주: '집안', 월주: '일터', 일주: '내 옆', 시주: '자녀 자리' }; // 자녀복 문장용 짧은 자리 이름(한 문장 48자 제한)
+  const CHILD_REL = { 과다: '자녀가 삶의 가운데로 들어와 내 시간이 줄어드는 관계예요.', 부족: '자녀와 거리가 있는 듯 보여도 운이 들어올 때 깊어지는 관계예요.', 적정: '적당히 기대고 적당히 놓아 주는 편안한 관계예요.' };
+  /** 자녀복 사실 묶음. F(facts) 또는 명식(r)을 받는다(미연시 대본은 r만 넘긴다). */
+  function childLuck(F) {
+    if (F && !F.r) F = facts(F, {});
+    const grp = F.childGroup, gko = G[grp], r = F.r; const hits = r.tenGods.filter(t => t.group === grp); const n = hits.length;
+    const pos = [...new Set(hits.map(t => t.at.split(' ')[0]))]; const posKo = pos.map(p => POSK_S[p]).join('·') || '드러난 자리 없음';
+    const lv = F.lvG[grp]; const hour = !!r.hour; const hourTG = F.hourTG || null;
+    const hourClash = F.clashes.some(c => c.some(x => x.name === '시주')); const hourGong = F.gongmang.hits.includes('시주');
+    const sd = SON_DAU[r.input.gender === 'M' ? 'M' : 'F']; const sons = F.cnt[sd.son] || 0, daughters = F.cnt[sd.dau] || 0;
+    const est = n === 0 ? '1명 안팎' : n === 1 ? '1~2명' : n === 2 ? '2명 안팎' : '2~3명 이상';
+    const estWhy = sen(n === 0 ? `원국에 ${gko} 글자가 없어 수는 운이 정해요.` : `자녀 글자 ${n}개가 ${posKo}에 있어서요.`, lv === '과다' ? '글자가 넘치면 수가 많기보다 자녀로 애쓰는 쪽으로도 가요.' : (hourClash || hourGong) && n ? '자녀 자리가 부딪히거나 비어 있어 수보다 시기가 늦어지는 쪽이에요.' : '');
+    const dec = F.dec(grp); const inDec = !!(F.cur && dec.includes(F.cur));
+    const whenDecade = dec.length ? `자녀 기운이 드는 10년은 ${j(F.ages(dec), '이에요')}.${inDec ? ' 지금이 그 계절이에요.' : ''}` : '10년 계절에는 자녀 기운이 따로 들지 않아 해와 달에서 봐요.';
+    const ys = [F.y0, F.y1].filter(y => y.tenGod.group === grp || y.branchTenGod.group === grp);
+    const whenYear = ys.length ? `${ys.map(y => y.year + '년').join('·')}에 해 글자로 자녀 기운이 들어와요.` : `${F.nowY}·${F.nextY}년 해 글자에는 자녀 기운이 따로 들지 않아요.`;
+    const months = F.monthsWith(grp);
+    const hourState = !hour ? '' : hourClash ? '다른 자리와 부딪혀 자녀와 떨어져 지내거나 늦게 만나기 쉬워요.' : hourGong ? '공망(빈 자리)에 걸려 기대가 비어 있지만 그만큼 자유로워요.' : '부딪힘 없이 앉아 있어 자녀 자리가 편안해요.';
+    const hourClashMonths = hour ? F.cal.filter(c => c.pillar && CLASH[c.pillar.branch] === r.hour.branch).map(c => c.label).join('·') : '';
+    const drainNote = F.st.label === '중화' ? '힘이 중간이라 자녀가 들어와도 크게 흔들리지 않아요.' : r.input.gender === 'M' ? (F.st.label === '신약' ? '힘이 약한 편이라 자녀(나를 누르는 힘)가 들어오면 책임이 무겁게 느껴져요.' : '힘이 센 편이라 자녀가 들어오면 오히려 중심이 잡혀요.') : (F.st.label === '신강' ? '힘이 센 편이라 자녀(내보내는 힘)가 내 힘을 밖으로 흘려 줘요.' : '힘이 약한 편이라 자녀에게 쏟느라 내 기운이 빠지기 쉬워요.');
+    const sexLine = sons === daughters ? (sons ? '아들 기운과 딸 기운이 같은 크기예요.' : '아들·딸 글자가 둘 다 드러나 있지 않아요.') : sons > daughters ? `아들 기운(${sd.son})이 ${sons}개로 더 강해요.` : `딸 기운(${sd.dau})이 ${daughters}개로 더 강해요.`;
+    return { grp, gko, n, hits, posKo, lv, hour, hourTG, hourClash, hourGong, hourState, hourClashMonths, sons, daughters, sonName: sd.son, dauName: sd.dau, sexLine, est, estWhy, whenDecade, whenYear, months, drainNote, glyph: hits[0] ? hits[0].char : (r.hour ? r.hour.branch : r.day.branch), hourNote: hour ? '' : '태어난 시각을 알면 자녀 자리(시주)까지 함께 봐요.' };
+  }
+  const nowQ = [A.master[20][0], A.master[20][1], null, 'now']; // '올해 세운' 문항은 제목 연도를 올해로
+  A.granny = [
+    ['★ 내 사주에 자녀복이 있나요?', F => { const c = childLuck(F); return sen(c.n ? `자녀 기운(${c.gko})이 ${c.n}개, ${c.posKo}에 있어요.` : `자녀 기운(${c.gko})이 원국에 드러나 있지 않아요.`, c.n ? (c.lv === '과다' ? '자녀 인연은 넉넉한데 그만큼 손이 많이 가요.' : '자녀 인연이 분명히 적혀 있는 명식이에요.') : '없다는 게 아니라 자녀 인연이 운(대운·세운)에서 들어와요.', c.hourNote); }],
+    ['★ 앞으로 자녀를 몇 명 낳을 수 있을까요?', F => { const c = childLuck(F); return sen(`할머니 셈으로는 ${c.est}이에요.`, c.estWhy, '정해진 수가 아니라 글자가 보여 주는 인연의 크기예요.'); }],
+    ['자녀 인연은 언제 들어오나요?', F => { const c = childLuck(F); return sen(c.whenDecade, c.whenYear, `${F.nextY}년 안에서는 ${F.ml(c.months)}에 자녀 기운이 들어와요.`); }],
+    ['내 자녀 자리(시주)는 어떤 상태인가요?', F => { const c = childLuck(F); return c.hour ? sen(`자녀 자리인 시주는 ${rb(F.r.hour.branch)}, ${c.hourTG.name}(${G[c.hourTG.group]})이에요.`, c.hourState, HOUR_SEAT[c.hourTG.group]) : '태어난 시각을 몰라 자녀 자리(시주)가 비어 있어요. 시각을 알면 자녀 자리를 바로 읽을 수 있어요.'; }],
+    ['아들과 딸, 어느 쪽 기운이 더 강한가요?', F => { const c = childLuck(F); return sen(c.sexLine, F.r.input.gender === 'M' ? '남자 명식은 편관을 아들, 정관을 딸로 봐요.' : '여자 명식은 상관을 아들, 식신을 딸로 봐요.', '전통 구분이라 참고만 하고, 성별은 하늘이 정해요.'); }],
+    ['자녀와 나는 어떤 관계가 될까요?', F => { const c = childLuck(F); return sen(CHILD_REL[c.lv] || CHILD_REL['적정'], c.hour ? HOUR_SEAT[c.hourTG.group] : '시각을 알면 자녀 자리에서 관계 모양이 더 보여요.', '자녀 기운이 넘칠 땐 덜어 주고, 비었을 땐 운에서 올 때를 기다려요.'); }],
+    ['자녀를 낳고 키우기 좋은 시기는 언제인가요?', F => { const c = childLuck(F); return sen(c.whenDecade.replace('자녀 기운이 드는 10년은', '낳고 키우기 좋은 10년은'), c.whenYear, `${F.nextY}년 안에서는 ${F.ml(c.months)}이 자녀 일을 시작하기 좋은 달이에요.`); }],
+    ['자녀가 생기면 내 운은 어떻게 달라지나요?', F => { const c = childLuck(F); return sen(c.drainNote, F.rx.allowed.includes(F.childGroup) ? `자녀 기운(${c.gko})이 내게 채울 기운이라 자녀가 나를 살려요.` : `자녀 기운(${c.gko})은 내가 덜어 써야 하는 쪽이에요. 자녀가 생기면 내 몫을 나눠야 해요.`, '그래서 자녀는 복이면서 숙제예요.'); }],
+    ['자녀복을 키우려면 생활에서 무엇을 챙겨야 하나요?', F => { const e = F.elemOf(F.childGroup); return sen(`자녀 기운은 ${EP[e]} 쪽이에요.`, `${j(ELEM_GIVE[e], '을')} 생활에 두면 자녀 기운이 살아요.`, F.lvG[F.childGroup] === '부족' ? `${j(EP[e], '이')} 많은 사람과 환경을 곁에 두세요.` : '몸을 먼저 챙기는 게 자녀복의 바탕이에요.'); }],
+    ['임신·출산 같은 큰 결정을 피할 달은 언제인가요?', F => { const c = childLuck(F); return sen(F.caution.length ? `${F.nextY}년 ${F.ml(F.caution)}은 글자가 부딪히는 달이에요.` : `${F.nextY}년엔 글자가 정면으로 부딪히는 달이 없어요.`, c.hourClashMonths ? `자녀 자리를 치는 달은 ${c.hourClashMonths}이에요.` : '', '큰 결정은 피하라는 뜻이고 몸 상태는 병원이 봐요.'); }],
+    // 한 해·가족(정통 은행에서 가져옴): 올해 세운 · 내년 준비 · 열두 달 · 지금 대운 · 다음 대운 · 부모 자리 · 형제 자리 · 건강 · 평생 주제 · 네 기둥
+    nowQ, A.master[21], A.master[22], A.master[17], A.master[18], A.master[23], A.master[24], A.master[25], A.master[27], A.master[6],
+  ];
+
   /** 다른 캐릭터가 이 명식에서 볼 한 줄(교차 추천). */
   const HOOK = {
     flame: F => F.spouseN ? `짝 기운이 ${[...new Set(F.spousePos)].map(p => POSK[p]).join('·')} 자리에 있어요. 인연이 움직이는 달은 ${F.ml(F.spouseMonths)}.` : `짝 기운이 드러나 있지 않아 인연은 운에서 와요. ${F.nextY}년 움직이는 달은 ${F.ml(F.spouseMonths)}.`,
     sage: F => { const leak = F.lvG['비겁'] === '과다' ? '동업·보증' : F.lvG['재성'] === '부족' ? '가격 없이 시작하는 일' : F.lvG['관성'] === '부족' ? '울타리 없는 지출' : '지출 습관'; return `돈이 새는 자리는 ${leak}이에요. 거래하기 좋은 달은 ${F.ml(F.monthsWith('재성'))}.`; },
     hunter: F => { const q = [1, 2, 3, 4].map(n => ({ n, score: F.cal.filter(x => Math.ceil(x.solarMonth / 3) === n && x.yearLabel === F.nextY).reduce((a, x) => a + (x.grade === '추진' ? 1 : x.grade === '주의' ? -3 : 0), 0) })).sort((a, b) => b.score - a.score)[0]; return `${F.nextY}년 이직 적기는 ${q.n}분기예요. 시장이 보는 유형은 ${LT.WORK_TYPE[F.top[0]].replace('로 보여요.', '')}.`; },
-    granny: F => `${F.nextY}년 멈출 달은 ${F.ml(F.caution)}, 밀어붙일 달은 ${F.ml(F.push)}. 가족 자리와 몸도 같이 봐요.`,
-    child: F => '아이 사주는 초롱 동자가 봐요. 아이 생일과 부모 생일을 같이 넣으면 부모-자녀 조합까지 나와요.',
+    granny: F => { const c = childLuck(F); return `삼신할머니 눈엔 자녀 기운이 ${c.n ? c.n + '개' : '운에서 오는 쪽'}, ${c.est}으로 읽혀요. ${F.nextY}년 멈출 달은 ${F.ml(F.caution)}.`; },
     master: F => `전체를 한 번에: ${F.st.label}, 용신은 ${G[F.pick]}, 격은 ${F.gyeok}. 신살·공망·지장간까지 정통으로 봐요.`,
     mbti: F => `타고난 결로 보면 ${F.est ? F.est.letters : M.estimate(F.r).letters} 쪽이에요. 검사 결과와 맞대면 피곤한 축이 보여요.`,
   };
   function hooks(F, exceptId) { return Object.keys(HOOK).filter(id => id !== exceptId).map(id => ({ id, text: HOOK[id](F) })); }
   function questionTitle(domain, n, F) {
-    const year = domain === 'master' && n === 21 ? F.nowY : domain === 'love' && n === 9 ? `${F.nowY}~${F.nextY}` : F.nextY;
-    return A[domain][n - 1][0].replace(/올해/g, `${year}년`);
+    const it = A[domain][n - 1]; const year = (it[3] === 'now' || (domain === 'master' && n === 21)) ? F.nowY : domain === 'love' && n === 9 ? `${F.nowY}~${F.nextY}` : F.nextY;
+    return it[0].replace(/올해/g, `${year}년`);
   }
   /** 영역의 질문 목록(잠금 여부 포함). */
   function list(domain, F) {
@@ -255,6 +299,7 @@
     mbti: { gap: [2, 3, 1, 18, 7], goal: [5, 6, 20, 14, 1], who: [1, 7, 8, 9, 10], _: [1, 2, 3, 5, 6] },
     master: { all: [3, 5, 4, 18, 30], why: [28, 6, 8, 14, 18], who: [1, 2, 4, 14, 29], year: [21, 22, 18, 28, 23], family: [24, 25, 8, 22, 26], next: [22, 23, 21, 19, 20], _: [1, 3, 5, 18, 30] },
     work: { move: [6, 7, 5, 9, 8], promo: [11, 4, 12, 10, 19], burnout: [16, 15, 1, 3, 17], _: [1, 2, 6, 7, 3] },
+    granny: { baby: [1, 2, 3, 5, 4], year: [11, 12, 13, 14, 15], family: [16, 17, 18, 13, 19], _: [1, 2, 3, 11, 13] },
   };
   /** 지금 상황(대화 두 번째 선택지) → 맨 앞에 올 질문 1~2개. */
   const SIT = {
@@ -264,6 +309,7 @@
     child: { baby: [1, 5], elem: [2, 6], teen: [10, 3] },
     work: { working: [6, 5], rest: [15, 1], offer: [7, 9], promo: [11, 4] },
     mbti: { mismatch: [2, 18], varies: [4, 15], goal: [5, 6], curious: [1, 7] },
+    granny: { single: [1, 3], plan: [2, 3], waiting: [3, 10], have: [2, 6], hard: [11, 19], change: [12, 15], fam: [16, 17], ok: [13, 12] },
   };
   function core(domain, concern, F, situation) {
     const open = list(domain, F).filter(x => !x.locked); const byN = n => open.find(x => x.n === n);
@@ -272,6 +318,6 @@
     if (ids.length < 3) recommend(domain, F, 10).forEach(id => { if (ids.length < 3 && !ids.includes(id)) ids.push(id); });
     return ids.slice(0, 5);
   }
-  function recommend(domain, F, k) { const open = list(domain, F).filter(x => !x.locked); const pri = { love: [1, 3, 4, 6, 9, 10, 11, 16, 18, 8], money: [20, 2, 1, 7, 8, 9, 4, 16, 6, 19], child: [1, 2, 9, 11, 3, 5, 6, 12, 15, 16], mbti: [1, 2, 3, 5, 6, 7, 10, 13, 19, 20], master: [1, 3, 5, 8, 9, 14, 17, 18, 23, 30], work: [1, 2, 6, 7, 3, 12, 10, 19, 14, 20] }[domain] || []; const ids = pri.map(n => open.find(x => x.n === n)).filter(Boolean).map(x => x.id); open.forEach(x => { if (ids.length < (k || 10) && !ids.includes(x.id)) ids.push(x.id); }); return ids.slice(0, k || 10); }
-  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, core, CORE, SIT, hooks };
+  function recommend(domain, F, k) { const open = list(domain, F).filter(x => !x.locked); const pri = { love: [1, 3, 4, 6, 9, 10, 11, 16, 18, 8], money: [20, 2, 1, 7, 8, 9, 4, 16, 6, 19], child: [1, 2, 9, 11, 3, 5, 6, 12, 15, 16], mbti: [1, 2, 3, 5, 6, 7, 10, 13, 19, 20], master: [1, 3, 5, 8, 9, 14, 17, 18, 23, 30], work: [1, 2, 6, 7, 3, 12, 10, 19, 14, 20], granny: [1, 2, 3, 11, 13, 4, 16, 6, 12, 7] }[domain] || []; const ids = pri.map(n => open.find(x => x.n === n)).filter(Boolean).map(x => x.id); open.forEach(x => { if (ids.length < (k || 10) && !ids.includes(x.id)) ids.push(x.id); }); return ids.slice(0, k || 10); }
+  return { DOMAIN_KO, PERSONA_DOMAIN, PERSONA_DOMAIN_KO, BANK: A, facts, list, answer, recommend, core, CORE, SIT, hooks, childLuck };
 });

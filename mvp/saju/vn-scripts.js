@@ -2,7 +2,7 @@
  * vn-scripts.js — 미연시 연출용 캐릭터 대본.
  * 캐릭터마다: 등장 연출(entrance)·입자(particles)·도입 대사(intro)·고민 선택지(concern)·정보 요청 대사(ask)·
  * 소환 대사(summon)·분석 비트(beats: 대사 + 표정 + 효과 + 떠 있는 비주얼)·맺음(ending).
- * 풀이의 "초점"은 캐릭터별로 고정한다: 홍염=연애·궁합, 도사=재물, 할머니=한 해 흐름, 동자=아이 기질, 헤드헌터=이직, 정경진=전체.
+ * 풀이의 "초점"은 캐릭터별로 고정한다: 홍염=연애·궁합, 도사=재물, 할머니(삼신)=자녀복·한 해·가족(+아이 모드=우리 아이 기질), 헤드헌터=이직, 정경진=전체.
  * 운영 전환 시 beats()의 문장 자리에 LLM 생성을 넣고, 비주얼·표정·효과 지시는 그대로 유지한다.
  */
 (function (root) {
@@ -94,6 +94,64 @@
 
 
   // ───── 캐릭터 대본 ─────
+
+  // ───── 복순 할머니(삼신할머니) 대본 조각 ─────
+  const banmal = t => String(t).replace(/이에요/g, '이야').replace(/예요/g, '야').replace(/있어서요/g, '있어서야').replace(/정해요/g, '정해').replace(/([가-힣])아요/g, '$1아').replace(/([가-힣])어요/g, '$1어').replace(/워요/g, '워').replace(/해요/g, '해').replace(/봐요/g, '봐').replace(/와요/g, '와').replace(/가요/g, '가');
+  function grannyBeats(c) {
+        const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), now = r.seun[0], nx = r.seun[1], cur = r.daeun && r.daeun.current;
+        const turning = cur && (r.daeun.ageYears >= cur.toAge - 1 || r.daeun.ageYears <= cur.fromAge + 1);
+        const b = [
+          { t: P.fill(p.open[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
+          { t: `올해 ${now.year}년은 ${now.stem}${now.branch}, ${now.tenGod.group} 운이었어. ${P.luckByGroup[now.tenGod.group]} ${c.concern === 'year' ? '그래서 힘들었던 거야. 네가 못나서가 아니라.' : '그 해를 지나온 거야.'}`, face: now.tenGod.group === '관성' || now.tenGod.group === '비겁' ? 'serious' : 'neutral', visual: glyph(now.stem + now.branch, `올해 ${now.year}년 · ${now.tenGod.group}`, P.groupDesc[now.tenGod.group]) },
+          { t: nx.tenGod.group === now.tenGod.group ? `내년 ${nx.year}년은 ${nx.stem}${nx.branch}. 같은 ${nx.tenGod.group} 운이 한 해 더 가. 올해 배운 걸 내년에 써먹는 흐름이야. 글자만 바뀌니 서두르지 마.` : `내년 ${nx.year}년은 ${nx.stem}${nx.branch}, ${nx.tenGod.group} 운. ${P.luckByGroup[nx.tenGod.group]} 올해랑은 달라. 봐, 계절이 바뀌잖아.`, face: 'smile', fx: 'flash', visual: glyph(nx.stem + nx.branch, `내년 ${nx.year}년 · ${nx.tenGod.group}`, P.groupDesc[nx.tenGod.group]) },
+        ];
+        if (cur) b.push({ t: turning ? `그리고 얘야, 지금 네 대운이 바뀌는 길목이야. ${cur.stem}${cur.branch} 대운이 ${cur.fromAge}세부터 ${cur.toAge}세까지인데, 네가 그 끝자락에 있어. 길목에서는 큰일 벌이지 말고 짐 정리만 해.` : `지금 대운은 ${cur.stem}${cur.branch}, ${cur.fromAge}세부터 ${cur.toAge}세까지. 아직 한 계절 안에 있어. 급하게 바꾸려 하지 마.`, face: turning ? 'serious' : 'neutral', visual: glyph(cur.stem + cur.branch, `지금 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세${turning ? ' · 바뀌는 길목' : ''}`) });
+        b.push({ t: `네 몸은 ${st.season}에 태어난 몸이야. ${({ 봄: '자라는 기운이 넉넉해서 시작은 잘하는데 마무리를 챙겨야 해.', 여름: '열기가 많아서 물이 약이야. 잠이랑 물을 챙기렴.', 가을: '거두는 기운이라 몸이 마르기 쉬워. 따뜻하게 지내.', 겨울: '몸이 쉽게 식어. 햇볕이랑 움직임이 약이야.' })[st.season]}`, face: 'neutral', visual: { type: 'radar' } });
+        b.push({ t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } });
+        b.push({ t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' });
+        b.push({ t: mo.caution.length ? `자, 달력 꺼내. ${mo.nextY}년에 조심할 달은 ${mo.names(mo.caution)}. 이 달엔 이사, 수술, 큰 계약, ${c.concern === 'family' ? '가족 행사' : '큰 결정'}은 피해. 피할 수 없으면 두 번 확인해.` : `${mo.nextY}년엔 충이 드는 달이 없어. 아이고, 다행이다. 그래도 들뜨진 마.`, face: 'serious', fx: mo.caution.length ? 'shake' : 'glow', visual: monthsVisual(mo, `${mo.nextY}년 · 조심할 달과 밀어붙일 달`, mo.push) });
+        if (mo.push.length) b.push({ t: `반대로 ${mo.names(mo.push)}은 밀어붙여도 되는 달이야. 미루던 거 있으면 이때 해. 할머니가 허락할게.`, face: 'smile', fx: 'glow' });
+        b.push({ t: '아이고, 여기까지가 무료야. 다 기억 안 해도 돼. 조심할 달 세 개만 달력에 적어 둬.', face: 'smile', visual: null });
+        if (c.concern === 'baby') b.splice(1, 0, ...babyBeats(c, mo));
+        return b;
+      
+  }
+  /** 자녀복 비트(고민 '자녀복'): 자녀성 개수·자리 → 할머니 셈(범위) → 자녀궁(시주) → 때(대운·세운·달) → 아들·딸. questions.js childLuck 과 같은 사실을 쓴다. */
+  function babyBeats(c, mo) {
+    const r = c.r; const Q = root.SajuQuestions; if (!Q || !Q.childLuck) return [];
+    const cl = Q.childLuck(r); const grp = cl.grp;
+    const focus = mo.months.filter(m => m.branchGod.group === grp || m.stemGod.group === grp);
+    const seat = cl.hour
+      ? Object.assign({ t: `네 자녀 자리, 시주는 ${r.hour.stem}${r.hour.branch}. ${banmal(cl.hourState)}`, face: cl.hourClash ? 'serious' : 'neutral', visual: glyph(r.hour.stem + r.hour.branch, '시주 · 자녀 자리', cl.hourState) }, cl.hourClash ? { fx: 'shake' } : {})
+      : { t: '태어난 시각을 몰라서 자녀 자리(시주)는 비워 뒀어. 시각을 알면 자녀 자리까지 바로 봐 줄게.', face: 'neutral', visual: null };
+    return [
+      { t: `자, 자녀 자리부터 보자. 네 명식에서 자녀 글자는 ${grp}이야. ${cl.n ? `${cl.n}개가 ${cl.posKo}에 앉아 있어.` : '원국엔 드러나 있지 않아. 없다는 게 아니라 운에서 오는 거야.'}`, face: cl.n ? 'smile' : 'serious', fx: cl.n ? 'glow' : 'dim', visual: glyph(cl.glyph, `자녀성 ${grp} · ${cl.n}개`, cl.n ? cl.posKo : '운에서 들어오는 자녀') },
+      { t: `할머니 셈으로는 ${cl.est}이야. ${banmal(cl.estWhy)} 정해진 수가 아니라 인연의 크기니까, 그렇게만 알아 둬.`, face: 'smile', fx: 'flash', visual: glyph(cl.est.replace(/\s.*$/, ''), '삼신할머니 셈 · 자녀 인연', cl.estWhy) },
+      seat,
+      { t: `${banmal(cl.whenDecade)} ${banmal(cl.whenYear)} ${mo.nextY}년 안에서는 ${mo.names(focus)}에 자녀 기운이 들어와.`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 자녀 기운이 드는 달`, focus) },
+      { t: `아들이냐 딸이냐는… ${banmal(cl.sexLine)} ${r.input.gender === 'M' ? '남자 명식은 편관을 아들, 정관을 딸로 봐.' : '여자 명식은 상관을 아들, 식신을 딸로 봐.'} 전통 구분이니 참고만 해. 성별은 하늘이 정해.`, face: 'smile' },
+    ];
+  }
+  /** 아이 모드 비트(고민 '우리 아이 기질', 아이 명식): 옛 애기동자 흐름을 할머니 말투로. */
+  function grannyChildBeats(c) {
+    const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), top = r.sortedElems[0], sg = r.strongestGroup;
+    const cg = r.input.gender === 'M' ? '관성' : '식상'; const focus = mo.months.filter(m => m.branchGod.group === cg || m.stemGod.group === cg);
+    const temp = { 火: '뜨거운 아이야. 웃음도 울음도 커. 감정에 이름을 붙여 주면 금방 꺼져.', 水: '차분한 물 아이야. 눈치가 빨라서 어른 기분을 먼저 읽어. 그래서 속으로 걱정이 많아.', 木: '쑥쑥 자라는 나무 아이야. 하고 싶은 게 많아서 가만히 못 있어. 막으면 휘어.', 土: '든든한 땅 아이야. 느린 게 아니라 깊은 거야. 재촉하면 숨어.', 金: '반짝이는 쇠 아이야. 규칙을 좋아하고 불공평한 걸 제일 싫어해.' };
+    const style = sg === '관성' || sg === '인성' ? { t: `${sg}이 제일 커. 이 아이는 규칙이 통하는 아이야. 그런데 혼내는 거 말고, 약속을 어른이 먼저 지키면 제일 말을 잘 들어.`, face: 'neutral' } : sg === '재성' ? { t: '재성이 제일 커. 이 아이는 목표랑 보상이 통하는 아이야. 용돈 교육, 칭찬 도장, 다 잘 돼. 대신 "그냥 하는 것"도 있다고 가르쳐 줘.', face: 'smile' } : { t: `${sg}이 제일 커. 이 아이는 칭찬이 통하는 아이야. 혼내면 더 안 들어. 잘한 거 하나 찾아서 먼저 말해 줘.`, face: 'smile' };
+    const power = st.label === '신강' ? '아이 힘이 세. 센 아이는 부딪혀 봐야 배워. 다 막아 주지 마.' : st.label === '신약' ? '아이 힘이 약한 편이야. 약한 게 나쁜 게 아니야. 안아 줘야 크는 아이야.' : '아이 힘이 딱 중간이야. 밀어도 되고 안아 줘도 돼. 아이가 원하는 걸 봐.';
+    const b = [
+      { t: P.fill((p.openChild || p.open)[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
+      { t: `오행은 아이 몸의 온도야. ${elJ(top, '이', '가')} 제일 많아. ${temp[top]}`, face: 'smile', visual: { type: 'radar' } },
+      Object.assign({ visual: { type: 'stats' }, fx: 'glow' }, style),
+      { t: P.fill((p.weakChild || p.weak)[r.weakestGroup], c), face: 'serious', sprite: 'nod' },
+      { t: power, face: st.label === '신약' ? 'serious' : 'smile', visual: glyph(st.label, `아이 힘 · ${st.label}`, st.why[0]) },
+      { t: `${mo.nextY}년에 아이한테 새로운 걸 시작하기 좋은 달은 ${mo.names(focus)}이야. 학원, 새 친구, 새 습관은 이때 해.`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 아이에게 새 기운이 오는 달`, focus) },
+    ];
+    if (mo.caution.length) b.push({ t: `반대로 ${mo.names(mo.caution)}은 학교나 학원을 바꾸지 마. 아이가 흔들리는 달이야. 대신 더 많이 안아 줘.`, face: 'serious', fx: 'shake' });
+    b.push({ t: '여기까지가 무료야. 아이는 고치는 게 아니라 읽는 거야. 오늘 읽은 거 하나만 기억해도 돼.', face: 'smile', visual: null });
+    return b;
+  }
+
   const SCRIPTS = {
     // ─────────────────────────── 홍염의 여신 · 연애·재회·궁합 ───────────────────────────
     flame: {
@@ -193,96 +251,47 @@
       ending: { lines: [{ t: '시트에 적어 두었다. 심층에서는 네 대운이 재성을 만나는 해와, 돈이 새는 자리 세 곳을 짚어 주마. 동업자나 투자처의 명식이 있으면 그것도 가져오너라.', face: 'smile' }], prompt: '어찌하겠느냐?', sheet: '제 시트를 펼쳐 주세요', again: '다른 분께도 여쭤볼게요' },
     },
 
-    // ─────────────────────────── 할머니 · 한 해·가족·인생 흐름 ───────────────────────────
+    // ─────────────────────────── 복순 할머니(삼신할머니) · 자녀복·한 해·가족 · 아이 모드 ───────────────────────────
     granny: {
       entrance: 'granny', particles: 'moon',
       intro: [
         { t: '아이고, 얘야. 문 열고 들어오느라 추웠지? 이리 와서 앉아.', face: 'smile' },
-        { t: '할머니는 거창한 건 몰라. 그냥 올해 네가 왜 힘들었는지, 내년엔 어디를 조심하면 되는지, 그것만 봐.', face: 'neutral' },
-        { t: '돈 벌 궁리, 연애 궁리는 젊은 애들한테 가고. 할머니한텐 네 한 해 얘기만 하자. 응?', face: 'smile', sprite: 'nod' },
+        { t: '사람들은 나를 삼신할머니라고 불러. 아이를 점지하고, 한 집안의 한 해를 지켜보는 게 할머니 일이야.', face: 'neutral' },
+        { t: '돈 벌 궁리, 연애 궁리는 젊은 애들한테 가고. 할머니한텐 아이 얘기, 식구 얘기, 네 한 해 얘기만 하자. 응?', face: 'smile', sprite: 'nod' },
       ],
       concern: {
         prompt: '그래, 뭐가 제일 마음에 걸려?',
         options: [
+          { value: 'baby', label: '자녀복이 궁금해요. 아이가 몇이나 올까요', reply: [{ t: '그게 할머니 일이지. 명식엔 자녀 자리가 따로 있고, 자녀 글자가 몇 개 앉았는지도 다 보여. 겁먹지 말고 보자.', face: 'smile' }] },
+          { value: 'child', label: '우리 아이 기질을 알고 싶어요', reply: [{ t: '아이고, 아이 얘기구나. 아이는 고치는 게 아니라 읽는 거야. 아이 생일을 주면 어떤 아이인지 할머니가 읽어 줄게.', face: 'smile' }] },
           { value: 'year', label: '올해 너무 힘들었어요', reply: [{ t: '그랬구나. 아이고… 네 탓 아니야. 계절이 그랬던 거야. 명식 보면 왜 그랬는지 다 나와.', face: 'serious' }] },
           { value: 'family', label: '가족 일이 마음에 걸려요', reply: [{ t: '식구 일이 제일 무겁지. 명식에는 식구 자리가 다 있어. 누가 네 편이고 누가 네 짐인지 할머니가 봐 줄게.', face: 'neutral' }] },
-          { value: 'next', label: '내년이 걱정돼요', reply: [{ t: '걱정은 미리 하는 게 아니라 달력에 적어 두는 거야. 조심할 달 몇 개만 알면 돼. 겁먹지 마.', face: 'smile' }] },
         ],
       },
-      situation: { prompt: '요즘 어떻게 지냈어?', options: [{ value: 'hard', label: '올해 유난히 힘들었어요' }, { value: 'change', label: '큰 변화를 앞두고 있어요' }, { value: 'fam', label: '가족 일이 걱정이에요' }, { value: 'ok', label: '그냥 내년이 궁금해요' }] },
+      // '우리 아이 기질'은 아이 명식을 받는다(childFor). 부모(=나) 생일을 더 주면 부모-자녀 질문이 열린다(partnerFor).
+      childFor: ['child'], partnerFor: ['child'],
+      adultNote: '어? 어른 명식이네. 괜찮아. 타고난 기질은 어른이 돼도 그대로라서, 어릴 적 모습으로 읽어 줄게.',
+      situation(concern) {
+        if (concern === 'child') return { prompt: '아이는 몇 살쯤이야?', options: [{ value: 'baby', label: '영유아(0~6세)예요' }, { value: 'elem', label: '초등학생이에요' }, { value: 'teen', label: '10대예요' }] };
+        if (concern === 'baby') return { prompt: '지금 어디쯤이야?', options: [{ value: 'single', label: '아직 짝이 없어요' }, { value: 'plan', label: '결혼했고 아이를 계획 중이에요' }, { value: 'waiting', label: '아이를 기다리는 중이에요' }, { value: 'have', label: '아이가 있는데 더 올지 궁금해요' }] };
+        return { prompt: '요즘 어떻게 지냈어?', options: [{ value: 'hard', label: '올해 유난히 힘들었어요' }, { value: 'change', label: '큰 변화를 앞두고 있어요' }, { value: 'fam', label: '가족 일이 걱정이에요' }, { value: 'ok', label: '그냥 내년이 궁금해요' }] };
+      },
       ask: {
         lead: [{ t: '어디 손 좀 줘 봐라. 아니, 손 말고 생일. 태어난 날이랑 시간을 말해 줘.', face: 'smile' }],
         name: '우리 애기 이름이 뭐야? 할머니가 부를 이름.', gender: '남자아이야, 여자아이야? 대운이 어느 쪽으로 도는지 봐야 해서.', date: '태어난 날은? 양력으로.', time: '태어난 시간은 알아? 모르면 괜찮아. 할머니는 시간 몰라도 봐.',
         reuse: { prompt: '아까 본 명식이 있네. 그걸로 볼까, 다시 적을까?', keep: '그걸로 봐 주세요', fresh: '다시 적을게요' },
         done: [{ t: '{name}이, 그래. 다 받았다. 달이 밝으니 잘 보이겠구나.', face: 'smile', fx: 'glow' }],
       },
+      askChild: {
+        lead: [{ t: '그럼 아이 생일을 말해 줘. 지금 넣는 건 아이 거야. 네 생일은 그다음에 따로 물어볼게.', face: 'smile' }],
+        partner: { prompt: '네 생일도 알려 줄래? 넣으면 너랑 아이가 어떻게 맞는지, 부모-자녀 질문 6개가 더 열려. 아이 것만으로도 14개는 볼 수 있어.', yes: '알려 드릴게요', no: '다음에요', who: '부모', gender: '네가 엄마야, 아빠야?', date: '네가 태어난 날은? 시간은 몰라도 돼.', got: '그래, 받았다. 너랑 아이를 같이 볼게.', skip: '괜찮아. 아이 것만 볼게.' },
+        name: '아이 이름이 뭐야? 할머니가 부를 이름.', gender: '남자아이야, 여자아이야?', date: '아이가 태어난 날은? 양력으로.', time: '태어난 시간은 알아? 모르면 괜찮아. 할머니는 시간 몰라도 봐.',
+        reuse: { prompt: '아까 본 아이 명식이 있네. 그걸로 볼까, 다시 적을까?', keep: '그걸로 봐 주세요', fresh: '다시 적을게요' },
+        done: [{ t: '{name}, 이름 예쁘다. 다 받았어. 달이 밝으니 잘 보이겠구나.', face: 'smile', fx: 'glow' }],
+      },
       summon: [{ t: '달빛 아래 네 기둥이 하나씩… 조상 자리, 부모 자리, 네 자리, 자식 자리.' }],
-      beats(c) {
-        const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), now = r.seun[0], nx = r.seun[1], cur = r.daeun && r.daeun.current;
-        const turning = cur && (r.daeun.ageYears >= cur.toAge - 1 || r.daeun.ageYears <= cur.fromAge + 1);
-        const b = [
-          { t: P.fill(p.open[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
-          { t: `올해 ${now.year}년은 ${now.stem}${now.branch}, ${now.tenGod.group} 운이었어. ${P.luckByGroup[now.tenGod.group]} ${c.concern === 'year' ? '그래서 힘들었던 거야. 네가 못나서가 아니라.' : '그 해를 지나온 거야.'}`, face: now.tenGod.group === '관성' || now.tenGod.group === '비겁' ? 'serious' : 'neutral', visual: glyph(now.stem + now.branch, `올해 ${now.year}년 · ${now.tenGod.group}`, P.groupDesc[now.tenGod.group]) },
-          { t: nx.tenGod.group === now.tenGod.group ? `내년 ${nx.year}년은 ${nx.stem}${nx.branch}. 같은 ${nx.tenGod.group} 운이 한 해 더 가. 올해 배운 걸 내년에 써먹는 흐름이야. 글자만 바뀌니 서두르지 마.` : `내년 ${nx.year}년은 ${nx.stem}${nx.branch}, ${nx.tenGod.group} 운. ${P.luckByGroup[nx.tenGod.group]} 올해랑은 달라. 봐, 계절이 바뀌잖아.`, face: 'smile', fx: 'flash', visual: glyph(nx.stem + nx.branch, `내년 ${nx.year}년 · ${nx.tenGod.group}`, P.groupDesc[nx.tenGod.group]) },
-        ];
-        if (cur) b.push({ t: turning ? `그리고 얘야, 지금 네 대운이 바뀌는 길목이야. ${cur.stem}${cur.branch} 대운이 ${cur.fromAge}세부터 ${cur.toAge}세까지인데, 네가 그 끝자락에 있어. 길목에서는 큰일 벌이지 말고 짐 정리만 해.` : `지금 대운은 ${cur.stem}${cur.branch}, ${cur.fromAge}세부터 ${cur.toAge}세까지. 아직 한 계절 안에 있어. 급하게 바꾸려 하지 마.`, face: turning ? 'serious' : 'neutral', visual: glyph(cur.stem + cur.branch, `지금 대운 · ${cur.tenGod.group}`, `${cur.fromAge}~${cur.toAge}세${turning ? ' · 바뀌는 길목' : ''}`) });
-        b.push({ t: `네 몸은 ${st.season}에 태어난 몸이야. ${({ 봄: '자라는 기운이 넉넉해서 시작은 잘하는데 마무리를 챙겨야 해.', 여름: '열기가 많아서 물이 약이야. 잠이랑 물을 챙기렴.', 가을: '거두는 기운이라 몸이 마르기 쉬워. 따뜻하게 지내.', 겨울: '몸이 쉽게 식어. 햇볕이랑 움직임이 약이야.' })[st.season]}`, face: 'neutral', visual: { type: 'radar' } });
-        b.push({ t: P.fill(p.strong[r.strongestGroup], c), face: 'neutral', visual: { type: 'stats' } });
-        b.push({ t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' });
-        b.push({ t: mo.caution.length ? `자, 달력 꺼내. ${mo.nextY}년에 조심할 달은 ${mo.names(mo.caution)}. 이 달엔 이사, 수술, 큰 계약, ${c.concern === 'family' ? '가족 행사' : '큰 결정'}은 피해. 피할 수 없으면 두 번 확인해.` : `${mo.nextY}년엔 충이 드는 달이 없어. 아이고, 다행이다. 그래도 들뜨진 마.`, face: 'serious', fx: mo.caution.length ? 'shake' : 'glow', visual: monthsVisual(mo, `${mo.nextY}년 · 조심할 달과 밀어붙일 달`, mo.push) });
-        if (mo.push.length) b.push({ t: `반대로 ${mo.names(mo.push)}은 밀어붙여도 되는 달이야. 미루던 거 있으면 이때 해. 할머니가 허락할게.`, face: 'smile', fx: 'glow' });
-        b.push({ t: '아이고, 여기까지가 무료야. 다 기억 안 해도 돼. 조심할 달 세 개만 달력에 적어 둬.', face: 'smile', visual: null });
-        return b;
-      },
-      ending: { lines: [{ t: '시트에 다 적어 뒀어. 심층에서는 열두 달을 하나씩 짚어서, 어느 달에 뭘 하고 뭘 하지 말지 알려 줄게. 힘들 때 또 와. 할머니는 여기 있어.', face: 'smile' }], prompt: '어떻게 할래?', sheet: '제 시트 보여 주세요', again: '다른 분한테도 가 볼게요' },
-    },
-
-    // ─────────────────────────── 애기동자 · 자녀·기질 ───────────────────────────
-    child: {
-      entrance: 'child', particles: 'petal',
-      intro: [
-        { t: '어? 어! 누가 왔다! 연못에 꽃잎이 떨어지길래 봤더니, 손님이에요!', face: 'smile', fx: 'burst' },
-        { t: '저는 초롱 동자예요! 어른 사주는 몰라요. 대신 아이는 다 보여요. 물 같은 아이, 불 같은 아이, 다요!', face: 'smile', sprite: 'bump' },
-        { t: '아이는 고치는 게 아니라 읽는 거예요. 읽히는 아이는 편안해져요. 오늘은 아이 얘기만 해요, 네?', face: 'neutral' },
-      ],
-      concern: {
-        prompt: '아이의 뭐가 궁금하세요?',
-        options: [
-          { value: 'temper', label: '아이 기질이 궁금해요', reply: [{ t: '좋아요! 타고난 기질은 일간이랑 오행에 다 있어요. 왜 그렇게 노는지, 왜 그렇게 우는지 보여요!', face: 'smile' }] },
-          { value: 'discipline', label: '혼내도 말을 안 들어요', reply: [{ t: '아, 그건요. 혼내서 듣는 아이가 있고, 칭찬해야 듣는 아이가 있어요. 아이 명식이 어느 쪽인지 동자가 봐 드릴게요!', face: 'serious' }] },
-          { value: 'next', label: '내년에 아이한테 뭐가 올까요', reply: [{ t: '내년 달력이요? 동자가 제일 잘하는 거예요! 새로운 거 시작하기 좋은 달, 바꾸면 안 되는 달이 있어요.', face: 'smile' }] },
-        ],
-      },
-      partnerFor: ['temper', 'discipline', 'next'], parentMode: true,
-      adultNote: '어? 어른 명식이네요! 괜찮아요. 타고난 기질은 어른이 돼도 그대로라서, 어릴 적 모습으로 읽을게요!',
-      situation: { prompt: '아이는 몇 살쯤이에요?', options: [{ value: 'baby', label: '영유아(0~6세)예요' }, { value: 'elem', label: '초등학생이에요' }, { value: 'teen', label: '10대예요' }] },
-      ask: {
-        lead: [{ t: '그럼 아이 생일을 알려 주세요! 지금 넣는 건 아이 거예요. 부모님 생일은 그다음에 따로 물어볼게요.', face: 'smile' }],
-        partner: { prompt: '부모님 생년월일도 알려 줄래요? 넣으면 부모-자녀 조합 질문 6개가 더 열려요! 아이 것만으로도 14개는 볼 수 있어요.', yes: '알아요', no: '다음에요', who: '부모', gender: '부모님은 어머니예요, 아버지예요?', date: '부모님이 태어난 날이요! 시간은 몰라도 돼요.', got: '받았어요! 아이랑 부모님을 같이 볼게요.', skip: '괜찮아요. 아이 것만 볼게요!' },
-        name: '아이 이름이 뭐예요? 동자가 부를 이름이요!', gender: '남자아이예요, 여자아이예요?', date: '아이가 태어난 날은요? 양력으로요!', time: '태어난 시간은 아세요? 모르면 괜찮아요. 동자는 시간 몰라도 볼 수 있어요!',
-        reuse: { prompt: '아까 본 명식이 있어요! 그걸로 볼까요, 새로 받을까요?', keep: '그걸로 봐 줘', fresh: '새로 입력할게' },
-        done: [{ t: '{name}! 이름 예쁘다! 다 받았어요. 연꽃이 열릴 거예요, 잘 보세요!', face: 'smile', fx: 'burst' }],
-      },
-      summon: [{ t: '연꽃이 하나, 둘, 셋, 넷… 아이의 네 기둥이 물 위로 떠올라요!' }],
-      beats(c) {
-        const r = c.r, p = c.p, mo = monthsInfo(r, p), st = R.strengthJudge(r), top = r.sortedElems[0], sg = r.strongestGroup;
-        const temp = { 火: '뜨거운 아이예요! 웃음도 울음도 커요. 감정에 이름을 붙여 주면 금방 꺼져요.', 水: '차분한 물 아이예요. 눈치가 빨라서 어른 기분을 먼저 읽어요. 그래서 속으로 걱정이 많아요.', 木: '쑥쑥 자라는 나무 아이예요! 하고 싶은 게 많아서 가만히 못 있어요. 막으면 휘어요.', 土: '든든한 땅 아이예요. 느린 게 아니라 깊은 거예요. 재촉하면 숨어요.', 金: '반짝이는 쇠 아이예요. 규칙을 좋아하고 불공평한 걸 제일 싫어해요!' };
-        const style = sg === '관성' || sg === '인성' ? { t: `${sg}이 제일 커요. 이 아이는 규칙이 통하는 아이예요! 그런데 혼내는 거 말고요. 약속을 어른이 먼저 지키면 제일 말 잘 들어요.`, face: 'neutral' } : sg === '재성' ? { t: '재성이 제일 커요. 이 아이는 목표랑 보상이 통하는 아이예요! 용돈 교육, 스티커판, 다 잘 돼요. 대신 "그냥 하는 것"도 있다고 가르쳐 주세요.', face: 'smile' } : { t: `${sg}이 제일 커요. 이 아이는 칭찬이 통하는 아이예요! 혼내면 더 안 들어요. 잘한 거 하나 찾아서 먼저 말해 주세요.`, face: 'smile' };
-        const power = st.label === '신강' ? '아이 힘이 세요! 센 아이는 부딪혀 봐야 배워요. 다 막아 주지 마세요.' : st.label === '신약' ? '아이 힘이 약한 편이에요. 약한 게 나쁜 게 아니에요. 안아 줘야 크는 아이예요.' : '아이 힘이 딱 중간이에요. 밀어도 되고 안아 줘도 돼요. 아이가 원하는 걸 보세요.';
-        const b = [
-          { t: P.fill(p.open[r.dayMaster.element], c), face: 'smile', visual: { type: 'pillars' } },
-          { t: `오행은 아이 몸의 온도예요. ${elJ(top, '이', '가')} 제일 많아요. ${temp[top]}`, face: 'smile', visual: { type: 'radar' } },
-          Object.assign({ visual: { type: 'stats' }, fx: 'glow' }, style),
-          { t: P.fill(p.weak[r.weakestGroup], c), face: 'serious', sprite: 'nod' },
-          { t: power, face: st.label === '신약' ? 'serious' : 'smile', visual: glyph(st.label, `아이 힘 · ${st.label}`, st.why[0]) },
-        ];
-        if (c.concern === 'discipline') b.push({ t: `그러니까요, ${c.name} 아이한테는 ${sg === '관성' || sg === '인성' ? '규칙은 세 개만, 대신 어른도 같이 지키는 거요' : sg === '재성' ? '혼내는 대신 작은 목표랑 보상이요' : '혼내기 전에 칭찬 하나 먼저요'}. 그게 이 아이한테 통하는 말이에요!`, face: 'smile', fx: 'flash' });
-        b.push({ t: `${mo.nextY}년에 아이한테 새로운 걸 시작하기 좋은 달은 ${mo.names(mo.focus)}이에요! 학원, 새 친구, 새 습관은 이때요.`, face: 'smile', visual: monthsVisual(mo, `${mo.nextY}년 · 아이에게 새 기운이 오는 달`) });
-        if (mo.caution.length) b.push({ t: `반대로 ${mo.names(mo.caution)}은 학교나 학원을 바꾸지 마세요. 아이가 흔들리는 달이에요. 대신 더 많이 안아 주세요.`, face: 'serious', fx: 'shake' });
-        b.push({ t: '여기까지가 무료예요! 아이는 고치는 게 아니라 읽는 거예요. 오늘 읽은 거 하나만 기억해도 돼요!', face: 'smile', fx: 'burst', visual: null });
-        return b;
-      },
-      ending: { lines: [{ t: '시트에 다 적어 뒀어요! 심층에서는 아이 질문 14개 중 고른 답이랑 열두 달, 부모님이 지킬 세 가지를 봐 드려요. 부모님 생일도 넣으면 조합 질문 6개가 더 열려요!', face: 'smile' }], prompt: '어떻게 할까요?', sheet: '아이 시트 보여 줘', again: '다른 캐릭터한테도 가 볼게' },
+      beats(c) { return c.childMode ? grannyChildBeats(c) : grannyBeats(c); },
+      ending: { lines: [{ t: '시트에 다 적어 뒀어. 심층에서는 자녀 자리랑 열두 달을 하나씩 짚어서, 어느 달에 뭘 하고 뭘 하지 말지 알려 줄게. 힘들 때 또 와. 할머니는 여기 있어.', face: 'smile' }], prompt: '어떻게 할래?', sheet: '제 시트 보여 주세요', again: '다른 분한테도 가 볼게요' },
     },
 
     // ─────────────────────────── 냉철한 헤드헌터 · 커리어·이직 ───────────────────────────

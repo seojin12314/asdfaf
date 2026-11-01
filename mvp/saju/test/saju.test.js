@@ -131,8 +131,8 @@ console.log(`${n2} mbti tests passed`);
 global.self = global; require('../personas.js'); const PP = global.SajuPersonas;
 const RR = require('../report.js');
 let n3 = 0; function t3(name, fn) { fn(); n3++; console.log('ok -', name); }
-t3('캐릭터 6인: lead 12개 이상, special 완비, 전문가 1인', () => {
-  const ids = Object.keys(PP.personas); assert.strictEqual(ids.length, 6);
+t3('캐릭터 5인(동자는 할머니에 통합): lead 12개 이상, special 완비, 전문가 1인', () => {
+  const ids = Object.keys(PP.personas); assert.strictEqual(ids.length, 5); assert.ok(!PP.personas.child);
   ids.forEach(id => { const p = PP.personas[id]; assert.ok(Object.keys(p.lead).length >= 12, id + ' lead'); ['byElem', 'byStrong', 'byWeak'].forEach(k => assert.strictEqual(Object.keys(p.special[k]).length, 5, id + ' ' + k)); assert.ok(p.report.price > 0); });
   assert.strictEqual(PP.personas.master.tier, 'expert'); assert.strictEqual(PP.personas.master.report.price, 39900); assert.ok(!PP.personas.master.consentNote);
 });

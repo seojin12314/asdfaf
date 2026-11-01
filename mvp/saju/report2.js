@@ -204,7 +204,7 @@
     flame: { focus: 'rel', avoidTitle: '올해 피해야 할 3가지', memo: { pair: '둘을 맞붙인 결과야. 여기만은 두 번 읽어.', who: '넌 사랑할 때 이 모양 그대로야. 그걸 먼저 알아.', power: '연애에서 새는 자리가 여기야. 외워.', decade: '지금 10년의 인연 운은 이 색이야.', year: '올해 네 연애는 이 흐름 위에 있어.', months: '고백도 이별도 달을 골라서 해.', rel: '내 전문이야. 여기만은 밑줄 그어.', work: '일 얘긴 짧게. 근데 연애랑 같은 패턴이야.' } },
     sage: { focus: 'power', avoidTitle: '당신 사주가 손해 보는 자리 3곳', memo: { pair: '돈을 섞기 전에 이 장부터 보거라.', who: '그릇을 알아야 담을 돈의 양이 보이느니라.', power: '돈이 새는 구멍은 늘 같은 자리에 있다. 여기다.', decade: '이 10년은 벌 때냐 지킬 때냐, 그것만 보거라.', year: '올해는 들어오는 길과 나가는 길이 이렇다.', months: '큰 거래는 진한 달에, 붉은 달엔 지갑을 닫아라.', rel: '돈과 사람은 늘 같이 움직이는 법이지.', work: '벌 재주와 지킬 재주는 다른 것이니라.' } },
     granny: { focus: 'year', avoidTitle: '2027년 절대 하면 안 되는 시기', memo: { pair: '둘이 맞는지는 글자가 먼저 말한단다.', who: '넌 원래 이런 애야. 그러니 네 탓 말아.', power: '힘이 센지 약한지, 그게 올해 버티는 법을 정한단다.', decade: '이 10년은 계절로 치면 이렇단다.', year: '올해 힘들었던 건 네 탓이 아니라 계절 탓이야.', months: '할머니는 이 달력만 보고 산다. 너도 붙여 둬.', rel: '식구 일은 여기 다 있어. 천천히 봐.', work: '일은 밥벌이지. 몸 상하면서 하진 말아.' } },
-    child: { focus: 'who', avoidTitle: '우리 아이, 올해 하면 안 되는 3가지', memo: { pair: '둘이 어떻게 맞는지 보여요!', who: '이 아이는 이렇게 생긴 아이예요! 고치지 말고 읽어요.', power: '아이 안에 어떤 힘이 많고 적은지 다 보여요.', decade: '아이의 첫 10년 계절이에요.', year: '올해 아이한테 오는 날씨예요.', months: '달력에 붙여 두면 엄마 아빠가 덜 놀라요.', rel: '친구랑 가족이랑 이렇게 지내요.', work: '아이가 잘하는 게 여기 있어요!' } },
+    child: { focus: 'who', avoidTitle: '우리 아이, 올해 하면 안 되는 3가지', memo: { pair: '둘이 어떻게 맞는지는 글자가 먼저 말한단다.', who: '이 아이는 이렇게 생긴 아이야. 고치지 말고 읽어.', power: '아이 안에 어떤 힘이 많고 적은지 할머니 눈엔 다 보여.', decade: '아이의 첫 10년 계절이란다.', year: '올해 아이한테 오는 날씨야.', months: '달력에 붙여 두면 엄마 아빠가 덜 놀란다.', rel: '친구랑 가족이랑 이렇게 지내는 아이야.', work: '아이가 잘하는 게 여기 있어.' } }, // 할머니 아이 모드
     hunter: { focus: 'work', avoidTitle: '2027년 이직하면 안 되는 시기', memo: { pair: '파트너 검증 결과입니다.', who: '시장이 보는 당신의 유형입니다.', power: '이력서에 적히지 않는 당신의 자원 배분입니다.', decade: '커리어 관점의 10년 단위 해석입니다.', year: '올해 움직임의 결론은 하나입니다.', months: '면접과 사직서는 달을 골라야 합니다.', rel: '관계는 생략하되, 상사 궁합만 봅니다.', work: '제 전문입니다. 여기부터 읽으셔도 됩니다.' } },
     master: { focus: null, avoidTitle: '올해 피해야 할 3가지', memo: { pair: '두 명식은 따로 보지 말고 겹쳐 봐요.', who: '여기가 명식의 출발점이에요.', power: '힘의 분포가 처방의 방향을 정해요.', decade: '큰 계절부터 보고 작은 날씨를 봐요.', year: '두 해를 나란히 두면 차이가 보여요.', months: '달의 경계는 절기예요. 괄호 안 날짜를 보세요.', rel: '가까운 자리의 글자가 관계 방식이에요.', work: '격과 용신을 쉬운 말로 풀면 이거예요.' } },
     mbti: { focus: 'axes', avoidTitle: '올해 피해야 할 3가지', memo: { who: '검사 결과 말고, 타고난 결부터 볼게요.', power: '여기가 성향 추정의 재료예요.', axes: '세 글자를 나란히 두는 게 오늘의 핵심이에요.', goal: '바꾸기보다 빌려 쓰는 쪽이 오래가요.', year: '성향도 해마다 쓰이는 자리가 달라요.', months: '실험은 진한 달에 하면 결과가 빨라요.', relwork: '관계와 일에서 그 글자가 어떻게 나오는지 볼게요.' } },
@@ -242,7 +242,7 @@
   // ───── 본체 ─────
   function build(result, opts) {
     opts = opts || {}; const r = result; const persona = opts.persona || null; const pid = persona ? persona.id : (opts.kind === 'mbti' ? 'mbti' : 'master');
-    const kind = opts.kind === 'mbti' ? 'mbti' : 'full'; const isChild = pid === 'child';
+    const kind = opts.kind === 'mbti' ? 'mbti' : 'full'; const isChild = pid === 'child' || !!opts.child; // 할머니 아이 모드(opts.child)도 아이 전용 표를 쓴다
     const name = opts.name || '당신'; const g = r.groups; const tot = r.tenGods.length;
     const st = R.strengthJudge(r); const rx = direction(r, st);
     const nowY = r.seun[0].year, nextY = r.seun[1].year;
@@ -256,8 +256,8 @@
     const cur = r.daeun && r.daeun.current; const curG = cur ? cur.tenGod.group : r.month.branchElem && S.tenGod(r.day.stemIdx, S.BRANCH_MAIN_STEM[r.month.branchIdx]).group;
     const nextD = r.daeun ? (cur ? r.daeun.list[r.daeun.list.indexOf(cur) + 1] : r.daeun.list[0]) : null;
     const edge = !!(cur && (r.daeun.ageYears >= cur.toAge - 1 || r.daeun.ageYears <= cur.fromAge + 1));
-    const P = PERSONA[pid] || PERSONA.master; const memo = P.memo;
-    const LZ = (LZS && LZS.LENS && LZS.LENS[pid]) || null; // 캐릭터 렌즈(재물·연애·이직…)
+    const P = PERSONA[isChild ? 'child' : pid] || PERSONA.master; const memo = P.memo;
+    const LZ = (!isChild && LZS && LZS.LENS && LZS.LENS[pid]) || null; // 캐릭터 렌즈(재물·연애·이직…). 아이 명식엔 어른용 렌즈를 쓰지 않는다
     const T = isChild ? { WA: C_WEAK_AVOID, WI: C_WEAK_INSTEAD, WR: C_WEAK_RECAP, Y: C_YEAR, MD: C_MONTH_DOMAIN, PLAN: C_PLAN } : (LZ && LZ.weakAvoid) ? { WA: LZ.weakAvoid, WI: LZ.weakInstead, WR: LZ.weakRecap, Y: LZ.year || YEAR, MD: LZ.monthDomain, PLAN: LZ.plan } : { WA: WEAK_AVOID, WI: WEAK_INSTEAD, WR: WEAK_RECAP, Y: YEAR, MD: MONTH_DOMAIN, PLAN: PLAN_4W };
 
     // ── 원국 관계(충·합·형) ──

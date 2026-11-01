@@ -1,6 +1,6 @@
 /*
  * report-lenses.js — 캐릭터별 "렌즈". 사람들이 그 캐릭터를 왜 눌렀는지에 맞춰 질문과 답을 그 영역 안에서만 만든다.
- *  sage(백운)=재물 · flame(윤슬)=연애·궁합 · hunter(서지안)=이직 · granny(복순)=한 해·가족·건강. child는 report2의 아이 전용 표, master·mbti는 전체.
+ *  sage(백운)=재물 · flame(윤슬)=연애·궁합 · hunter(서지안)=이직 · granny(복순·삼신할머니)=자녀복·한 해·가족·건강. 아이 모드는 report2의 아이 전용 표, master·mbti는 전체.
  *  각 렌즈: 피할 것 3개 표(weakAvoid/weakInstead/weakRecap · year · monthDomain · monthFallback) · plan(4주) · entries(L1 진입점) · sections(ctx) → L2 7장.
  *  문장 규칙은 report2와 같다(쉬운 말 · 해요체 · 40자 · 단락 3문장 · 피할 것/대신 쌍). report2.lint가 그대로 검사한다.
  */
@@ -214,13 +214,24 @@
     金: { avoid: '목이 칼칼한 주에 찬 바람 쐬며 무리하지 마세요', instead: '그 주엔 따뜻한 물을 자주 마시고 일찍 들어오세요. 쇠 기운은 몸을 데울 때 단단해요.' },
     水: { avoid: '손발이 찬 주에 밤늦게 결정을 내리지 마세요', instead: '그 주엔 허리를 따뜻하게 하고 낮에 결정하세요. 물 기운은 데워질 때 맑아져요.' },
   };
+  const BABY_PAIR = {
+    과다: { avoid: '자녀 일을 혼자 다 떠안고 내 몸을 뒤로 미루지 마세요', instead: '자녀 일 하나는 식구에게 맡기고 내 끼니부터 챙기세요. 자녀 글자가 많은 명식은 나눠야 복이 돼요.' },
+    부족: { avoid: '자녀 소식이 늦다고 내 탓으로 돌리지 마세요', instead: '자녀 기운이 드는 달과 해에 몸을 데우고 마음을 비워 두세요. 빈 자리는 운이 들어올 때 차요.' },
+    적정: { avoid: '자녀 계획을 글자가 부딪히는 달에 급하게 밀지 마세요', instead: '자녀 기운이 드는 달에 결정을 두고 그 전엔 몸을 만들어 두세요. 알맞은 글자는 때를 고르면 돼요.' },
+  };
   L.granny = {
-    entries: [{ id: 'who', label: '나의 기질' }, { id: 'year', label: '올해 흐름' }, { id: 'rel', label: '가족과 몸' }],
+    entries: [{ id: 'who', label: '나의 기질' }, { id: 'baby', label: '자녀복' }, { id: 'year', label: '올해 흐름' }, { id: 'rel', label: '가족과 몸' }],
     tail(c) {
-      const { r, dayG, viz, REL, BRANCH_POS, BODY_SIGNAL, lvG, caution } = c; const e = r.dayMaster.element;
+      const { r, dayG, viz, REL, BRANCH_POS, BODY_SIGNAL, lvG, caution, cal, nextY, G, EP, CLASH } = c; const e = r.dayMaster.element;
+      // 삼신할머니 · 자녀 자리와 자녀복(남 관성 · 여 식상, 자녀궁 = 시주)
+      const cg = r.input.gender === 'M' ? '관성' : '식상'; const n = r.tenGods.filter(t => t.group === cg).length; const lvc = lvG[cg] || '적정';
+      const est = n === 0 ? '1명 안팎' : n === 1 ? '1~2명' : n === 2 ? '2명 안팎' : '2~3명 이상';
+      const cm = cal.filter(x => x.grade !== '주의' && (x.branchGroup === cg || x.stemGroup === cg));
+      const hourClash = !!(r.hour && [r.day, r.year, r.month].some(x => CLASH[r.hour.branch] === x.branch));
+      const baby = { id: 'baby', title: '자녀 자리와 자녀복', conclusion: `자녀 인연은 ${est}으로 읽혀요`, body: [n ? `자녀 글자(${G[cg]})가 ${n}개 있어요.` : `자녀 글자(${G[cg]})가 명식에 없어 운에서 와요.`, r.hour ? `자녀 자리인 시주는 ${EP[r.hour.stemElem]} 위에 ${EP[r.hour.branchElem]}이 앉은 자리예요.` : '태어난 시각을 몰라 자녀 자리는 비워 두었어요.', r.hour ? (hourClash ? '자녀 자리가 다른 자리와 부딪혀 늦게 오거나 떨어져 지내기 쉬워요.' : '자녀 자리가 부딪힘 없이 편안해요.') : '', cm.length ? `${nextY}년 자녀 기운이 드는 달은 ${c.mlist(cm)}이에요.` : `${nextY}년엔 자녀 기운이 따로 드는 달이 없어요.`, '정해진 수가 아니라 글자가 보여 주는 인연의 크기예요.'], avoid: BABY_PAIR[lvc].avoid, instead: BABY_PAIR[lvc].instead };
       const fam = { id: 'rel', title: '가족 자리', conclusion: `집안 자리로 보면 ${BRANCH_POS[r.year.branch][0].replace(/어릴 적 /, '')}`, body: [`${BRANCH_POS[r.year.branch][0]}.`, REL[dayG].body, r.hour ? `${BRANCH_POS[r.hour.branch][3]}.` : '말년 자리는 시각을 알아야 보여요.'], avoid: FAMILY_PAIR[dayG].avoid, instead: FAMILY_PAIR[dayG].instead };
       const keep = { id: 'work', title: '올해 지킬 것: 몸과 돈', conclusion: BODY_SIGNAL[e].replace(/\.$/, ''), body: [BODY_SIGNAL[e], MONEY_LEVEL.재성[lvG['재성']], caution.length ? `멈출 달 ${c.mlist(caution)}엔 몸도 돈도 쉬게 두세요.` : '정면으로 부딪히는 달이 없어 평소 리듬이면 돼요.'], avoid: HEALTH_PAIR[e].avoid, instead: HEALTH_PAIR[e].instead };
-      return [fam, keep];
+      return [baby, fam, keep];
     },
   };
 

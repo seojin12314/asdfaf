@@ -234,7 +234,7 @@
   async function enter(kind) {
     if (replaying()) { el.sprite.classList.remove('hidden'); el.name.classList.add('on'); return; }
     el.sprite.classList.remove('hidden'); el.sprite.classList.add('enter-' + kind); el.sprite.addEventListener('animationend', () => el.sprite.classList.remove('enter-' + kind), { once: true });
-    if (kind === 'flame' || kind === 'hunter') fx('flash'); if (kind === 'master' || kind === 'child') fx('burst');
+    if (kind === 'flame' || kind === 'hunter') fx('flash'); if (kind === 'master') fx('burst');
     await sleep(kind === 'sage' ? 1500 : kind === 'master' ? 1300 : 1000); el.name.classList.add('on'); await sleep(350);
   }
   async function summon(lines) {
@@ -269,52 +269,56 @@
     if (!concern) { concern = await choose(sc.concern.prompt, sc.concern.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; }
     const opt = sc.concern.options.find(o => o.value === concern);
     for (const l of opt.reply) { await say(l.t, l); if (!st.open) return; }
+    // 아이 모드: 고민이 childFor 에 있으면 '내' 명식이 아니라 아이 명식을 받는다(복순 할머니 '우리 아이 기질')
+    const childMode = (sc.childFor || []).includes(concern); const askSc = childMode && sc.askChild ? sc.askChild : sc.ask;
     let situation = null, situationLabel = '';
-    if (sc.situation) { situation = await choose(sc.situation.prompt, sc.situation.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; const so = sc.situation.options.find(o => o.value === situation); situationLabel = so ? so.label : ''; }
+    const sit = typeof sc.situation === 'function' ? sc.situation(concern) : sc.situation;
+    if (sit) { situation = await choose(sit.prompt, sit.options.map(o => ({ label: o.label, value: o.value }))); if (!st.open) return; const so = sit.options.find(o => o.value === situation); situationLabel = so ? so.label : ''; }
     let kind = null, prName = '';
-    if (sc.ask.partner && sc.ask.partner.kinds && (sc.partnerFor || []).includes(concern)) { kind = await choose(sc.ask.partner.kinds.prompt, sc.ask.partner.kinds.options); if (!st.open) return; }
+    if (askSc.partner && askSc.partner.kinds && (sc.partnerFor || []).includes(concern)) { kind = await choose(askSc.partner.kinds.prompt, askSc.partner.kinds.options); if (!st.open) return; }
 
     // 정보 받기(대화형)
     let input = null; const prev = A.state.input;
-    if (prev) { const k = await choose(sc.ask.reuse.prompt, [{ label: sc.ask.reuse.keep, value: 'keep' }, { label: sc.ask.reuse.fresh, value: 'fresh' }]); if (!st.open) return; if (k === 'keep') input = Object.assign({}, prev); }
+    if (prev && !!A.state.childMode === childMode) { const k = await choose(askSc.reuse.prompt, [{ label: askSc.reuse.keep, value: 'keep' }, { label: askSc.reuse.fresh, value: 'fresh' }]); if (!st.open) return; if (k === 'keep') input = Object.assign({}, prev); }
     if (!input) {
-      for (const l of sc.ask.lead) { await say(l.t, l); if (!st.open) return; }
-      const name = await ask('text', sc.ask.name, { optional: true, placeholder: '이름 또는 별칭' }); if (!st.open) return;
-      const gender = await ask('gender', sc.ask.gender); if (!st.open) return;
-      const d = await ask('date', sc.ask.date); if (!st.open) return;
-      const t = await ask('time', sc.ask.time); if (!st.open) return;
+      for (const l of askSc.lead) { await say(l.t, l); if (!st.open) return; }
+      const name = await ask('text', askSc.name, { optional: true, placeholder: '이름 또는 별칭' }); if (!st.open) return;
+      const gender = await ask('gender', askSc.gender); if (!st.open) return;
+      const d = await ask('date', askSc.date); if (!st.open) return;
+      const t = await ask('time', askSc.time); if (!st.open) return;
       input = { name, year: d.year, month: d.month, day: d.day, hour: t ? t.hour : 12, minute: t ? t.minute : 0, hourUnknown: !t, gender, solarCorrectionMin: t ? t.solarCorrectionMin : 0, mbti: prev && prev.mbti ? prev.mbti : null };
     }
     const name = input.name || '당신';
     if (sc.mbti) {
-      if (!input.mbti) { input.mbti = await ask('mbti', sc.ask.mbti); if (!st.open) return; }
+      if (!input.mbti) { input.mbti = await ask('mbti', askSc.mbti); if (!st.open) return; }
       if (!input.goal) {
-        const g = await choose(sc.ask.goal.prompt, [{ label: sc.ask.goal.yes, value: 'y' }, { label: sc.ask.goal.no, value: 'n' }]); if (!st.open) return;
-        if (g === 'y') { input.goal = await ask('mbti', sc.ask.goal.pick); if (!st.open) return; await say(sc.ask.goal.got, { face: 'smile', fx: 'glow' }); } else { input.goal = null; await say(sc.ask.goal.skip, { face: 'neutral' }); }
+        const g = await choose(askSc.goal.prompt, [{ label: askSc.goal.yes, value: 'y' }, { label: askSc.goal.no, value: 'n' }]); if (!st.open) return;
+        if (g === 'y') { input.goal = await ask('mbti', askSc.goal.pick); if (!st.open) return; await say(askSc.goal.got, { face: 'smile', fx: 'glow' }); } else { input.goal = null; await say(askSc.goal.skip, { face: 'neutral' }); }
         if (!st.open) return;
       }
     }
     let pr = null, prIn = null;
-    if (sc.ask.partner && (sc.partnerFor || []).includes(concern)) {
-      const y = await choose(sc.ask.partner.prompt, [{ label: sc.ask.partner.yes, value: 'y' }, { label: sc.ask.partner.no, value: 'n' }]); if (!st.open) return;
+    if (askSc.partner && (sc.partnerFor || []).includes(concern)) {
+      const y = await choose(askSc.partner.prompt, [{ label: askSc.partner.yes, value: 'y' }, { label: askSc.partner.no, value: 'n' }]); if (!st.open) return;
       if (y === 'y') {
-        if (sc.ask.partner.name) { prName = (await ask('text', sc.ask.partner.name, { optional: true, placeholder: '이름 또는 호칭(선택)' })) || ''; if (!st.open) return; }
-        const g = await ask('gender', sc.ask.partner.gender); if (!st.open) return;
-        const d = await ask('date', sc.ask.partner.date); if (!st.open) return;
+        if (askSc.partner.name) { prName = (await ask('text', askSc.partner.name, { optional: true, placeholder: '이름 또는 호칭(선택)' })) || ''; if (!st.open) return; }
+        const g = await ask('gender', askSc.partner.gender); if (!st.open) return;
+        const d = await ask('date', askSc.partner.date); if (!st.open) return;
         try { pr = S.compute({ year: d.year, month: d.month, day: d.day, hour: 12, minute: 0, hourUnknown: true, gender: g, solarCorrectionMin: 0 }); } catch (e) { pr = null; } prIn = pr ? { year: d.year, month: d.month, day: d.day, gender: g } : null;
-        await say(sc.ask.partner.got, { face: 'smile', fx: 'glow' });
-      } else await say(sc.ask.partner.skip, { face: 'neutral' });
+        await say(askSc.partner.got, { face: 'smile', fx: 'glow' });
+      } else await say(askSc.partner.skip, { face: 'neutral' });
       if (!st.open) return;
     }
-    for (const l of sc.ask.done) { await say(P.fill(l.t, { name }), l); if (!st.open) return; }
+    for (const l of askSc.done) { await say(P.fill(l.t, { name }), l); if (!st.open) return; }
 
+    A.state.childMode = childMode;
     if (!A.compute(input)) { await say('계산에 실패했어요. 날짜를 다시 확인해 주세요.', { face: 'serious' }); return finish('home'); }
-    if (sc.adultNote && (new Date().getFullYear() - input.year) >= 19) { await say(P.fill(sc.adultNote, { name }), { face: 'smile' }); if (!st.open) return; }
+    if (childMode && sc.adultNote && (new Date().getFullYear() - input.year) >= 19) { await say(P.fill(sc.adultNote, { name }), { face: 'smile' }); if (!st.open) return; }
     const r = A.state.result; A.state.concern = concern; A.state.concernLabel = (opt.label || '').replace(/[?!.]+$/, ''); A.state.situation = situation; A.state.situationLabel = situationLabel.replace(/[?!.]+$/, '');
-    const nameB = prName || (sc.ask.partner && sc.ask.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
-    if (sc.parentMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
+    const nameB = prName || (askSc.partner && askSc.partner.who) || '상대'; const ck = kind || sc.compatKind || 'love';
+    if (childMode) { A.state.parent = pr || null; A.state.parentIn = prIn; A.state.compat = null; A.state.compatIn = null; } else { A.state.compat = pr ? { pr, kind: ck, nameB } : null; A.state.compatIn = pr && prIn ? Object.assign({ kind: ck, nameB }, prIn) : null; }
     await summon(sc.summon); if (!st.open) return;
-    const c = { name, r, p, pr, concern, kind: kind || sc.compatKind || 'love', prName: prName || (sc.ask.partner && sc.ask.partner.who) || '상대', dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
+    const c = { name, r, p, pr, concern, childMode, kind: kind || sc.compatKind || 'love', prName: prName || (askSc.partner && askSc.partner.who) || '상대', dayKo: r.day.stemKo + r.dayMaster.elementKo, className: P.classNames[r.day.stem], strong: r.strongestGroup, weak: r.weakestGroup, seunNext: r.seun[1].year, year: r.seun[0].year };
     if (sc.mbti) { c.est = M.estimate(r); c.cmp = M.compare(input.mbti, c.est); c.adv = M.advise(c.est, input.mbti, input.goal); A.state.est = c.est; A.state.cmp = c.cmp; A.state.adv = c.adv; }
     const beats = sc.beats(c);
     for (const b of beats) { if ('visual' in b) visual(b.visual, c); await say(P.fill(b.t, c), b); if (!st.open) return; }

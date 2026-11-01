@@ -42,7 +42,6 @@
 .vn-sprite.enter-flame { animation: vnEnterFlame 1.3s cubic-bezier(.2,.8,.2,1) both; }
 .vn-sprite.enter-sage { animation: vnEnterSage 1.8s ease both; }
 .vn-sprite.enter-granny { animation: vnEnterGranny 1.5s ease both; }
-.vn-sprite.enter-child { animation: vnEnterChild 1.1s cubic-bezier(.34,1.56,.64,1) both; }
 .vn-sprite.enter-hunter { animation: vnEnterHunter .8s cubic-bezier(.2,.9,.2,1) both; }
 .vn-sprite.enter-master { animation: vnEnterMaster 1.6s ease both; }
 .vn-sprite.wake { animation: vnWake 2.6s ease both; }
@@ -142,7 +141,6 @@
 @keyframes vnEnterFlame { 0% { opacity: 0; transform: translateX(var(--sx)) scale(1.12); filter: brightness(4) blur(14px); } 45% { opacity: 1; filter: brightness(2.2) blur(4px); } 100% { opacity: 1; transform: translateX(var(--sx)) scale(1); filter: brightness(1) blur(0); } }
 @keyframes vnEnterSage { 0% { opacity: 0; transform: translateX(var(--sx)) translateY(14px); filter: blur(10px) brightness(.6); } 100% { opacity: 1; transform: translateX(var(--sx)); filter: blur(0) brightness(1); } }
 @keyframes vnEnterGranny { 0% { opacity: 0; transform: translateX(var(--sx)) translateY(30px); filter: brightness(.5); } 100% { opacity: 1; transform: translateX(var(--sx)); filter: brightness(1); } }
-@keyframes vnEnterChild { 0% { opacity: 0; transform: translateX(var(--sx)) translateY(18%) scale(.8); } 100% { opacity: 1; transform: translateX(var(--sx)) scale(1); } }
 @keyframes vnEnterHunter { 0% { opacity: 0; transform: translateX(calc(var(--sx) + 12%)) skewX(-6deg); filter: blur(6px); } 100% { opacity: 1; transform: translateX(var(--sx)) skewX(0); filter: blur(0); } }
 @keyframes vnEnterMaster { 0% { opacity: 0; transform: translateX(var(--sx)) scale(.94); filter: brightness(1.8) blur(6px); } 100% { opacity: 1; transform: translateX(var(--sx)) scale(1); filter: brightness(1) blur(0); } }
 @keyframes vnPanelIn { from { opacity: 0; transform: translateY(-14px) scale(.96); } to { opacity: 1; transform: none; } }
@@ -160,7 +158,6 @@
 #vn[data-persona="flame"]  { --p-accent: #ff6f5e; --p-accent2: #8e2a22; --p-glow: rgba(255,111,94,.38); }
 #vn[data-persona="sage"]   { --p-accent: #e2b74f; --p-accent2: #6e4f12; --p-glow: rgba(226,183,79,.35); }
 #vn[data-persona="granny"] { --p-accent: #b9a3ff; --p-accent2: #4a3a8c; --p-glow: rgba(185,163,255,.35); }
-#vn[data-persona="child"]  { --p-accent: #ff9ab5; --p-accent2: #8c3a5a; --p-glow: rgba(255,154,181,.35); }
 #vn[data-persona="hunter"] { --p-accent: #5fb0ff; --p-accent2: #1f4a80; --p-glow: rgba(95,176,255,.35); }
 #vn[data-persona="master"] { --p-accent: #d8b45f; --p-accent2: #2a2f5a; --p-glow: rgba(216,180,95,.35); }
 #vn[data-persona="mbti"]   { --p-accent: #66d6c5; --p-accent2: #1f4f52; --p-glow: rgba(102,214,197,.35); }

@@ -17,10 +17,11 @@
 [data-persona="flame"]  { --p-accent: #ff6f5e; --p-accent2: #8e2a22; --p-glow: rgba(255,111,94,.38); }
 [data-persona="sage"]   { --p-accent: #e2b74f; --p-accent2: #6e4f12; --p-glow: rgba(226,183,79,.35); }
 [data-persona="granny"] { --p-accent: #b9a3ff; --p-accent2: #4a3a8c; --p-glow: rgba(185,163,255,.35); }
-[data-persona="child"]  { --p-accent: #ff9ab5; --p-accent2: #8c3a5a; --p-glow: rgba(255,154,181,.35); }
 [data-persona="hunter"] { --p-accent: #5fb0ff; --p-accent2: #1f4a80; --p-glow: rgba(95,176,255,.35); }
 [data-persona="master"] { --p-accent: #d8b45f; --p-accent2: #2a2f5a; --p-glow: rgba(216,180,95,.35); }
 [data-persona="mbti"]   { --p-accent: #66d6c5; --p-accent2: #1f4f52; --p-glow: rgba(102,214,197,.35); }
+/* 캐릭터 색은 data-persona 가 붙은 요소(#app·#vn)에서 다시 묶는다. :root 에서만 묶으면 라이트 테마(하위 선택자로 덮어씀)에서 리포트·시트가 전부 금색으로 나온다(2026-11-01 수정). */
+[data-persona] { --accent: var(--p-accent); --accent-2: var(--p-accent2); --glow: var(--p-glow); }
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -347,7 +348,6 @@ footer.foot { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; 
 :root[data-theme="light"] [data-persona="flame"]  { --p-accent: #d94a3a; --p-accent2: #f3d6cf; --p-glow: rgba(217,74,58,.22); }
 :root[data-theme="light"] [data-persona="sage"]   { --p-accent: #b07d10; --p-accent2: #efe0b8; --p-glow: rgba(176,125,16,.22); }
 :root[data-theme="light"] [data-persona="granny"] { --p-accent: #7b5fd1; --p-accent2: #e2dbf5; --p-glow: rgba(123,95,209,.22); }
-:root[data-theme="light"] [data-persona="child"]  { --p-accent: #d9507a; --p-accent2: #f6d6e0; --p-glow: rgba(217,80,122,.22); }
 :root[data-theme="light"] [data-persona="hunter"] { --p-accent: #2f7fd1; --p-accent2: #d6e4f5; --p-glow: rgba(47,127,209,.22); }
 :root[data-theme="light"] [data-persona="master"] { --p-accent: #a67c14; --p-accent2: #e9dcbb; --p-glow: rgba(166,124,20,.22); }
 :root[data-theme="light"] [data-persona="mbti"]   { --p-accent: #1f9c8d; --p-accent2: #cfeae5; --p-glow: rgba(31,156,141,.22); }
